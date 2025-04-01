@@ -1,0 +1,17 @@
+<RCC>
+  <qresource prefix="card">
+    <file>images/token.png</file>
+    <file>images/card.png</file>
+    <file>images/sleeve.png</file>
+  </qresource>
+  <qresource prefix="ui">
+    <file>images/wallpaper_preview.png</file>
+    <file>images/wallpaper.png</file>
+    <file>images/gear.png</file>
+    <file>images/field_icon.png</file>
+    <file>images/field.png</file>
+    <file>images/player.png</file>
+    <file>images/bg.png</file>
+    <file>images/icon.png</file>
+  </qresource>
+</RCC>

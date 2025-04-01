@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>720</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../resources.qrc">
+    <normaloff>:/ui/images/icon.png</normaloff>:/ui/images/icon.png</iconset>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">#centralwidget {
+	border-image: url(:/ui/images/bg.png);
+	margin: 0;
+	padding: 0;
+}
+
+.QListView, .QLineEdit {
+    background-color: rgba(12, 12, 12, 0.7);
+ }
+    
+.QToolBar::item:hover {
+    background-color: rgba(12, 12, 12, 0.7);
+ }</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+                background-color: #121212;   /* Normal blue color */
+                color: white;
+            }
+
+QPushButton:hover {
+                background-color: #232323;   /* Darker blue on hover */
+            }</string>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>6</number>
+    </property>
+    <item>
+     <widget class="QStackedWidget" name="mainStack">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="currentIndex">
+       <number>-1</number>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>36</width>
+     <height>36</height>
+    </size>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionconfig_button"/>
+   <addaction name="actionsleeve_button"/>
+   <addaction name="actioncard_button"/>
+   <addaction name="actionface_button"/>
+   <addaction name="actionbackground_button"/>
+   <addaction name="actionicon_button"/>
+   <addaction name="actionfield_button"/>
+   <addaction name="actionwallpaper_button"/>
+  </widget>
+  <action name="actionconfig_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/ui/images/gear.png</normaloff>:/ui/images/gear.png</iconset>
+   </property>
+   <property name="text">
+    <string>config button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionsleeve_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/card/images/sleeve.png</normaloff>:/card/images/sleeve.png</iconset>
+   </property>
+   <property name="text">
+    <string>sleeve button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actioncard_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/ui/images/icon.png</normaloff>:/ui/images/icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>card button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionface_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/card/images/token.png</normaloff>:/card/images/token.png</iconset>
+   </property>
+   <property name="text">
+    <string>face button</string>
+   </property>
+   <property name="toolTip">
+    <string>face button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionbackground_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/ui/images/bg.png</normaloff>:/ui/images/bg.png</iconset>
+   </property>
+   <property name="text">
+    <string>background button</string>
+   </property>
+   <property name="toolTip">
+    <string>background button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionicon_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/ui/images/player.png</normaloff>:/ui/images/player.png</iconset>
+   </property>
+   <property name="text">
+    <string>icon button</string>
+   </property>
+   <property name="toolTip">
+    <string>icon button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionfield_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/ui/images/field_icon.png</normaloff>:/ui/images/field_icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>field button</string>
+   </property>
+   <property name="toolTip">
+    <string>field button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionwallpaper_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/ui/images/wallpaper.png</normaloff>:/ui/images/wallpaper.png</iconset>
+   </property>
+   <property name="text">
+    <string>wallpaper button</string>
+   </property>
+   <property name="toolTip">
+    <string>wallpaper button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>
