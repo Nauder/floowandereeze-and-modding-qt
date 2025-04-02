@@ -1,6 +1,6 @@
 # Floowandereeze & Modding
 
-A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows. A successor to the original Tkinter [Floowandereeze & Modding](https://github.com/Nauder/floowandereeze-and-modding).
+A modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows. A successor to the original Tkinter [Floowandereeze & Modding](https://github.com/Nauder/floowandereeze-and-modding).
 
 ## 🚧 Under Development 🚧
 
@@ -45,7 +45,7 @@ A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for 
 ## Requirements
 
 - Windows 10 or later
-- Python 3.8 or later
+- Python 3.8 or later (only for development)
 - Yu-Gi-Oh! Master Duel installed with the in-game download
 
 ## Installation
