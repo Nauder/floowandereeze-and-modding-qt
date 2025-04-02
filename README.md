@@ -1,6 +1,10 @@
 # Floowandereeze & Modding
 
-A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows (Under Development).
+A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows. A successor to the original Tkinter [Floowandereeze & Modding](https://github.com/Nauder/floowandereeze-and-modding).
+
+## 🚧 Under Development 🚧
+
+⚠️ **This project is currently in active development and is not fully stable. Features may change or break at any time.** ⚠️
 
 [![Pylint](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/pylint.yml/badge.svg)](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/pylint.yml)
 [![Black](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/black.yml/badge.svg)](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/black.yml)
@@ -18,21 +22,25 @@ A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for 
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Documentation](docs/README.md)
 - [Project Structure](#project-structure)
 - [Development](#development)
 - [Building](#building)
 - [License](#license)
-- [Contributing](#contributing)
 - [Credits](#credits)
 
 ## Features
 
-- Modern, dark-themed user interface
-- Unity asset extraction and manipulation
-- Database management for asset data
-- Bundle file handling
-- Texture and audio file processing
-- Card data visualization and editing
+- Unity asset texture extraction and manipulation, including:
+  - Card Art
+  - Card Face
+  - Card Sleeve
+  - Duel Field
+  - Home Background
+  - Home Wallpaper
+  - Player Icon
+- Card name and description editing
+- Customizable compression and mipmap count for created assets
 
 ## Requirements
 
@@ -41,6 +49,8 @@ A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for 
 - Yu-Gi-Oh! Master Duel installed with the in-game download
 
 ## Installation
+
+For end-user documentation, refer to the [documentation](docs/README.md).
 
 1. Clone the repository:
 
@@ -130,10 +140,6 @@ This script will:
 ## License
 
 This project is licensed under the terms specified in the LICENSE file.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Credits
 
