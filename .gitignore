@@ -297,7 +297,7 @@ cython_debug/
 
 # QT Build files
 /pages/ui/*
-/qtdesigner/images/*
+# /qtdesigner/images/*
 
 # Files created by the app
 /images
