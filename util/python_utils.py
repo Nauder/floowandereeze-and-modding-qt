@@ -1,3 +1,9 @@
+"""
+Python utility functions for the application.
+This module provides various helper functions for common Python operations
+like string manipulation, list handling, and game path validation.
+"""
+
 import re
 from ast import literal_eval
 from os.path import exists, join
@@ -10,6 +16,12 @@ def get_instances_of_subclasses(base_class):
     Returns a list of instances of all subclasses of the given base_class,
     instantiated in alphabetical order of their class names.
     Only creates instances of classes with a parameterless constructor.
+
+    Args:
+        base_class: The base class to find subclasses of
+
+    Returns:
+        list: List of instances of all subclasses that can be instantiated without arguments
     """
     instances = []
     subclasses = base_class.__subclasses__()  # Get direct subclasses
@@ -33,6 +45,17 @@ def get_instances_of_subclasses(base_class):
 
 
 def is_valid_game_path(folder: str) -> list[bool | str]:
+    """
+    Validates if the given folder path contains the required Unity game files.
+
+    Args:
+        folder: The folder path to validate
+
+    Returns:
+        list[bool | str]: A list containing:
+            - bool: True if the path is valid, False otherwise
+            - str: Error message if invalid, None if valid
+    """
     try:
         folder = join(folder[:-18], "masterduel_Data", FILE["UNITY"])
 
@@ -46,10 +69,30 @@ def is_valid_game_path(folder: str) -> list[bool | str]:
 
 
 def remove_alt_tags(s):
+    """
+    Removes alternative tags from a string (e.g., "(alt 1)", "(alt 2)", etc.).
+
+    Args:
+        s: The string to clean
+
+    Returns:
+        str: The string with alternative tags removed
+    """
     return re.sub(r"\(alt \d+\)", "", s).rstrip()
 
 
 def replace_entry(index: int, list_str: str, new_value: str) -> str:
+    """
+    Replaces an entry in a string representation of a list at the specified index.
+
+    Args:
+        index: The index of the entry to replace
+        list_str: String representation of the list
+        new_value: The new value to insert at the index
+
+    Returns:
+        str: The updated string representation of the list, or an error message if the operation fails
+    """
     try:
         # Convert the string representation of the list into an actual list
         parsed_list = literal_eval(list_str)
@@ -69,6 +112,17 @@ def replace_entry(index: int, list_str: str, new_value: str) -> str:
 
 
 def max_ratio_within_limit(numbers: tuple[int, int], limit: int) -> tuple[int, int]:
+    """
+    Scales a pair of numbers while maintaining their ratio, ensuring the larger number
+    doesn't exceed the specified limit.
+
+    Args:
+        numbers: A tuple of two integers to scale
+        limit: The maximum allowed value for the larger number
+
+    Returns:
+        tuple[int, int]: The scaled numbers as a tuple, maintaining their original order
+    """
     # Unpack the tuple
     num1, num2 = numbers
 

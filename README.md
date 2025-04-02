@@ -1,6 +1,10 @@
 # Floowandereeze & Modding
 
-A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows.
+A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows (Under Development).
+
+[![Pylint](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/pylint.yml/badge.svg)](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/pylint.yml)
+[![Black](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/black.yml/badge.svg)](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/black.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg?logo=python&logoColor=white)](https://www.python.org)
 [![PySide6](https://img.shields.io/badge/PySide6-6.7.2-41CD52.svg?logo=qt&logoColor=white)](https://doc.qt.io/qtforpython-6/)
@@ -25,7 +29,7 @@ A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for 
 
 - Modern, dark-themed user interface
 - Unity asset extraction and manipulation
-- Database management for card data
+- Database management for asset data
 - Bundle file handling
 - Texture and audio file processing
 - Card data visualization and editing
@@ -41,8 +45,8 @@ A powerful modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/floo-qt.git
-    cd floo-qt
+    git clone https://github.com/Nauder/floowandereeze-and-modding-qt.git
+    cd floowandereeze-and-modding-qt
     ```
 
 2. Create and activate a virtual environment:

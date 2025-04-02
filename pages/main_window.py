@@ -1,3 +1,9 @@
+"""
+Main window implementation for the Floowandereeze & Modding application.
+This module provides the main application window that hosts all the different
+pages and handles navigation between them.
+"""
+
 import pathlib
 from typing import List, Type
 
@@ -20,8 +26,26 @@ from util.ui_util import show_toast
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    """
+    Main window class that serves as the container for all application pages.
+
+    This class handles:
+    - Loading and managing different pages (Config, Sleeve, Card, etc.)
+    - Navigation between pages through the toolbar
+    - Background image management
+    - Game path validation and error handling
+
+    Attributes:
+        splash: The splash screen widget used during application startup
+    """
 
     def __init__(self, splash: QSplashScreen):
+        """
+        Initialize the main window.
+
+        Args:
+            splash: The splash screen widget to show loading progress
+        """
         super().__init__()
         self.splash = splash
         self.setupUi(self)

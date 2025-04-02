@@ -1,3 +1,9 @@
+"""
+Database models for the application.
+This module defines all SQLAlchemy models used to store application data,
+including configuration, card data, and various UI assets.
+"""
+
 from typing import ClassVar
 
 from PySide6.QtGui import QIcon
@@ -7,15 +13,36 @@ from sqlalchemy.orm import Mapped, mapped_column
 from database.objects import base, engine
 
 
-# In theory all that inherit from this should have a `thumb: QIcon = QIcon()` attribute, but pyinstaller
-# fails to detect the attribute, so it is explicitly declared in the children.
+# In theory all that inherit from this should have a `thumb: QIcon = QIcon()` attribute, but
+# pyinstaller fails to detect the attribute, so it is explicitly declared in the children.
 class UnityAsset:
+    """
+    Base class for Unity asset models.
+
+    This class provides common fields for all Unity asset models:
+    - id: Unique identifier
+    - favorite: Whether the asset is marked as favorite
+    - has_backup: Whether the asset has a backup
+
+    Note: All child classes should have a `thumb: QIcon = QIcon()` attribute,
+    but it's explicitly declared in children due to PyInstaller limitations.
+    """
+
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     has_backup: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class AppConfig(base):
+    """
+    Application configuration model.
+
+    Stores global application settings including:
+    - Game path and background path
+    - Version and crypto key
+    - Mipmap settings and backup preferences
+    """
+
     __tablename__ = "app_config"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -29,6 +56,14 @@ class AppConfig(base):
 
 
 class SleeveModel(UnityAsset, base):
+    """
+    Model for card sleeve assets.
+
+    Stores information about card sleeves including:
+    - bundle: Unique identifier for the sleeve asset
+    - thumb: Thumbnail icon for the sleeve
+    """
+
     __tablename__ = "sleeve"
 
     bundle: Mapped[str] = mapped_column(String(8), unique=True)
@@ -36,6 +71,16 @@ class SleeveModel(UnityAsset, base):
 
 
 class CardModel(UnityAsset, base):
+    """
+    Model for card assets.
+
+    Stores information about cards including:
+    - name and description (original and modded)
+    - bundle identifier
+    - data index for Unity file
+    - thumbnail icon
+    """
+
     __tablename__ = "card"
 
     # Original card name and description are kept separate from metadata so restoration is possible
@@ -50,6 +95,15 @@ class CardModel(UnityAsset, base):
 
 
 class CardMetadataModel(base):
+    """
+    Model for card metadata.
+
+    Stores additional card data including:
+    - name and bundle identifier
+    - raw data and decoded data
+    - JSON representation of the data
+    """
+
     __tablename__ = "card_metadata"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -61,6 +115,15 @@ class CardMetadataModel(base):
 
 
 class CardIconModel(UnityAsset, base):
+    """
+    Model for card icon assets.
+
+    Stores information about card icons including:
+    - name and dimensions
+    - atlas position coordinates
+    - thumbnail icon
+    """
+
     __tablename__ = "card_icon"
 
     name: Mapped[str] = mapped_column(String(255))
@@ -72,6 +135,15 @@ class CardIconModel(UnityAsset, base):
 
 
 class IconModel(UnityAsset, base):
+    """
+    Model for player icon assets.
+
+    Stores information about icons including:
+    - name
+    - bundle identifiers for different sizes
+    - thumbnail icon
+    """
+
     __tablename__ = "icon"
 
     name: Mapped[str] = mapped_column(String(255), unique=True)
@@ -82,6 +154,15 @@ class IconModel(UnityAsset, base):
 
 
 class WallpaperModel(UnityAsset, base):
+    """
+    Model for wallpaper assets.
+
+    Stores information about wallpapers including:
+    - name
+    - bundle identifiers for different components (icon, foreground, background)
+    - thumbnail icon
+    """
+
     __tablename__ = "home_art"
 
     name: Mapped[str] = mapped_column(String(255))
@@ -92,6 +173,15 @@ class WallpaperModel(UnityAsset, base):
 
 
 class FieldModel(UnityAsset, base):
+    """
+    Model for field assets.
+
+    Stores information about field assets including:
+    - bundle identifier
+    - position flags (bottom, flipped)
+    - thumbnail icon
+    """
+
     __tablename__ = "field"
 
     bundle: Mapped[str] = mapped_column(String(8), unique=True)
@@ -101,6 +191,14 @@ class FieldModel(UnityAsset, base):
 
 
 class FaceModel(UnityAsset, base):
+    """
+    Model for card face assets.
+
+    Stores information about face assets including:
+    - name and unique key
+    - thumbnail icon
+    """
+
     __tablename__ = "face"
 
     name: Mapped[str] = mapped_column(String(255), unique=True)
@@ -109,6 +207,15 @@ class FaceModel(UnityAsset, base):
 
 
 class DeckBoxModel(UnityAsset, base):
+    """
+    Model for deck box assets.
+
+    Stores information about deck boxes including:
+    - name
+    - bundle identifiers for different sizes and orientations
+    - thumbnail icon
+    """
+
     __tablename__ = "deck_box"
 
     name: Mapped[str] = mapped_column(String(255), unique=True)
