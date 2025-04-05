@@ -1,0 +1,51 @@
+site_name: Floowandereeze & Modding
+repo_url: https://github.com/nauder/floowandereeze-and-modding-qt
+theme:
+  name: material
+  favicon: assets/icon.png
+  logo: assets/ico.png
+  features:
+    - navigation.footer
+
+  palette:
+
+    - scheme: default
+      primary: blue
+      accent: dark blue
+      font:
+        text: white
+        link: light blue
+        code: light blue
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+
+    - scheme: slate
+      primary: blue
+      accent: dark blue
+      font:
+        text: white
+        link: light blue
+        code: light blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    
+nav:
+  - Home: index.md
+  - Features:
+    - Configuration: features/config.md
+    - Card Editor: features/card.md
+    - Card Face Editor: features/face.md
+    - Card Sleeve Editor: features/sleeve.md
+    - Duel Field Editor: features/field.md
+    - Background Editor: features/background.md
+    - Wallpaper Editor: features/wallpaper.md
+    - Icon Editor: features/icon.md
+  
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/nauder/floowandereeze-and-modding-qt
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/nauder

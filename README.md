@@ -50,7 +50,7 @@ A modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows. 
 
 ## Installation
 
-For end-user documentation, refer to the [documentation](docs/README.md).
+For end-user documentation, refer to the [documentation](https://nauder.github.io/floowandereeze-and-modding-qt).
 
 1. Clone the repository:
 
@@ -72,9 +72,15 @@ For end-user documentation, refer to the [documentation](docs/README.md).
     pip install -r requirements.txt
     ```
 
+4. (Optional) Install docs dependencies:
+
+    ```bash
+    pip install -r requirements-docs.txt
+    ```
+
 ## Usage
 
-Run the development environment:
+### Running the development environment
 
 ```powershell
 .\dev.ps1
@@ -91,6 +97,14 @@ Note: The `build_qt.ps1` script is used to:
 - Compile Qt resource files (`.qrc`) into Python modules
 - Convert Qt Designer UI files (`.ui`) into Python code
 - These steps are necessary for the application to run properly
+
+### Running the documentation
+
+```bash
+mkdocs serve
+```
+
+This will serve the documentation in the `docs/` directory at <https://localhost:8000>
 
 ## Project Structure
 
