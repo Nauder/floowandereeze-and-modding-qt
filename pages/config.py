@@ -3,13 +3,15 @@ import os
 from threading import Thread
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFileDialog, QWidget
+from PySide6.QtWidgets import QFileDialog, QWidget, QProgressDialog
 from pyqttoast import ToastPreset
 
 from database.objects import session
+from database.models import CardModel
 from dialogs.simple_dialogs import show_confirmation_dialog
 from pages.models.asset_list_model import AssetListModel
 from pages.ui.config import Ui_Config
+from services.card_service import CardService
 from services.unity_service import UnityService
 from services.update_service import (
     update_sleeves,
@@ -92,6 +94,8 @@ class Config(QWidget, Ui_Config):
         self.backupBox.clicked.connect(self._set_use_backups)
         self.restoreButton.clicked.connect(self._restore)
         self.clearButton.clicked.connect(self._delete_backups)
+        self.applyTextButton.clicked.connect(self._apply_all_text_edits)
+        self.restoreTextButton.clicked.connect(self._restore_all_text_edits)
         self.mipBox.textChanged.connect(self._set_mip_count)
         for radio in [
             self.noneButton,
@@ -201,6 +205,14 @@ class Config(QWidget, Ui_Config):
             or datetime.strptime(local.strip(), "%Y-%m-%d").date()
             < datetime.strptime(remote.strip(), "%Y-%m-%d").date()
         ):
+            # Create progress dialog
+            progress = QProgressDialog("Updating data...", "Cancel", 0, 8, self)
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.setWindowTitle("Updating")
+            progress.setCancelButton(
+                None
+            )  # Remove cancel button since we can't cancel the update
+            progress.show()
 
             update_threads = [
                 Thread(target=update_sleeves),
@@ -215,9 +227,12 @@ class Config(QWidget, Ui_Config):
 
             for thread in update_threads:
                 thread.start()
+                progress.setValue(progress.value() + 1)
 
             for thread in update_threads:
                 thread.join()
+
+            progress.close()
 
             APP_CONFIG.version = remote
             session.commit()
@@ -252,4 +267,120 @@ class Config(QWidget, Ui_Config):
 
         self.parent().parent().parent().setStyleSheet(
             BG_TEMPLATE.replace("$BG$", "border-image: url(:/ui/images/bg.png);")
+        )
+
+    def _apply_all_text_edits(self) -> None:
+        """Applies all text edits saved in the database to the game files."""
+
+        # Get all cards with text edits
+        modified_cards = (
+            session.query(CardModel)
+            .filter(
+                (CardModel.modded_name.isnot(None))
+                | (CardModel.modded_description.isnot(None))
+            )
+            .all()
+        )
+
+        if not modified_cards:
+            show_toast(
+                self,
+                "Text Edits",
+                "No text edits to apply",
+                ToastPreset.SUCCESS_DARK,
+            )
+            return
+
+        # Create progress dialog
+        progress = QProgressDialog(
+            "Applying text edits...", "Cancel", 0, len(modified_cards), self
+        )
+        progress.setWindowModality(Qt.WindowModality.WindowModal)
+        progress.setWindowTitle("Applying Text Edits")
+        progress.setCancelButton(
+            None
+        )  # Remove cancel button since we can't cancel the process
+        progress.show()
+
+        card_service = CardService()
+        success_count = 0
+
+        for card in modified_cards:
+            card_service.bundle = card.bundle
+            if card.modded_name:
+                card_service.replace_name(card.modded_name)
+            if card.modded_description:
+                card_service.replace_description(card.modded_description)
+            success_count += 1
+            progress.setValue(progress.value() + 1)
+
+        progress.close()
+
+        show_toast(
+            self,
+            "Text Edits",
+            f"Successfully applied {success_count} text edits",
+            ToastPreset.SUCCESS_DARK,
+        )
+
+    def _restore_all_text_edits(self) -> None:
+        """Reverts all text edits saved in the database to their original values."""
+
+        # Get all cards with text edits
+        modified_cards = (
+            session.query(CardModel)
+            .filter(
+                (CardModel.modded_name.isnot(None))
+                | (CardModel.modded_description.isnot(None))
+            )
+            .all()
+        )
+
+        if not modified_cards:
+            show_toast(
+                self,
+                "Text Edits",
+                "No text edits to restore",
+                ToastPreset.SUCCESS_DARK,
+            )
+            return
+
+        # Create progress dialog
+        progress = QProgressDialog(
+            "Restoring text edits...", "Cancel", 0, len(modified_cards), self
+        )
+        progress.setWindowModality(Qt.WindowModality.WindowModal)
+        progress.setWindowTitle("Restoring Text Edits")
+        progress.setCancelButton(
+            None
+        )  # Remove cancel button since we can't cancel the process
+        progress.show()
+
+        card_service = CardService()
+        success_count = 0
+
+        for card in modified_cards:
+            card_service.bundle = card.bundle
+            if card.modded_name:
+                card_service.replace_name(card.name)  # Restore original name
+            if card.modded_description:
+                card_service.replace_description(
+                    card.description
+                )  # Restore original description
+            success_count += 1
+            progress.setValue(progress.value() + 1)
+
+        # Clear all modded fields in the database
+        for card in modified_cards:
+            card.modded_name = None
+            card.modded_description = None
+        session.commit()
+
+        progress.close()
+
+        show_toast(
+            self,
+            "Text Edits",
+            f"Successfully restored {success_count} text edits",
+            ToastPreset.SUCCESS_DARK,
         )

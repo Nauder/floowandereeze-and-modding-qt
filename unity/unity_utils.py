@@ -37,8 +37,8 @@ def fetch_unity3d_image(path_id: int, aspect: tuple) -> QtGui.QIcon | None:
     """
     Fetch and resize an image from Unity3D resources.
 
-    This function fetches an image with a specified Unity3D path ID, resizes it to the given aspect ratio, and
-    converts it into RGB format.
+    This function fetches an image with a specified Unity3D path ID,
+    resizes it to the given aspect ratio, and converts it into RGB format.
 
     :param path_id: The path ID of the image in Unity3D resources.
     :type path_id: str
@@ -66,8 +66,8 @@ def batch_fetch_unity3d_images(path_ids: list[int], aspect: tuple) -> dict[QtGui
     """
     Fetch and resize an image from Unity3D resources.
 
-    This function fetches images with specified Unity3D path IDs in bulk, resizes them to the given aspect ratio,
-    and converts them into RGB format.
+    This function fetches images with specified Unity3D path IDs in bulk,
+    resizes them to the given aspect ratio, and converts them into RGB format.
 
     :param path_ids: The path IDs of the images in Unity3D resources.
     :type path_ids: list[int]
@@ -95,6 +95,20 @@ def batch_fetch_unity3d_images(path_ids: list[int], aspect: tuple) -> dict[QtGui
 
 
 def replace_unity3d_asset(asset: str, img: Image.Image, by_path_id=False) -> None:
+    """
+    Replaces a Unity3D asset with a new image.
+
+    This function locates a texture object within Unity3D game data file
+    and then saves it as a PNG file.
+
+    :param asset: The path ID or name of the texture to replace.
+    :type asset: str
+    :param img: The new image to replace the asset with.
+    :type img: Image.Image
+    :param by_path_id: Whether to locate the asset by its path ID.
+    :type by_path_id: bool, optional
+    """
+
     env = unity_load(join(APP_CONFIG.game_path[:-18], "masterduel_Data", FILE["UNITY"]))
 
     for obj in env.objects:
@@ -171,6 +185,16 @@ def extract_unity3d_image(asset: str, by_id=False, backup=False) -> None:
 
 
 def fetch_home_bg():
+    """
+    Fetches the home background image from Unity3D game data.
+
+    This function locates the home background texture object within Unity3D game data
+    and then resizes it to the specified dimensions before converting it to RGB format.
+
+    :returns: A QIcon object representing the home background image.
+    :rtype: QtGui.QIcon
+    """
+
     env = unity_load(join(APP_CONFIG.game_path[:-18], "masterduel_Data", FILE["UNITY"]))
     for obj in env.objects:
         if obj.type.name == "Texture2D":
@@ -199,6 +223,21 @@ def swap_bundles(bundles: list) -> None:
 def fetch_bundle_thumb(
     bundle: str | Mapped[str], ratio: tuple[int, int] | None, unity_file=False
 ) -> QtGui.QIcon | None:
+    """
+    Fetches a thumbnail image from a Unity3D bundle.
+
+    This function locates a texture object within a Unity3D bundle and then resizes it
+    to the specified dimensions before converting it to RGB format.
+
+    :param bundle: The bundle to fetch the thumbnail from.
+    :type bundle: str | Mapped[str]
+    :param ratio: The dimensions to resize the image to.
+    :type ratio: tuple[int, int] | None
+    :param unity_file: Whether to use the Unity3D file.
+    :type unity_file: bool, optional
+    :returns: A QIcon object representing the thumbnail image.
+    :rtype: QtGui.QIcon | None
+    """
 
     env = unity_load(prepare_environment(unity_file, bundle))
 
@@ -217,6 +256,17 @@ def fetch_bundle_thumb(
 
 
 def fetch_field_thumb(field: FieldModel) -> QtGui.QIcon | None:
+    """
+    Fetches a thumbnail image from a Unity3D field.
+
+    This function locates a texture object within a Unity3D field and then resizes it
+    to the specified dimensions before converting it to RGB format.
+
+    :param field: The field to fetch the thumbnail from.
+    :type field: FieldModel
+    :returns: A QIcon object representing the thumbnail image.
+    :rtype: QtGui.QIcon | None
+    """
 
     env = unity_load(prepare_environment(False, field.bundle))
 
