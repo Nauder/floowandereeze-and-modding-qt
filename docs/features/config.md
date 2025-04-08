@@ -27,6 +27,8 @@ The Configuration page allows you to manage application settings and perform mai
 - **Enable Backups**: Toggle automatic backup creation
 - **Restore All**: Restore all modified assets with backups to their original state
 - **Clear Backups**: Delete all backup files
+- **Restore Text Edits**: Revert all text modifications to their original state
+- **Reapply Text Edits**: Reapply all previously made text modifications
 
 ### Appearance Settings
 
@@ -59,12 +61,14 @@ The Configuration page allows you to manage application settings and perform mai
       - Toggle "Enable Backups" to control automatic backup creation
       - Use "Restore All" to revert all changes
       - Use "Clear Backups" to remove backup files
+      - Use "Restore Text Edits" to revert all text modifications to their original state
+      - Use "Reapply Text Edits" to reapply all previously made text modifications
 
 4. **Customizing Appearance**
       - Click "Select Background" to choose custom background
       - Use "Reset Background" to remove custom background
       - Changes are applied immediately
-      - The app has a dark theme, so bright backgrounds are not reccomended
+      - The app has a dark theme, so bright backgrounds are not recommended
 
 5. **Configuring Asset Settings**
       - Set desired mipmap count (default: 10)
@@ -79,3 +83,5 @@ The Configuration page allows you to manage application settings and perform mai
 - Asset settings affect all new replacements
 - Some changes require application restart
 - Backups create local copies of assets, so they take storage space
+- The text edit operations can take a *very* long time, depending on available resources and
+amount of cards modified

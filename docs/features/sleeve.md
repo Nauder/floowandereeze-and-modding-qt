@@ -1,6 +1,7 @@
 # Card Sleeve Editor
 
-The Card Sleeve Editor page allows you to modify card sleeves in Yu-Gi-Oh! Master Duel. This page provides functionality to view, replace, and customize card sleeves with optional border effects.
+The Card Sleeve Editor page allows you to modify card sleeves in Yu-Gi-Oh! Master Duel. This page provides functionality
+to view, replace, and customize card sleeves with optional border effects.
 
 ![Sleeve Page Preview](../assets/ui/sleeve.png)
 
