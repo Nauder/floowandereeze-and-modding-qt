@@ -34,7 +34,7 @@ class Config(QWidget, Ui_Config):
     """
     Main configuration page.
 
-    This page contains the configuration for the app, including the game path, 
+    This page contains the configuration for the app, including the game path,
     background image, and backup settings.
     """
 
@@ -53,7 +53,11 @@ class Config(QWidget, Ui_Config):
         if event.mimeData().hasUrls():
             # Check if the dragged file is an image
             for url in event.mimeData().urls():
-                if url.toLocalFile().lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                if (
+                    url.toLocalFile()
+                    .lower()
+                    .endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))
+                ):
                     event.acceptProposedAction()
                     return
         event.ignore()
@@ -64,15 +68,13 @@ class Config(QWidget, Ui_Config):
 
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
-            if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+            if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
                 APP_CONFIG.background_path = file_path
                 session.commit()
                 self.bgLine.setText(APP_CONFIG.background_path)
 
                 self.parent().parent().parent().setStyleSheet(
-                    BG_TEMPLATE.replace(
-                        "$BG$", f"border-image: url('{file_path}');"
-                    )
+                    BG_TEMPLATE.replace("$BG$", f"border-image: url('{file_path}');")
                 )
                 show_toast(
                     self,

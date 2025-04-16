@@ -32,7 +32,11 @@ class Sleeve(QtWidgets.QWidget, Ui_Sleeve):
         if event.mimeData().hasUrls():
             # Check if the dragged file is an image
             for url in event.mimeData().urls():
-                if url.toLocalFile().lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                if (
+                    url.toLocalFile()
+                    .lower()
+                    .endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))
+                ):
                     event.acceptProposedAction()
                     return
         event.ignore()
@@ -41,7 +45,7 @@ class Sleeve(QtWidgets.QWidget, Ui_Sleeve):
         """Handles the drop event of an image file."""
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
-            if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+            if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
                 self.sleeveEdit.setText(file_path)
                 self.preview.setPixmap(QPixmap(file_path))
                 self.service.image_path = file_path

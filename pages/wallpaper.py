@@ -38,7 +38,11 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
         if event.mimeData().hasUrls():
             # Check if the dragged file is an image
             for url in event.mimeData().urls():
-                if url.toLocalFile().lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                if (
+                    url.toLocalFile()
+                    .lower()
+                    .endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))
+                ):
                     event.acceptProposedAction()
                     return
         event.ignore()
@@ -47,7 +51,7 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
         """Handles the drop event of an image file."""
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
-            if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+            if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
                 self.wallpaperEdit.setText(file_path)
                 self.service.image_path = file_path
                 break

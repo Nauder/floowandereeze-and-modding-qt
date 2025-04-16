@@ -58,8 +58,7 @@ class Background(QtWidgets.QWidget, Ui_Background):
             self.current.setPixmap(home_bg.pixmap(1920, 1080))
 
     def _select_image(self):
-        file, _ = QFileDialog.getOpenFileUrl(
-            self, "Select Image", "", IMAGE_FILTER)
+        file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)
 
         if file and file.url() != "":
             local_file = file.toLocalFile()
@@ -84,8 +83,7 @@ class Background(QtWidgets.QWidget, Ui_Background):
 
         replace_unity3d_asset(
             FILE["BACKGROUND"],
-            Image.open(self.image_path).resize(
-                (1920, 1080), Resampling.LANCZOS),
+            Image.open(self.image_path).resize((1920, 1080), Resampling.LANCZOS),
         )
         self.current.setPixmap(fetch_home_bg().pixmap(1920, 1080))
 
