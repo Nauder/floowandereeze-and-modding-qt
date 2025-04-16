@@ -1,6 +1,6 @@
 from typing_extensions import Optional
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog, QCompleter
 from pyqttoast import ToastPreset
 
@@ -25,7 +25,30 @@ class Card(QtWidgets.QWidget, Ui_Card):
         self.cardsView.setModel(self.model)
         self.selected: Optional[CardModel] = None
 
+        # Enable drag and drop
+        self.setAcceptDrops(True)
+
         self._connect_callbacks()
+
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        """Accepts drag and drop of image files."""
+        if event.mimeData().hasUrls():
+            # Check if the dragged file is an image
+            for url in event.mimeData().urls():
+                if url.toLocalFile().lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        """Handles the drop event of an image file."""
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                self.cardEdit.setText(file_path)
+                self.preview.setPixmap(QPixmap(file_path))
+                self.service.image_path = file_path
+                break
 
     def _connect_callbacks(self):
         self.cardsView.clicked.connect(self._on_card_clicked)

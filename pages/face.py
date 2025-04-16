@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PySide6 import QtWidgets
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
@@ -25,7 +25,30 @@ class Face(QtWidgets.QWidget, Ui_Face):
         self.facesView.setModel(self.model)
         self.selected: Optional[FaceModel] = None
 
+        # Enable drag and drop
+        self.setAcceptDrops(True)
+
         self._connect_callbacks()
+
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        """Accepts drag and drop of image files."""
+        if event.mimeData().hasUrls():
+            # Check if the dragged file is an image
+            for url in event.mimeData().urls():
+                if url.toLocalFile().lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        """Handles the drop event of an image file."""
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                self.assetEdit.setText(file_path)
+                self.preview.setPixmap(QPixmap(file_path))
+                self.service.image_path = file_path
+                break
 
     def _connect_callbacks(self) -> None:
         self.facesView.clicked.connect(self._on_face_clicked)

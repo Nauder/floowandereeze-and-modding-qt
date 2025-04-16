@@ -4,6 +4,7 @@ from threading import Thread
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFileDialog, QWidget, QProgressDialog
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from pyqttoast import ToastPreset
 
 from database.objects import session
@@ -30,11 +31,56 @@ from util.ui_util import show_toast
 
 
 class Config(QWidget, Ui_Config):
+    """
+    Main configuration page.
+
+    This page contains the configuration for the app, including the game path, 
+    background image, and backup settings.
+    """
+
     def __init__(self):
         super(Config, self).__init__()
         self.setupUi(self)
         self._connect_callbacks()
         self._set_variables()
+        # Enable drag and drop
+        self.setAcceptDrops(True)
+
+    # Wrong naming convention for Python, but it's what Qt uses
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        """Accepts drag and drop of image files."""
+
+        if event.mimeData().hasUrls():
+            # Check if the dragged file is an image
+            for url in event.mimeData().urls():
+                if url.toLocalFile().lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    # Wrong naming convention for Python, but it's what Qt uses
+    def dropEvent(self, event: QDropEvent) -> None:
+        """Handles the drop event of an image file."""
+
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                APP_CONFIG.background_path = file_path
+                session.commit()
+                self.bgLine.setText(APP_CONFIG.background_path)
+
+                self.parent().parent().parent().setStyleSheet(
+                    BG_TEMPLATE.replace(
+                        "$BG$", f"border-image: url('{file_path}');"
+                    )
+                )
+                show_toast(
+                    self,
+                    "Background",
+                    "Background image set successfully",
+                    ToastPreset.SUCCESS_DARK,
+                )
+                break
 
     def restore_all_asset_changes(self) -> None:
         count = 0

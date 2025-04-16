@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtGui import QPixmap, QImage, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
@@ -28,7 +28,29 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
         )
         self.main_content.addWidget(self.preview)
 
+        # Enable drag and drop
+        self.setAcceptDrops(True)
+
         self._connect_callbacks()
+
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        """Accepts drag and drop of image files."""
+        if event.mimeData().hasUrls():
+            # Check if the dragged file is an image
+            for url in event.mimeData().urls():
+                if url.toLocalFile().lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        """Handles the drop event of an image file."""
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                self.wallpaperEdit.setText(file_path)
+                self.service.image_path = file_path
+                break
 
     def _restore(self):
         if self.service.restore_asset():
