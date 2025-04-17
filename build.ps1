@@ -4,7 +4,7 @@ pyinstaller `
     --onefile `
     --noconsole `
     --icon "./qtdesigner/images/icon.ico" `
-    --add-data "$env:LOCALAPPDATA\Programs\Python\Python311\Lib\site-packages\UnityPy;UnityPy/" `
+    --add-data "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\UnityPy;UnityPy/" `
     --hidden-import "fastparquet" `
     --name "Floowandereeze & Modding" `
     .\main.py
