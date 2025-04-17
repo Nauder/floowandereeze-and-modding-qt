@@ -3,6 +3,7 @@ from os.path import isfile, join
 from PIL import Image
 from PIL.Image import Resampling
 from PySide6 import QtWidgets
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
@@ -22,10 +23,36 @@ class Background(QtWidgets.QWidget, Ui_Background):
         super(Background, self).__init__()
         self.setupUi(self)
 
+        # Enable drag and drop
+        self.setAcceptDrops(True)
+
         self._connect_callbacks()
         self._load_home_bg()
 
         self.image_path: str
+
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        """Accepts drag and drop of image files."""
+        if event.mimeData().hasUrls():
+            # Check if the dragged file is an image
+            for url in event.mimeData().urls():
+                if (
+                    url.toLocalFile()
+                    .lower()
+                    .endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))
+                ):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        """Handles the drop event of an image file."""
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
+                self.assetEdit.setText(file_path)
+                self.image_path = file_path
+                break
 
     def _connect_callbacks(self):
         self.selectButton.clicked.connect(self._select_image)
