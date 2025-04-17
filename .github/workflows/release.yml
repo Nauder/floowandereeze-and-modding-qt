@@ -33,6 +33,10 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
         
+    - name: Create required directories
+      run: |
+        mkdir -p pages\ui
+        
     - name: Build application
       run: |
         .\build.ps1
