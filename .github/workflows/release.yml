@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*'
+      - 'v*.*'
+      - 'v*.*.*'
+      - 'v*.*.*-*'
 
 jobs:
   build:
@@ -11,7 +14,15 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for all tags
     
+    - name: Debug Tag Info
+      run: |
+        echo "Current tag: ${{ github.ref }}"
+        echo "Tag name: ${{ github.ref_name }}"
+        git show-ref --tags
+        
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -19,9 +30,8 @@ jobs:
         
     - name: Install Qt
       run: |
-        $qtUrl = "https://github.com/miurahr/aqtinstall/releases/download/v3.1.6/aqt.exe"
-        Invoke-WebRequest -Uri $qtUrl -OutFile aqt.exe
-        .\aqt.exe install-qt windows desktop 6.5.3 win64_msvc2019_64 -m qtwebengine
+        python -m pip install aqtinstall
+        python -m aqt install-qt windows desktop 6.5.3 win64_msvc2019_64 -m qtwebengine
         
     - name: Install dependencies
       run: |
@@ -32,7 +42,7 @@ jobs:
     - name: Build application
       run: |
         .\build.ps1
-    
+        
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v1
@@ -40,5 +50,6 @@ jobs:
         files: "dist/Floowandereeze & Modding.exe"
         generate_release_notes: true
         prerelease: ${{ contains(github.ref, 'beta') }}
+        tag_name: ${{ github.ref_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
