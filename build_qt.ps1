@@ -10,4 +10,5 @@ Get-ChildItem -Path $ui_dir -Filter *.ui | ForEach-Object {
     $inputFile = $_.FullName
     $outputFile = "$output_dir\$($_.BaseName).py"
     pyside6-uic $inputFile -o $outputFile --from-imports
+    Write-Output "Converted $inputFile to $outputFile"
 }
