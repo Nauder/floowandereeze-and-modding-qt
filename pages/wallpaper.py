@@ -87,7 +87,8 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
         )
         self.service.bundle = self.selected
         self.bundle.setText(
-            f"Editing {self.selected.name} (F: {self.selected.bundle_foreground} B: {self.selected.bundle_background}) |"
+            f"Editing {self.selected.name} "
+            f"(F: {self.selected.bundle_foreground} B: {self.selected.bundle_background}) |"
             f" Size: {size.width()}x{size.height()}px"
         )
 
@@ -134,8 +135,11 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
 
     def _replace_wallpaper(self):
         if APP_CONFIG.create_backup and not self.selected.has_backup:
+            wallpapers = self.service.bundle
+            self.service.bundle = self.selected.bundle_foreground
             self.service.create_backup(self.service.bundle)
             self.model.set_backup_state(self.selected.id, True)
+            self.service.bundle = wallpapers
 
         self.service.replace_bundle()
         self.model.refresh()

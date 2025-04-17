@@ -87,16 +87,11 @@ class WallpaperService(UnityService):
         self.bundle = current
 
     @override
-    def restore_asset(self) -> bool:
-        # If Konami ever puts two icons in the same bundle this whole thing breaks
-        self.bundle = (
-            session.query(IconModel).filter(IconModel.bundle_big == self.bundle).first()
+    def restore_asset(self, backup_name=None) -> bool:
+        self.image_path = join(
+            "backups", self.subfolder, self.bundle.bundle_foreground + ".png"
         )
-        backup_path = join("backups", self.subfolder, self.bundle.bundle_big + ".png")
-        if isfile(backup_path):
-            current_image = self.image_path
-            self.image_path = backup_path
+        if isfile(self.image_path):
             self.replace_bundle()
-            self.image_path = current_image
             return True
         return False
