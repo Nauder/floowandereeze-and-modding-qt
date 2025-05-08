@@ -72,13 +72,35 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 Wallpaper,
             ]
 
-            for page in pages:
-                self.splash.showMessage(
-                    f"Loading {page.__name__}s...",
-                    alignment=QtCore.Qt.AlignBottom | QtCore.Qt.AlignCenter,
-                    color=QtCore.Qt.white,
-                )
-                self.mainStack.addWidget(page())
+            # Always load the Config page first
+            self.mainStack.addWidget(Config())
+
+            # Try to load other pages, fallback to Config if they fail
+            for page in pages[1:]:  # Skip Config since it's already loaded
+                try:
+                    self.splash.showMessage(
+                        f"Loading {page.__name__}s...",
+                        alignment=QtCore.Qt.AlignBottom | QtCore.Qt.AlignCenter,
+                        color=QtCore.Qt.white,
+                    )
+                    self.mainStack.addWidget(page())
+                except Exception as e:
+                    show_toast(
+                        self,
+                        f"{page.__name__} Error",
+                        f"Failed to load {page.__name__} tab: {str(e)}",
+                        ToastPreset.WARNING_DARK,
+                    )
+                    # Add a placeholder widget that shows the error
+                    error_widget = QtWidgets.QWidget()
+                    layout = QtWidgets.QVBoxLayout()
+                    error_label = QtWidgets.QLabel(
+                        f"Failed to load {page.__name__} tab:\n{str(e)}"
+                    )
+                    error_label.setAlignment(QtCore.Qt.AlignCenter)
+                    layout.addWidget(error_label)
+                    error_widget.setLayout(layout)
+                    self.mainStack.addWidget(error_widget)
         else:
             if error_message and APP_CONFIG.game_path:
                 show_toast(
