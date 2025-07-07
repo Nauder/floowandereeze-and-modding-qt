@@ -38,4 +38,4 @@ texture2ddecoder==1.0.4
 typing_extensions==4.12.2
 tzdata==2024.1
 UnityPy==1.10.18
-urllib3==2.2.3
+urllib3==2.5.0
