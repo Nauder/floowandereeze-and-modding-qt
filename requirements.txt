@@ -29,7 +29,7 @@ python-dotenv==1.0.1
 pytz==2024.2
 pywin32-ctypes==0.2.3
 QtPy==2.4.1
-requests==2.32.3
+requests==2.32.4
 shiboken6==6.7.2
 six==1.16.0
 SQLAlchemy==2.0.34
