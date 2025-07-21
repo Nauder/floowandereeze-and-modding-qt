@@ -11,6 +11,7 @@ from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtWidgets import QSplashScreen
 
 from database.objects import session
+from database.migrations import run_migrations
 from pages.main_window import MainWindow
 from util.ui_util import get_dark_mode_palette
 
@@ -27,7 +28,12 @@ if __name__ == "__main__":
         splash.showMessage("Starting...", 4, "#FFFFFF")
         splash.show()
 
+        # Run database migrations
+        splash.showMessage("Updating database...", 4, "#FFFFFF")
+        run_migrations()
+
         # Create and show main window
+        splash.showMessage("Loading interface...", 4, "#FFFFFF")
         window = MainWindow(splash)
         window.setWindowTitle("Floowandereeze & Modding")
         window.show()

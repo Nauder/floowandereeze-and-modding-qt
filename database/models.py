@@ -41,6 +41,7 @@ class AppConfig(base):
     - Game path and background path
     - Version and crypto key
     - Mipmap settings and backup preferences
+    - Background display mode
     """
 
     __tablename__ = "app_config"
@@ -53,6 +54,7 @@ class AppConfig(base):
     crypto_key: Mapped[str] = mapped_column(String(100), nullable=True)
     packer: Mapped[str] = mapped_column(String(5), default="LZ4")
     create_backup: Mapped[bool] = mapped_column(Boolean, default=False)
+    background_mode: Mapped[str] = mapped_column(String(10), default="stretched")
 
 
 class SleeveModel(UnityAsset, base):

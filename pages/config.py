@@ -73,9 +73,7 @@ class Config(QWidget, Ui_Config):
                 session.commit()
                 self.bgLine.setText(APP_CONFIG.background_path)
 
-                self.parent().parent().parent().setStyleSheet(
-                    BG_TEMPLATE.replace("$BG$", f"border-image: url('{file_path}');")
-                )
+                self._apply_background_style(file_path)
                 show_toast(
                     self,
                     "Background",
@@ -153,6 +151,10 @@ class Config(QWidget, Ui_Config):
             self.lzhamButton,
         ]:
             radio.toggled.connect(lambda checked, r=radio: self._set_packer(r))
+        
+        # Connect background mode radio buttons
+        for radio in [self.stretchedButton, self.croppedButton]:
+            radio.toggled.connect(lambda checked, r=radio: self._set_background_mode(r))
 
     def _set_packer(self, radio):
         # Ignore the event if it was turned off
@@ -161,8 +163,33 @@ class Config(QWidget, Ui_Config):
             if packer != APP_CONFIG.packer:
                 APP_CONFIG.packer = packer
 
+    def _set_background_mode(self, radio):
+        # Ignore the event if it was turned off
+        if radio.isChecked():
+            mode = radio.objectName().replace("Button", "")
+            if mode != APP_CONFIG.background_mode:
+                APP_CONFIG.background_mode = mode
+                session.commit()
+                # Reapply background with new mode if background is set
+                if APP_CONFIG.background_path:
+                    self._apply_background_style(APP_CONFIG.background_path)
+
     def _set_mip_count(self):
         APP_CONFIG.mip_count = self.mipBox.value()
+
+    def _apply_background_style(self, file_path):
+        """Apply background image with the selected mode (stretched or cropped)."""
+        background_mode = APP_CONFIG.background_mode
+        
+        if background_mode == 'cropped':
+            # Use background-image with center positioning for cropped mode
+            bg_style = f"background-image: url('{file_path}'); background-position: center; background-repeat: no-repeat;"
+        else:  # stretched (default)
+            bg_style = f"border-image: url('{file_path}');"
+        
+        self.parent().parent().parent().setStyleSheet(
+            BG_TEMPLATE.replace("$BG$", bg_style)
+        )
 
     def _delete_backups(self):
         if show_confirmation_dialog(
@@ -230,6 +257,13 @@ class Config(QWidget, Ui_Config):
             self.lzhamButton,
         ]:
             if radio.objectName().startswith(APP_CONFIG.packer or "lz4"):
+                radio.setChecked(True)
+                break
+        
+        # Set background mode radio buttons
+        background_mode = APP_CONFIG.background_mode or 'stretched'
+        for radio in [self.stretchedButton, self.croppedButton]:
+            if radio.objectName().startswith(background_mode):
                 radio.setChecked(True)
                 break
 
@@ -303,15 +337,12 @@ class Config(QWidget, Ui_Config):
             session.commit()
             self.bgLine.setText(APP_CONFIG.background_path)
 
-            self.parent().parent().parent().setStyleSheet(
-                BG_TEMPLATE.replace(
-                    "$BG$", f"border-image: url('{file.toLocalFile()}');"
-                )
-            )
+            self._apply_background_style(file.toLocalFile())
 
     def _reset_background(self):
         APP_CONFIG.background_path = None
         session.commit()
+        self.bgLine.setText("")
 
         self.parent().parent().parent().setStyleSheet(
             BG_TEMPLATE.replace("$BG$", "border-image: url(:/ui/images/bg.png);")

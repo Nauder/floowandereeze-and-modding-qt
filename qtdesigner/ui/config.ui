@@ -103,6 +103,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label_9">
+         <property name="toolTip">
+          <string>Background image display mode</string>
+         </property>
+         <property name="text">
+          <string>Background Mode:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_3">
          <property name="toolTip">
           <string>Current App Data Version</string>
@@ -232,6 +242,52 @@
             <bool>false</bool>
            </property>
           </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QRadioButton" name="stretchedButton">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Stretch background image to fill window</string>
+           </property>
+           <property name="text">
+            <string>Stretched</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="croppedButton">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Crop background image to maintain aspect ratio</string>
+           </property>
+           <property name="text">
+            <string>Cropped</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
