@@ -151,7 +151,7 @@ class Config(QWidget, Ui_Config):
             self.lzhamButton,
         ]:
             radio.toggled.connect(lambda checked, r=radio: self._set_packer(r))
-        
+
         # Connect background mode radio buttons
         for radio in [self.stretchedButton, self.croppedButton]:
             radio.toggled.connect(lambda checked, r=radio: self._set_background_mode(r))
@@ -180,13 +180,13 @@ class Config(QWidget, Ui_Config):
     def _apply_background_style(self, file_path):
         """Apply background image with the selected mode (stretched or cropped)."""
         background_mode = APP_CONFIG.background_mode
-        
-        if background_mode == 'cropped':
+
+        if background_mode == "cropped":
             # Use background-image with center positioning for cropped mode
             bg_style = f"background-image: url('{file_path}'); background-position: center; background-repeat: no-repeat;"
         else:  # stretched (default)
             bg_style = f"border-image: url('{file_path}');"
-        
+
         self.parent().parent().parent().setStyleSheet(
             BG_TEMPLATE.replace("$BG$", bg_style)
         )
@@ -259,9 +259,9 @@ class Config(QWidget, Ui_Config):
             if radio.objectName().startswith(APP_CONFIG.packer or "lz4"):
                 radio.setChecked(True)
                 break
-        
+
         # Set background mode radio buttons
-        background_mode = APP_CONFIG.background_mode or 'stretched'
+        background_mode = APP_CONFIG.background_mode or "stretched"
         for radio in [self.stretchedButton, self.croppedButton]:
             if radio.objectName().startswith(background_mode):
                 radio.setChecked(True)

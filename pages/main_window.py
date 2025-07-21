@@ -139,14 +139,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
         if bg_path and bg_path.exists():
             # Apply background with the selected mode
-            background_mode = APP_CONFIG.background_mode or 'stretched'
-            
-            if background_mode == 'cropped':
+            background_mode = APP_CONFIG.background_mode or "stretched"
+
+            if background_mode == "cropped":
                 # Use background-image with center positioning for cropped mode
                 bg_style = f"background-image: url('{APP_CONFIG.background_path}'); background-position: center; background-repeat: no-repeat;"
             else:  # stretched (default)
                 bg_style = f"border-image: url('{APP_CONFIG.background_path}');"
-                
+
             self.setStyleSheet(BG_TEMPLATE.replace("$BG$", bg_style))
         else:
             self.setStyleSheet(
