@@ -1,8 +1,9 @@
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
+from database.objects import session
 from dialogs.simple_dialogs import show_color_dialog
 from pages.models.sleeve_list_model import SleeveListModel
 from pages.ui.sleeve import Ui_Sleeve
@@ -71,6 +72,31 @@ class Sleeve(QtWidgets.QWidget, Ui_Sleeve):
         self.borderButton.clicked.connect(self._select_color)
         self.restoreButton.clicked.connect(self._restore)
         self.checkBox.clicked.connect(self._switch_border)
+        self.fadeCheckBox.clicked.connect(self._toggle_fade)
+        self.favoriteBox.stateChanged.connect(self._toggle_favorite)
+        self.favoritesBox.stateChanged.connect(self._toggle_favorites_filter)
+
+    def _toggle_favorite(self, state):
+        if self.selected and self.selected.favorite != (
+            state == QtCore.Qt.CheckState.Checked.value
+        ):
+            self.selected.favorite = state == QtCore.Qt.CheckState.Checked.value
+            session.commit()
+            show_toast(
+                self,
+                "Favorite",
+                "Sleeve favorite status updated",
+                ToastPreset.SUCCESS_DARK,
+            )
+
+    def _toggle_favorites_filter(self, state):
+        self.model.show_favorites = state == QtCore.Qt.CheckState.Checked.value
+        if self.model.show_favorites:
+            self.model.refresh()
+            self.model.layoutChanged.emit()
+        else:
+            self.model.refresh()
+            self.model.layoutChanged.emit()
 
     def _on_sleeve_clicked(self, index):
         self.selected = self.model.assets[index.row()]
@@ -85,6 +111,7 @@ class Sleeve(QtWidgets.QWidget, Ui_Sleeve):
         self.extractButton.setEnabled(True)
         self.restoreButton.setEnabled(True)
         self.copyButton.setEnabled(True)
+        self.favoriteBox.setChecked(self.selected.favorite)
 
     def _select_image(self):
         file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)
@@ -138,7 +165,11 @@ class Sleeve(QtWidgets.QWidget, Ui_Sleeve):
             self._switch_border()
 
     def _switch_border(self):
-        if self.checkBox.isChecked():
+        border_enabled = self.checkBox.isChecked()
+        self.fadeCheckBox.setEnabled(border_enabled)
+
+        if border_enabled:
+            # For preview, we'll use a simple border - the actual fade effect will be applied during replacement
             self.preview.setStyleSheet(
                 f"""
                 #preview {{
@@ -148,5 +179,14 @@ class Sleeve(QtWidgets.QWidget, Ui_Sleeve):
             )
         else:
             self.preview.setStyleSheet("")
+            self.fadeCheckBox.setChecked(False)
 
-        self.service.border = self.checkBox.isChecked()
+        self.service.border = border_enabled
+        self.service.border_fade = self.fadeCheckBox.isChecked()
+
+    def _toggle_fade(self):
+        self.service.border_fade = self.fadeCheckBox.isChecked()
+        # Update preview to show fade effect indication (we'll keep the simple border for preview)
+        if self.fadeCheckBox.isChecked() and self.checkBox.isChecked():
+            # Could add a visual indicator that fade is enabled, but for now keep simple border
+            pass

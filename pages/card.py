@@ -1,10 +1,11 @@
 from typing_extensions import Optional
-from PySide6 import QtWidgets, QtCore
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
-from PySide6.QtWidgets import QFileDialog, QCompleter
+from PySide6.QtWidgets import QFileDialog, QCompleter, QWidget, QCheckBox
 from pyqttoast import ToastPreset
 
 from database.models import CardModel
+from database.objects import session
 from dialogs.card_edit_dialog import CardEditDialog
 from pages.models.card_list_model import CardListModel
 from pages.ui.card import Ui_Card
@@ -15,7 +16,7 @@ from util.python_utils import remove_alt_tags
 from util.ui_util import show_toast
 
 
-class Card(QtWidgets.QWidget, Ui_Card):
+class Card(QWidget, Ui_Card):
     def __init__(self):
         super(Card, self).__init__()
         self.setupUi(self)
@@ -27,6 +28,9 @@ class Card(QtWidgets.QWidget, Ui_Card):
 
         # Enable drag and drop
         self.setAcceptDrops(True)
+
+        # Initialize the model's search_description property
+        self.model.search_description = False
 
         self._connect_callbacks()
 
@@ -64,13 +68,42 @@ class Card(QtWidgets.QWidget, Ui_Card):
         self.restoreButton.clicked.connect(self._restore)
         self.editButton.clicked.connect(self._open_edit_modal)
         self.searchEdit.returnPressed.connect(self._search)
+        self.favorite.stateChanged.connect(self._toggle_favorite)
+        self.favorites.stateChanged.connect(self._toggle_favorites_filter)
+        self.searchDescription.stateChanged.connect(self._toggle_description_search)
 
         self.searchEdit.setCompleter(QCompleter(self.service.get_names()))
         self.searchEdit.completer().setCaseSensitivity(
-            QtCore.Qt.CaseSensitivity.CaseInsensitive
+            Qt.CaseSensitivity.CaseInsensitive
         )
-        self.searchEdit.completer().setFilterMode(QtCore.Qt.MatchFlag.MatchContains)
+        self.searchEdit.completer().setFilterMode(Qt.MatchFlag.MatchContains)
         self.searchEdit.completer().activated.connect(self._search)
+
+    def _toggle_favorite(self, state):
+        if self.selected and self.selected.favorite != (
+            state == Qt.CheckState.Checked.value
+        ):
+            self.selected.favorite = state == Qt.CheckState.Checked.value
+            session.commit()
+            show_toast(
+                self,
+                "Favorite",
+                "Card favorite status updated",
+                ToastPreset.SUCCESS_DARK,
+            )
+
+    def _toggle_favorites_filter(self, state):
+        self.model.show_favorites = state == Qt.CheckState.Checked.value
+        if self.model.show_favorites:
+            self.model.refresh()
+            self.model.layoutChanged.emit()
+        elif len(self.searchEdit.text()) >= 3:
+            self._search()
+
+    def _toggle_description_search(self, state):
+        self.model.search_description = state == Qt.CheckState.Checked.value
+        if len(self.searchEdit.text()) >= 3:
+            self._search()
 
     def _open_edit_modal(self):
         dialog = CardEditDialog(self.selected)
@@ -78,8 +111,9 @@ class Card(QtWidgets.QWidget, Ui_Card):
         if dialog.exec():
             name, description = dialog.get_inputs()
             if name and description:
-                # This is done in a pretty inefficient way, but one missing card and the game can break, so everything
-                # needs to be updated before any changes, in case of any CARD_* file update.
+                # This is done in a pretty inefficient way, but one missing
+                # card and the game can break, so everything needs to be
+                # updated before any changes, in case of any CARD_* file update.
                 if name != remove_alt_tags(self.selected.name):
                     self.service.replace_name(name)
                 if description != self.selected.description:
@@ -128,6 +162,7 @@ class Card(QtWidgets.QWidget, Ui_Card):
         self.restoreButton.setEnabled(True)
         self.copyButton.setEnabled(True)
         self.editButton.setEnabled(True)
+        self.favorite.setChecked(self.selected.favorite)
 
     def _select_image(self):
         file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)
@@ -185,16 +220,15 @@ class Card(QtWidgets.QWidget, Ui_Card):
     def _search(self):
         search_filter = self.searchEdit.text()
 
-        if len(search_filter) >= 3:
-            self.model.filter = search_filter
-
-            self.model.refresh()
-
-            self.model.layoutChanged.emit()
-        else:
-            show_toast(
-                self,
-                "Search",
-                "Please use 3 or more characters to search",
-                ToastPreset.INFORMATION_DARK,
-            )
+        if not self.model.show_favorites:
+            if len(search_filter) >= 3:
+                self.model.filter = search_filter
+                self.model.refresh()
+                self.model.layoutChanged.emit()
+            else:
+                show_toast(
+                    self,
+                    "Search",
+                    "Please use 3 or more characters to search",
+                    ToastPreset.INFORMATION_DARK,
+                )

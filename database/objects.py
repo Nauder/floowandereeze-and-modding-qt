@@ -13,7 +13,7 @@ base = declarative_base()
 engine = create_engine("sqlite:///database.db")
 
 # Create session factory
-DBsession = sessionmaker(bind=engine)
+DBsession = sessionmaker(bind=engine, autoflush=False)
 
 # Create global session instance
 session = DBsession()

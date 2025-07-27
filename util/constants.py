@@ -4,6 +4,7 @@ This module centralizes all application constants, configuration values,
 and global state to facilitate updates and maintain consistency.
 """
 
+from database.migrations import run_migrations
 from database.models import AppConfig
 from database.objects import session
 
@@ -66,6 +67,8 @@ DATA_URL: str = (
     Data update file URL
 """
 
+# Check for migrations before getting app config data
+run_migrations()
 
 # Global application configuration from database
 APP_CONFIG: AppConfig = session.query(AppConfig).first()

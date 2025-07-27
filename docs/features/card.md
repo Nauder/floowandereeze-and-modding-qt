@@ -36,19 +36,24 @@ The Card Editor page allows you to modify card art and information in Yu-Gi-Oh! 
 - **Extract**: Extract the card's texture
 - **Restore**: Restore the card from backup
 - **Edit**: Open the card text editor dialog
+- **Favorite**: Mark/unmark the selected card as favorite
 
 ### Search
 
 - Search box with auto-complete suggestions
 - Minimum 3 characters required for search
 - Case-insensitive search
-- Matches partial text within original (not modded) card names
+- **Favorites**: Filter to show only favorited cards
+- **Search Description**: Toggle to search both card names and descriptions (default: names only)
+- Matches partial text within original (not modded) card names and optionally descriptions
 
 ## Usage
 
 1. **Searching Cards**
       - Type at least 3 characters in the search box
       - Use auto-complete suggestions for quick selection
+      - Check "Search Description" to include card descriptions in search results
+      - Check "Favorites" to filter only favorited cards
       - The list will filter to show matching cards after clicking the search button or pressing ENTER
 
 2. **Selecting a Card**

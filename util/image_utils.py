@@ -15,6 +15,106 @@ def add_sleeve_border(image: Image.Image, color: str) -> Image.Image:
     )
 
 
+def add_sleeve_border_with_fade(image: Image.Image, color: str) -> Image.Image:
+    """Adds borders with fade-in effect that blends with the image content"""
+
+    # Calculate border sizes
+    border_width = int(image.width * 0.05)
+    border_height = int(image.height * 0.04)
+
+    # Create new image with border space
+    new_width = image.width + 2 * border_width
+    new_height = image.height + 2 * border_height
+
+    # Parse color
+    original_color = color
+    if color.startswith("#"):
+        color = color[1:]
+    r = int(color[0:2], 16)
+    g = int(color[2:4], 16)
+    b = int(color[4:6], 16)
+
+    # Convert original image to RGBA if needed
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+
+    # First, expand the image with the border color (like the solid border)
+    result = ImageOps.expand(
+        image, border=(border_width, border_height), fill=original_color
+    )
+
+    # Convert to numpy arrays for gradient processing
+    result_array = np.array(result).astype(np.float32)
+    original_array = np.array(image).astype(np.float32)
+
+    # Create fade effect that only extends inward into the image content
+    fade_distance = (
+        min(border_width, border_height) * 2.0
+    )  # Fade distance for inner transition
+
+    # Process each pixel to create the gradient blend
+    for y in range(new_height):
+        for x in range(new_width):
+            # Get original image coordinates
+            orig_x = x - border_width
+            orig_y = y - border_height
+
+            # Check if we're in the original image area
+            if 0 <= orig_x < image.width and 0 <= orig_y < image.height:
+                # We're in the image content area - apply fade based on distance to border
+
+                # Calculate distance to the border (content boundary)
+                dist_to_border_left = orig_x
+                dist_to_border_right = image.width - 1 - orig_x
+                dist_to_border_top = orig_y
+                dist_to_border_bottom = image.height - 1 - orig_y
+
+                # Find minimum distance to any border edge
+                min_border_dist = min(
+                    dist_to_border_left,
+                    dist_to_border_right,
+                    dist_to_border_top,
+                    dist_to_border_bottom,
+                )
+
+                # Only apply fade if we're close to the border
+                if min_border_dist < fade_distance:
+                    # Calculate fade factor based on distance from border
+                    base_fade_factor = min_border_dist / fade_distance
+
+                    # Apply double smoothstep for ultra-soft transition
+                    smooth1 = (
+                        base_fade_factor
+                        * base_fade_factor
+                        * (3.0 - 2.0 * base_fade_factor)
+                    )
+                    smooth2 = smooth1 * smooth1 * (3.0 - 2.0 * smooth1)
+
+                    # Exponential softening
+                    fade_factor = 1.0 - np.exp(-4.0 * smooth2)
+
+                    # Blend between border color and original image
+                    original_pixel = original_array[orig_y, orig_x]
+                    border_color = np.array([r, g, b, 255], dtype=np.float32)
+
+                    # Smooth interpolation - fade_factor 0 = border color, 1 = original image
+                    blended_pixel = (
+                        1 - fade_factor
+                    ) * border_color + fade_factor * original_pixel
+                    result_array[y, x] = blended_pixel
+                else:
+                    # Far from border - keep original image
+                    result_array[y, x] = original_array[orig_y, orig_x]
+            else:
+                # Outside original image bounds - solid border color (no fade on outer edges)
+                result_array[y, x] = [r, g, b, 255]
+
+    # Convert back to PIL Image
+    result = Image.fromarray(result_array.astype(np.uint8), "RGBA")
+
+    return result
+
+
 def trim(im) -> Image.Image:
     """Removes empty space from the image provided"""
 

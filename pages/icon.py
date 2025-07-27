@@ -1,8 +1,10 @@
 from PySide6 import QtWidgets
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
+from database.objects import session
 from pages.models.icon_list_model import IconListModel
 from pages.ui.icon import Ui_Icon
 from services.icon_service import IconService
@@ -33,6 +35,8 @@ class Icon(QtWidgets.QWidget, Ui_Icon):
         self.copyButton.clicked.connect(self._copy)
         self.extractButton.clicked.connect(self._extract_texture)
         self.restoreButton.clicked.connect(self._restore)
+        self.favoriteBox.stateChanged.connect(self._toggle_favorite)
+        self.favoritesBox.stateChanged.connect(self._toggle_favorites_filter)
 
     def _restore(self):
         icons = self.service.bundle
@@ -62,6 +66,8 @@ class Icon(QtWidgets.QWidget, Ui_Icon):
         self.extractButton.setEnabled(True)
         self.restoreButton.setEnabled(True)
         self.copyButton.setEnabled(True)
+        self.favoriteBox.setEnabled(True)
+        self.favoriteBox.setChecked(self.selected.favorite)
 
     def _copy(self):
         self.service.copy_bundle()
@@ -119,6 +125,28 @@ class Icon(QtWidgets.QWidget, Ui_Icon):
         show_toast(
             self, "Icon", "Icon replacement successful", ToastPreset.SUCCESS_DARK
         )
+
+    def _toggle_favorite(self, state):
+        if self.selected and self.selected.favorite != (
+            state == Qt.CheckState.Checked.value
+        ):
+            self.selected.favorite = state == Qt.CheckState.Checked.value
+            session.commit()
+            show_toast(
+                self,
+                "Favorite",
+                "Icon favorite status updated",
+                ToastPreset.SUCCESS_DARK,
+            )
+
+    def _toggle_favorites_filter(self, state):
+        self.model.show_favorites = state == Qt.CheckState.Checked.value
+        if self.model.show_favorites:
+            self.model.refresh()
+            self.model.layoutChanged.emit()
+        else:
+            self.model.refresh()
+            self.model.layoutChanged.emit()
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         """Accepts drag and drop of image files."""

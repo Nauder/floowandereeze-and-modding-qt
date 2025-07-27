@@ -165,7 +165,7 @@ class Config(QWidget, Ui_Config):
 
     def _set_background_mode(self, radio):
         # Ignore the event if it was turned off
-        if radio.isChecked():
+        if radio.isChecked() and APP_CONFIG.game_path:
             mode = radio.objectName().replace("Button", "")
             if mode != APP_CONFIG.background_mode:
                 APP_CONFIG.background_mode = mode
@@ -182,8 +182,8 @@ class Config(QWidget, Ui_Config):
         background_mode = APP_CONFIG.background_mode
 
         if background_mode == "cropped":
-            # Use background-image with center positioning for cropped mode
-            bg_style = f"background-image: url('{file_path}'); background-position: center; background-repeat: no-repeat;"
+            # Use background-size: cover to scale image to smallest size that covers whole window
+            bg_style = f"border-image: url('{file_path}') 0 0 0 0 repeat repeat;"
         else:  # stretched (default)
             bg_style = f"border-image: url('{file_path}');"
 

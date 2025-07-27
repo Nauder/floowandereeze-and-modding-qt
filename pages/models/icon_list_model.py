@@ -14,11 +14,17 @@ class IconListModel(AssetListModel):
 
     def __init__(self, icons=None):
         super().__init__(icons or [], IconModel)
+        self.show_favorites = False
         self.refresh()
 
     @override
     def refresh(self):
-        self.assets = session.query(IconModel).all()
+        if self.show_favorites:
+            self.assets = (
+                session.query(IconModel).filter(IconModel.favorite == True).all()
+            )
+        else:
+            self.assets = session.query(IconModel).all()
 
         refresh_threads = [
             Thread(target=lambda icon=icons_icon: self.refresh_icon(icon))

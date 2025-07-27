@@ -1,7 +1,7 @@
 from threading import Thread
 from typing_extensions import override
 
-from PySide6.QtGui import Qt
+from PySide6.QtCore import Qt
 
 from database.models import SleeveModel
 from database.objects import session
@@ -13,11 +13,17 @@ class SleeveListModel(AssetListModel):
 
     def __init__(self, sleeves=None):
         super().__init__(sleeves or [], SleeveModel)
+        self.show_favorites = False
         self.refresh()
 
     @override
     def refresh(self):
-        self.assets = session.query(SleeveModel).all()
+        if self.show_favorites:
+            self.assets = (
+                session.query(SleeveModel).filter(SleeveModel.favorite == True).all()
+            )
+        else:
+            self.assets = session.query(SleeveModel).all()
 
         refresh_threads = [
             Thread(target=lambda sleeve=sleeves_sleeve: self.refresh_sleeve(sleeve))

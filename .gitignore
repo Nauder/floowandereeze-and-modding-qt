@@ -295,6 +295,9 @@ cython_debug/
 # wakatime
 .wakatime-project
 
+# kiro
+.kiro
+
 # QT Build files
 /pages/ui/*
 # /qtdesigner/images/*

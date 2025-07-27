@@ -6,7 +6,11 @@ from unity.unity_utils import prepare_environment
 from UnityPy import load as unity_load
 
 from util.constants import APP_CONFIG
-from util.image_utils import add_sleeve_border, convert_image
+from util.image_utils import (
+    add_sleeve_border,
+    add_sleeve_border_with_fade,
+    convert_image,
+)
 
 
 class SleeveService(UnityService):
@@ -15,6 +19,7 @@ class SleeveService(UnityService):
         super().__init__("sleeves")
         self.border: bool | None = None
         self.border_color: str | None = "#FFFFFF"
+        self.border_fade: bool | None = None
 
     @override
     def replace_bundle(self) -> None:
@@ -30,11 +35,17 @@ class SleeveService(UnityService):
 
                 data = obj.read()
 
-                img = (
-                    add_sleeve_border(convert_image(self.image_path), self.border_color)
-                    if self.border
-                    else convert_image(self.image_path)
-                )
+                if self.border:
+                    if self.border_fade:
+                        img = add_sleeve_border_with_fade(
+                            convert_image(self.image_path), self.border_color
+                        )
+                    else:
+                        img = add_sleeve_border(
+                            convert_image(self.image_path), self.border_color
+                        )
+                else:
+                    img = convert_image(self.image_path)
 
                 data.m_Width, data.m_Height = img.size
 

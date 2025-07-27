@@ -374,6 +374,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="favorite">
+       <property name="text">
+        <string>Favorite</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_3">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>
@@ -416,6 +423,20 @@
        </property>
        <property name="icon">
         <iconset theme="QIcon::ThemeIcon::EditFind"/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="favorites">
+       <property name="text">
+        <string>Favorites</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="searchDescription">
+       <property name="text">
+        <string>Search Description</string>
        </property>
       </widget>
      </item>

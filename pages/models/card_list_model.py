@@ -3,6 +3,7 @@ from threading import Thread
 
 from PySide6.QtGui import Qt
 from typing_extensions import override
+from sqlalchemy import or_
 
 from database.models import CardModel
 from database.objects import session
@@ -15,26 +16,40 @@ class CardListModel(AssetListModel):
     def __init__(self, cards=None):
         super().__init__(cards or [], CardModel)
         self.filter = ""
+        self.show_favorites = False
+        self.search_description = False
 
     @override
     def refresh(self):
-        if self.filter != "":
-            self.assets = (
-                session.query(self.db_model)
-                .order_by(self.db_model.name)
-                .filter(self.db_model.name.contains(self.filter))
-                .all()
-            )
+        query = session.query(self.db_model)
 
-            refresh_threads = [
-                Thread(target=lambda card=cards_card: self._refresh_card(card))
-                for cards_card in self.assets
-            ]
+        if self.filter != "" and not self.show_favorites:
+            if self.search_description:
+                # Search both name and description
+                query = query.filter(
+                    or_(
+                        self.db_model.name.contains(self.filter),
+                        self.db_model.description.contains(self.filter),
+                    )
+                )
+            else:
+                # Search only name
+                query = query.filter(self.db_model.name.contains(self.filter))
 
-            for thread in refresh_threads:
-                thread.start()
-            for thread in refresh_threads:
-                thread.join()
+        if self.show_favorites:
+            query = query.filter(self.db_model.favorite == True)
+
+        self.assets = query.order_by(self.db_model.name).all()
+
+        refresh_threads = [
+            Thread(target=lambda card=cards_card: self._refresh_card(card))
+            for cards_card in self.assets
+        ]
+
+        for thread in refresh_threads:
+            thread.start()
+        for thread in refresh_threads:
+            thread.join()
 
     def _refresh_card(self, card):
         card.thumb = fetch_bundle_thumb(card.bundle, (128, 128))
