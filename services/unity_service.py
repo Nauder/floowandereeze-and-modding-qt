@@ -1,15 +1,20 @@
+"""Unity Service Module.
+
+This module provides an abstract base class for Unity asset bundle manipulation.
+It includes common functionality for extracting textures, creating backups, and restoring
+assets from Unity bundles used in Yu-Gi-Oh! Master Duel.
+"""
+
 from abc import ABC, abstractmethod
 from os import makedirs
 from os.path import join, isfile
 from shutil import copyfile
-from typing_extensions import Optional
 
-from database.models import UnityAsset
+from UnityPy import load as unity_load
+
 from unity.unity_utils import prepare_environment
 from util.constants import APP_CONFIG
 from util.image_utils import slugify
-
-from UnityPy import load as unity_load
 
 
 class UnityService(ABC):
@@ -24,12 +29,36 @@ class UnityService(ABC):
 
     @abstractmethod
     def replace_bundle(self) -> None:
-        pass
+        """
+        Replaces a Unity asset bundle with a new image.
+
+        :return: None
+        :raises NotImplementedError: This method is not implemented in the base class.
+        """
 
     def extract_texture(self, name: str, field=False, miss=False) -> None:
+        """
+        Extracts a texture from a Unity bundle.
+
+        :param name: The name of the texture to extract.
+        :param field: If the bundle is a field or not.
+        :param miss: A boolean value indicating if the extraction failed to find the bundle in the
+        LocalData folder.
+        :return: None
+        """
         self.extract_asset_texture(name, "images", field, miss)
 
     def create_backup(self, name: str, field=False, miss=False) -> None:
+        """
+        Creates a backup of a Unity asset bundle.
+
+        :param name: The name of the texture to extract.
+        :param field: If the bundle is a field or not.
+        :param miss: A boolean value indicating if the extraction failed to find the bundle in the
+        LocalData folder.
+        :return: None
+
+        """
         self.extract_asset_texture(name, "backups", field, miss)
 
     def extract_asset_texture(
@@ -66,6 +95,13 @@ class UnityService(ABC):
             return self.extract_texture(name, field, True)
 
     def restore_asset(self, backup_name=None) -> bool:
+        """
+        Restores a backup of a Unity asset bundle.
+
+        :param backup_name: The name of the backup to restore.
+        :return: A boolean value indicating if the backup was restored successfully.
+        """
+
         backup_path = join(
             "backups", self.subfolder, f"{backup_name or self.bundle}.png"
         )
@@ -78,9 +114,19 @@ class UnityService(ABC):
         return False
 
     def copy_bundle(self) -> None:
+        """
+        Copies the current bundle to the bundles folder.
+        """
         self.create_bundle_copy("bundles")
 
     def create_bundle_copy(self, folder="bundles") -> None:
+        """
+        Creates a copy of the current bundle in the specified folder.
+
+        :param folder: The folder to create the copy in.
+        :return: None
+        """
+
         makedirs(join(folder, self.subfolder), exist_ok=True)
 
         copyfile(

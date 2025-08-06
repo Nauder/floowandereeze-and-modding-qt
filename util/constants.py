@@ -8,12 +8,19 @@ from database.migrations import run_migrations
 from database.models import AppConfig
 from database.objects import session
 
-# File-related constants
+# File related constants
 FILE: dict[str, str | list[str]] = {
     "IMAGE_NAME": "image.png",
     "UNITY": "data.unity3d",
     "BACKGROUND": "ShopBGBase02",
     "CARD_SPRITE_ATLAS": "sactx-0-1024x512-BC7-CardSpriteAtlas-57d48bc7",
+}
+
+# Coin coordinates related constants
+COIN: dict[str, dict] = {
+    "HEAD": {"START": [86, 493], "END": [586, 990]},
+    "TAIL": {"START": [407, 34], "END": [904, 530]},
+    "REFERENCE_SIZE": [1024, 1024],  # Reference size for the above coordinates
 }
 
 # CSS template for background styling
@@ -24,7 +31,7 @@ BG_TEMPLATE: str = """
         padding: 0;
     }
     
-    .QListView, .QLineEdit {
+    .QListView, .QLineEdit, .QListWidget, #preview_frame, #current_frame {
         background-color: rgba(12, 12, 12, 0.7);
     }
     

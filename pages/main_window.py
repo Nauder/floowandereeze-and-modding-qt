@@ -13,6 +13,7 @@ from pyqttoast import ToastPreset
 
 from pages.background import Background
 from pages.card import Card
+from pages.coin import Coin
 from pages.config import Config
 from pages.face import Face
 from pages.field import Field
@@ -70,6 +71,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 Icon,
                 Field,
                 Wallpaper,
+                Coin,
             ]
 
             # Always load the Config page first
@@ -123,6 +125,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actionicon_button,
             self.actionfield_button,
             self.actionwallpaper_button,
+            self.actioncoin_button,
         ]
 
         for index, button in enumerate(buttons):

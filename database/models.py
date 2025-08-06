@@ -231,4 +231,19 @@ class DeckBoxModel(UnityAsset, base):
     thumb: QIcon = QIcon()
 
 
+class CoinModel(UnityAsset, base):
+    """
+    Model for interface metadata.
+
+    Stores information about interface elements including:
+    - bundle: Bundle identifier
+    - name: Name of the interface element
+    - asset_name: Name of the asset within the bundle
+    """
+
+    __tablename__ = "interface_metadata"
+
+    bundle: Mapped[str] = mapped_column(String(8))
+
+
 base.metadata.create_all(engine)

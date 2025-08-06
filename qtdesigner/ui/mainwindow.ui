@@ -113,6 +113,7 @@ QPushButton:hover {
    <addaction name="actionicon_button"/>
    <addaction name="actionfield_button"/>
    <addaction name="actionwallpaper_button"/>
+   <addaction name="actioncoin_button"/>
   </widget>
   <action name="actionconfig_button">
    <property name="icon">
@@ -220,6 +221,21 @@ QPushButton:hover {
    </property>
    <property name="toolTip">
     <string>wallpaper button</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actioncoin_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/ui/images/coin.png</normaloff>:/ui/images/coin.png</iconset>
+   </property>
+   <property name="text">
+    <string>coin button</string>
+   </property>
+   <property name="toolTip">
+    <string>coin button</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

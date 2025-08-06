@@ -5,6 +5,7 @@
     <file>images/sleeve.png</file>
   </qresource>
   <qresource prefix="ui">
+    <file>images/coin.png</file>
     <file>images/wallpaper_preview.png</file>
     <file>images/wallpaper.png</file>
     <file>images/gear.png</file>

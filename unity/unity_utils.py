@@ -2,11 +2,10 @@ from os import remove
 from os.path import join
 from shutil import copyfile
 
+from PIL import Image
 from PIL.ImageQt import ImageQt
 from PySide6 import QtGui
 from UnityPy import load as unity_load
-
-from PIL import Image
 from UnityPy.enums import TextureFormat
 from sqlalchemy.orm import Mapped
 
@@ -50,7 +49,7 @@ def fetch_unity3d_image(path_id: int, aspect: tuple) -> QtGui.QIcon | None:
     env = unity_load(join(APP_CONFIG.game_path[:-18], "masterduel_Data", FILE["UNITY"]))
 
     for obj in env.objects:
-        if obj.type.name == "Texture2D" and obj.path_id == path_id:
+        if obj.type.name == "Texture2D" and str(obj.path_id) == path_id:
             data = obj.read()
             img = data.image.resize(aspect)
             img.convert("RGB")

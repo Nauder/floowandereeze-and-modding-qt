@@ -24,6 +24,7 @@ from services.update_service import (
     update_boxes,
     get_github_raw_file,
     update_card_metadata,
+    update_coins,
 )
 from util.constants import APP_CONFIG, IMAGE_FILTER, BG_TEMPLATE
 from util.python_utils import get_instances_of_subclasses, is_valid_game_path
@@ -288,7 +289,7 @@ class Config(QWidget, Ui_Config):
             < datetime.strptime(remote.strip(), "%Y-%m-%d").date()
         ):
             # Create progress dialog
-            progress = QProgressDialog("Updating data...", "Cancel", 0, 8, self)
+            progress = QProgressDialog("Updating data...", "Cancel", 0, 9, self)
             progress.setWindowModality(Qt.WindowModality.WindowModal)
             progress.setWindowTitle("Updating")
             progress.setCancelButton(
@@ -305,6 +306,7 @@ class Config(QWidget, Ui_Config):
                 Thread(target=update_icons),
                 Thread(target=update_boxes),
                 Thread(target=update_card_metadata),
+                Thread(target=update_coins),
             ]
 
             for thread in update_threads:

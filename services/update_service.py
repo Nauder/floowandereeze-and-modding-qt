@@ -17,6 +17,7 @@ from database.models import (
     IconModel,
     DeckBoxModel,
     CardMetadataModel,
+    CoinModel,
 )
 from database.objects import session
 
@@ -297,4 +298,21 @@ def update_card_metadata():
             CardMetadataModel(name=data["name"], bundle=data["bundle"])
             for _, data in remote_data.iterrows()
         ]
+    )
+
+
+def update_coins():
+    """
+    Updates the interface metadata in the database by completely replacing all existing metadata
+    with the latest data from the remote source.
+
+    This function:
+    1. Fetches the latest interface metadata from the remote parquet file
+    2. Deletes all existing interface metadata from the database
+    3. Adds all interface metadata from the remote data with their bundle, name, and asset_name
+    """
+    remote_data = get_github_parquet_file("data/coins.parquet")
+    session.query(CoinModel).delete()
+    session.add_all(
+        [CoinModel(bundle=data["bundle"]) for _, data in remote_data.iterrows()]
     )

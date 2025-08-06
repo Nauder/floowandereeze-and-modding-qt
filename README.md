@@ -5,7 +5,7 @@ A modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows. 
 
 ## 🚧 Under Development 🚧
 
-⚠️ **This project is currently in active development and is not fully stable. Features may change or break at any time.** ⚠️
+⚠️ **This project is currently in active development. Features may change or break at any time.** ⚠️
 
 [![Pylint](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/pylint.yml/badge.svg)](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/pylint.yml)
 [![Black](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/black.yml/badge.svg)](https://github.com/Nauder/floowandereeze-and-modding-qt/actions/workflows/black.yml)
