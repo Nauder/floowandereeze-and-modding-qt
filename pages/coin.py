@@ -5,11 +5,10 @@ from typing import Optional
 
 from PIL import Image, ImageDraw
 from PySide6 import QtWidgets
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent, QIcon
-from PySide6.QtWidgets import QFileDialog, QListWidgetItem
-from pyqttoast import ToastPreset
+from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
+from PySide6.QtWidgets import QFileDialog
 from UnityPy import load as unity_load
+from pyqttoast import ToastPreset
 
 from database.models import CoinModel
 from pages.models.coin_list_model import CoinListModel
@@ -105,8 +104,9 @@ class Coin(QtWidgets.QWidget, Ui_Coin):
 
     def _setup_coin_list(self) -> None:
         """Set up the coin thumbnail list for selection."""
-        # Connect the coin list signal (UI is already defined in the .ui file)
-        self.coin_list.itemClicked.connect(self._on_coin_selected)
+        # Set the model and connect the clicked signal
+        self.coin_list.setModel(self.model)
+        self.coin_list.clicked.connect(self._on_coin_selected_index)
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         """Accepts drag and drop of image files."""
@@ -144,116 +144,33 @@ class Coin(QtWidgets.QWidget, Ui_Coin):
         self.extractButton.clicked.connect(self._extract_texture)
         self.restoreButton.clicked.connect(self._restore)
 
-    def _on_coin_selected(self, item: QListWidgetItem) -> None:
-        """Handle coin selection from the thumbnail list."""
-        coin_index = self.coin_list.row(item)
-        if coin_index >= 0 and coin_index < len(self.model.assets):
-            self.selected = self.model.assets[coin_index]
-            self.service.coin_metadata = self.selected
-            self.bundle.setText(f"Editing Coin ({self.selected.bundle})")
+    def _on_coin_selected_index(self, index) -> None:
+        """Handle coin selection from the thumbnail list using QModelIndex."""
+        if index.isValid():
+            coin_index = index.row()
+            if 0 <= coin_index < len(self.model.assets):
+                self.selected = self.model.assets[coin_index]
+                self.service.coin_metadata = self.selected
+                self.bundle.setText(f"Editing Coin ({self.selected.bundle})")
 
-            # Enable buttons
-            self.extractButton.setEnabled(True)
-            self.restoreButton.setEnabled(True)
+                # Enable buttons
+                self.extractButton.setEnabled(True)
+                self.restoreButton.setEnabled(True)
 
-            # Load current coin display
-            self._load_current_coin_display()
+                # Load current coin display
+                self._load_current_coin_display()
 
     def _load_coin_data(self) -> None:
         """Load coin data and populate the thumbnail list."""
-        self.coin_list.clear()
-
+        # The model will handle thumbnail creation automatically
         if self.model.assets:
-            # Populate the coin list with thumbnails
-            for coin in self.model.assets:
-                item = QListWidgetItem()
-                item.setText(coin.bundle)
-
-                # Create thumbnail from coin head
-                thumbnail = self._create_coin_thumbnail(coin)
-                if thumbnail and not thumbnail.isNull():
-                    item.setIcon(thumbnail)
-                else:
-                    item.setIcon(QIcon(":/ui/images/icon.png"))  # Fallback icon
-
-                self.coin_list.addItem(item)
-
             # Select the first coin by default
-            if self.coin_list.count() > 0:
-                self.coin_list.setCurrentRow(0)
-                self._on_coin_selected(self.coin_list.item(0))
+            if len(self.model.assets) > 0:
+                first_index = self.model.index(0, 0)
+                self.coin_list.setCurrentIndex(first_index)
+                self._on_coin_selected_index(first_index)
         else:
             self.bundle.setText("No coin data found - update database first")
-
-    def _create_coin_thumbnail(self, coin: CoinModel) -> QIcon:
-        """Create a thumbnail icon from the coin's head region."""
-        try:
-            bundle_path = join(
-                APP_CONFIG.game_path,
-                "0000",
-                coin.bundle[:2],
-                coin.bundle,
-            )
-
-            # Load the Unity bundle
-            env = unity_load(bundle_path)
-
-            # Find and extract the coin texture
-            for obj in env.objects:
-                if obj.type.name == "Texture2D":
-                    data = obj.read()
-
-                    # Look for the coin texture
-                    if re.search(re.compile(r"coin\d\dtex"), data.m_Name.lower()) or (
-                        "cointoss" in data.m_Name.lower()
-                        and "icon" not in data.m_Name.lower()
-                    ):
-                        coin_img = data.image.convert("RGBA")
-
-                        # Get head region for thumbnail
-                        head_region, _ = self.service.get_coin_regions(coin_img.size)
-
-                        # Extract head region
-                        head_img = coin_img.crop(
-                            (
-                                head_region[0],
-                                head_region[1],
-                                head_region[0] + head_region[2],
-                                head_region[1] + head_region[3],
-                            )
-                        )
-
-                        # Create circular thumbnail
-                        thumbnail_size = (128, 128)
-                        head_img = head_img.resize(
-                            thumbnail_size, Image.Resampling.LANCZOS
-                        )
-
-                        # Create circular mask
-                        mask = Image.new("L", thumbnail_size, 0)
-                        draw = ImageDraw.Draw(mask)
-                        draw.ellipse(
-                            (0, 0, thumbnail_size[0], thumbnail_size[1]), fill=255
-                        )
-
-                        # Apply circular mask
-                        circular_img = Image.new("RGBA", thumbnail_size, (0, 0, 0, 0))
-                        circular_img.paste(head_img, (0, 0))
-                        circular_img.putalpha(mask)
-
-                        # Convert to QIcon
-                        img_bytes = BytesIO()
-                        circular_img.save(img_bytes, format="PNG")
-                        img_bytes.seek(0)
-                        pixmap = QPixmap()
-                        pixmap.loadFromData(img_bytes.getvalue())
-
-                        return QIcon(pixmap)
-
-        except Exception as e:
-            print(f"Error creating coin thumbnail for {coin.bundle}: {e}")
-
-        return QIcon()
 
     def _load_current_coin_display(self) -> None:
         """Load and display the current coin texture regions directly from game files."""
@@ -335,13 +252,7 @@ class Coin(QtWidgets.QWidget, Ui_Coin):
             self, "Select Head Image", "", IMAGE_FILTER
         )
 
-        if file and file.url() != "":
-            local_file = file.toLocalFile()
-            self.headEdit.setText(local_file)
-            circular_pixmap = self._create_circular_preview(local_file)
-            self.preview_head.setPixmap(circular_pixmap)
-            self.service.head_image_path = local_file
-            self._check_replace_buttons()
+        self._select_image(file)
 
     def _select_tail_image(self) -> None:
         """Select tail image file."""
@@ -349,6 +260,10 @@ class Coin(QtWidgets.QWidget, Ui_Coin):
             self, "Select Tail Image", "", IMAGE_FILTER
         )
 
+        self._select_image(file)
+
+    def _select_image(self, file):
+        """Select image file and update UI."""
         if file and file.url() != "":
             local_file = file.toLocalFile()
             self.tailEdit.setText(local_file)
@@ -412,7 +327,7 @@ class Coin(QtWidgets.QWidget, Ui_Coin):
             )
 
     def _replace_head(self) -> None:
-        """Replace coin head texture with selected image."""
+        """Replace coin head texture with the selected image."""
         if not self.selected:
             show_toast(
                 self,
@@ -448,6 +363,9 @@ class Coin(QtWidgets.QWidget, Ui_Coin):
 
             # Refresh the current display to show the updated coin
             self._load_current_coin_display()
+
+            # Refresh the coin list model to update thumbnails
+            self.model.refresh()
 
             show_toast(
                 self,
