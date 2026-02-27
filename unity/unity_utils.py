@@ -254,6 +254,90 @@ def fetch_bundle_thumb(
             return icon
 
 
+def fetch_bundle_image_by_key(
+    bundle: str | Mapped[str], key: int, aspect: tuple[int, int], unity_file=False
+) -> QtGui.QIcon | None:
+    """
+    Fetches an image from a Unity3D bundle by path_id (key).
+
+    This function locates a specific texture object within a Unity3D bundle by its path_id,
+    resizes it to the given aspect ratio, and converts it into RGB format.
+
+    :param bundle: The bundle to fetch the image from.
+    :type bundle: str | Mapped[str]
+    :param key: The path_id of the texture to find.
+    :type key: int
+    :param aspect: A tuple representing the desired width and height for the image to be resized to.
+    :type aspect: tuple[int, int]
+    :param unity_file: Whether to use the Unity3D file.
+    :type unity_file: bool, optional
+    :returns: A QIcon object representing the image, or None if not found.
+    :rtype: QtGui.QIcon | None
+    """
+
+    env = unity_load(prepare_environment(unity_file, bundle))
+
+    for obj in env.objects:
+        if obj.type.name == "Texture2D" and obj.path_id == key:
+            data = obj.read()
+            img = data.image.resize(aspect)
+            img.convert("RGB")
+            img.name = "image.jpg"
+
+            icon = QtGui.QIcon()
+            icon.addPixmap(QtGui.QPixmap(ImageQt(img)))
+
+            return icon
+
+    return None
+
+
+def batch_fetch_bundle_images_by_key(
+    bundles: dict[int, str], aspect: tuple[int, int], unity_file=False
+) -> dict[int, QtGui.QIcon]:
+    """
+    Fetches multiple images from Unity3D bundles by path_id (key) in batch.
+
+    This function efficiently fetches images with specified path IDs from their respective bundles,
+    resizes them to the given aspect ratio, and converts them into RGB format.
+
+    :param bundles: A dictionary mapping path_id (key) to bundle name.
+    :type bundles: dict[int, str]
+    :param aspect: A tuple representing the desired width and height for the images to be resized to.
+    :type aspect: tuple[int, int]
+    :param unity_file: Whether to use the Unity3D file.
+    :type unity_file: bool, optional
+    :returns: A dictionary mapping path_id to QIcon objects.
+    :rtype: dict[int, QtGui.QIcon]
+    """
+
+    images: dict[int, QtGui.QIcon] = {}
+
+    # Group keys by bundle to minimize file loads
+    bundle_groups: dict[str, list[int]] = {}
+    for key, bundle in bundles.items():
+        if bundle not in bundle_groups:
+            bundle_groups[bundle] = []
+        bundle_groups[bundle].append(key)
+
+    # Load each bundle once and fetch all needed images
+    for bundle, keys in bundle_groups.items():
+        env = unity_load(prepare_environment(unity_file, bundle))
+
+        for obj in env.objects:
+            if obj.type.name == "Texture2D" and obj.path_id in keys:
+                data = obj.read()
+                img = data.image.resize(aspect)
+                img.name = "image.jpg"
+
+                icon = QtGui.QIcon()
+                icon.addPixmap(QtGui.QPixmap(ImageQt(img)))
+
+                images[obj.path_id] = icon
+
+    return images
+
+
 def fetch_field_thumb(field: FieldModel) -> QtGui.QIcon | None:
     """
     Fetches a thumbnail image from a Unity3D field.

@@ -11,6 +11,7 @@ from pandas.errors import EmptyDataError
 from database.models import (
     SleeveModel,
     CardModel,
+    CardIconModel,
     FaceModel,
     WallpaperModel,
     FieldModel,
@@ -119,7 +120,7 @@ def get_github_parquet_file(
         raise EmptyDataError(f"Failed to read parquet file: {str(e)}") from e
 
 
-def update_sleeves():
+def update_sleeves() -> None:
     """
     Updates the sleeves in the database by completely replacing all existing sleeves
     with the latest data from the remote source.
@@ -134,7 +135,7 @@ def update_sleeves():
     session.add_all([SleeveModel(bundle=sleeve) for sleeve in remote_sleeves["bundle"]])
 
 
-def update_cards():
+def update_cards() -> None:
     """
     Updates the cards in the database by completely replacing all existing cards
     with the latest data from the remote source.
@@ -159,7 +160,7 @@ def update_cards():
     )
 
 
-def update_faces():
+def update_faces() -> None:
     """
     Updates the faces in the database by completely replacing all existing faces
     with the latest data from the remote source.
@@ -173,13 +174,13 @@ def update_faces():
     session.query(FaceModel).delete()
     session.add_all(
         [
-            FaceModel(key=face["key"], name=face["name"])
+            FaceModel(key=face["key"], name=face["name"], bundle=face["bundle"])
             for _, face in remote_faces.iterrows()
         ]
     )
 
 
-def update_wallpapers():
+def update_wallpapers() -> None:
     """
     Updates the wallpapers in the database by completely replacing all existing wallpapers
     with the latest data from the remote source.
@@ -205,7 +206,7 @@ def update_wallpapers():
     )
 
 
-def update_fields():
+def update_fields() -> None:
     """
     Updates the fields in the database by completely replacing all existing fields
     with the latest data from the remote source.
@@ -227,7 +228,7 @@ def update_fields():
     )
 
 
-def update_icons():
+def update_icons() -> None:
     """
     Updates the icons in the database by completely replacing all existing icons
     with the latest data from the remote source.
@@ -252,7 +253,7 @@ def update_icons():
     )
 
 
-def update_boxes():
+def update_boxes() -> None:
     """
     Updates the deck boxes in the database by completely replacing all existing boxes
     with the latest data from the remote source.
@@ -281,7 +282,7 @@ def update_boxes():
     )
 
 
-def update_card_metadata():
+def update_card_metadata() -> None:
     """
     Updates the card metadata in the database by completely replacing all existing metadata
     with the latest data from the remote source.
@@ -301,7 +302,7 @@ def update_card_metadata():
     )
 
 
-def update_coins():
+def update_coins() -> None:
     """
     Updates the interface metadata in the database by completely replacing all existing metadata
     with the latest data from the remote source.
@@ -315,4 +316,30 @@ def update_coins():
     session.query(CoinModel).delete()
     session.add_all(
         [CoinModel(bundle=data["bundle"]) for _, data in remote_data.iterrows()]
+    )
+
+
+def update_card_icons() -> None:
+    """
+    Updates the deck boxes in the database by completely replacing all existing boxes
+    with the latest data from the remote source.
+
+    This function:
+    1. Fetches the latest deck boxes data from the remote parquet file
+    2. Deletes all existing deck boxes from the database
+    3. Adds all deck boxes from the remote data with their name and various size bundles
+    """
+    remote_icons = get_github_parquet_file("data/card_icons.parquet")
+    session.query(CardIconModel).delete()
+    session.add_all(
+        [
+            CardIconModel(
+                name=icon["name"],
+                x=icon["x"],
+                y=icon["y"],
+                width=icon["width"],
+                height=icon["height"],
+            )
+            for _, icon in remote_icons.iterrows()
+        ]
     )

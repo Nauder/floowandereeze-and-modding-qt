@@ -9,7 +9,7 @@ from database.models import FaceModel
 from pages.models.face_list_model import FaceListModel
 from pages.ui.face import Ui_Face
 from services.face_service import FaceService
-from unity.unity_utils import fetch_unity3d_image
+from unity.unity_utils import fetch_bundle_image_by_key
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.image_utils import slugify
 from util.ui_util import show_toast
@@ -78,10 +78,11 @@ class Face(QtWidgets.QWidget, Ui_Face):
     def _on_face_clicked(self, index) -> None:
         self.selected = self.model.assets[index.row()]
 
-        self.current.setPixmap(
-            fetch_unity3d_image(self.selected.key, (256, 375)).pixmap(256, 375)
-        )
-        self.service.bundle = self.selected.key
+        icon = fetch_bundle_image_by_key(self.selected.bundle, self.selected.key, (256, 375))
+        if icon:
+            self.current.setPixmap(icon.pixmap(256, 375))
+        self.service.bundle = self.selected.bundle
+        self.service.key = self.selected.key
         self.bundle.setText(f"Editing {self.selected.name} ({self.selected.key})")
 
         self.replaceButton.setEnabled(True)
@@ -114,9 +115,9 @@ class Face(QtWidgets.QWidget, Ui_Face):
 
         self.service.replace_bundle()
         self.model.refresh()
-        self.current.setPixmap(
-            fetch_unity3d_image(self.service.bundle, (256, 375)).pixmap(256, 375)
-        )
+        icon = fetch_bundle_image_by_key(self.selected.bundle, self.selected.key, (256, 375))
+        if icon:
+            self.current.setPixmap(icon.pixmap(256, 375))
 
         show_toast(
             self, "Face", "Card Face replacement successful", ToastPreset.SUCCESS_DARK

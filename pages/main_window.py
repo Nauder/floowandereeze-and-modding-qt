@@ -13,6 +13,7 @@ from pyqttoast import ToastPreset
 
 from pages.background import Background
 from pages.card import Card
+from pages.card_icon import CardIcon
 from pages.coin import Coin
 from pages.config import Config
 from pages.face import Face
@@ -66,6 +67,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 Config,
                 Sleeve,
                 Card,
+                CardIcon,
                 Face,
                 Background,
                 Icon,
@@ -120,6 +122,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actionconfig_button,
             self.actionsleeve_button,
             self.actioncard_button,
+            self.actioncard_icon_button,
             self.actionface_button,
             self.actionbackground_button,
             self.actionicon_button,

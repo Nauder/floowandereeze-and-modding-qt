@@ -129,10 +129,10 @@ class CardIconModel(UnityAsset, base):
     __tablename__ = "card_icon"
 
     name: Mapped[str] = mapped_column(String(255))
-    width: ClassVar[int]
-    height: ClassVar[int]
-    atlas_x: ClassVar[int]
-    atlas_y: ClassVar[int]
+    width: Mapped[int] = mapped_column(Integer)
+    height: Mapped[int] = mapped_column(Integer)
+    x: Mapped[int] = mapped_column(Integer)
+    y: Mapped[int] = mapped_column(Integer)
     thumb: QIcon = QIcon()
 
 
@@ -205,6 +205,7 @@ class FaceModel(UnityAsset, base):
 
     name: Mapped[str] = mapped_column(String(255), unique=True)
     key: Mapped[int] = mapped_column(Integer, unique=True)
+    bundle: Mapped[str] = mapped_column(String(8), unique=False)
     thumb: QIcon = QIcon()
 
 

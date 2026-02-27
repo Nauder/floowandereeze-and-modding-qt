@@ -17,6 +17,7 @@ from services.unity_service import UnityService
 from services.update_service import (
     update_sleeves,
     update_cards,
+    update_card_icons,
     update_faces,
     update_wallpapers,
     update_fields,
@@ -300,6 +301,7 @@ class Config(QWidget, Ui_Config):
             update_threads = [
                 Thread(target=update_sleeves),
                 Thread(target=update_cards),
+                Thread(target=update_card_icons),
                 Thread(target=update_faces),
                 Thread(target=update_wallpapers),
                 Thread(target=update_fields),

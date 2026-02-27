@@ -13,7 +13,7 @@ FILE: dict[str, str | list[str]] = {
     "IMAGE_NAME": "image.png",
     "UNITY": "data.unity3d",
     "BACKGROUND": "ShopBGBase02",
-    "CARD_SPRITE_ATLAS": "sactx-0-1024x512-BC7-CardSpriteAtlas-57d48bc7",
+    "CARD_SPRITE_ATLAS": "cardspriteatlas",
 }
 
 # Coin coordinates related constants
