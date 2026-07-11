@@ -5,6 +5,7 @@ from pyqttoast import ToastPreset
 
 from database.objects import session
 from dialogs.simple_dialogs import show_color_dialog
+from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.sleeve_list_model import SleeveListModel
 from pages.ui.sleeve import Ui_Sleeve
 from services.sleeve_service import SleeveService
@@ -13,10 +14,19 @@ from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 
 
-class Sleeve(QtWidgets.QWidget, Ui_Sleeve):
+class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
     def __init__(self):
-        super(Sleeve, self).__init__()
+        QtWidgets.QWidget.__init__(self)
+        ResponsivePageMixin.__init__(self)
         self.setupUi(self)
+
+        self._min_image_size = 96
+        self._max_image_size = 180
+
+        # Configure responsive images with aspect ratio (portrait card sleeves)
+        self.setup_responsive_images(
+            self.current, self.preview, aspect_ratio=(256, 374)
+        )
 
         self.service = SleeveService()
         self.model = SleeveListModel()
@@ -27,6 +37,10 @@ class Sleeve(QtWidgets.QWidget, Ui_Sleeve):
         self.setAcceptDrops(True)
 
         self._connect_callbacks()
+
+    def resizeEvent(self, event: QtCore.QEvent):
+        super().resizeEvent(event)
+        self._adjust_list_view_icons(self.sleevesView, 128, 181)
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         """Accepts drag and drop of image files."""

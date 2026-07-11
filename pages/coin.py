@@ -11,6 +11,7 @@ from UnityPy import load as unity_load
 from pyqttoast import ToastPreset
 
 from database.models import CoinModel
+from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.coin_list_model import CoinListModel
 from pages.ui.coin import Ui_Coin
 from services.coin_service import CoinService
@@ -18,7 +19,7 @@ from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 
 
-class Coin(QtWidgets.QWidget, Ui_Coin):
+class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
     """
     Coin modding page.
 
@@ -28,8 +29,17 @@ class Coin(QtWidgets.QWidget, Ui_Coin):
     """
 
     def __init__(self):
-        super(Coin, self).__init__()
+        QtWidgets.QWidget.__init__(self)
+        ResponsivePageMixin.__init__(self)
         self.setupUi(self)
+
+        # Configure responsive coin images (4 circular images)
+        self.setup_responsive_coin_images(
+            self.current_head,
+            self.current_tail,
+            self.preview_head,
+            self.preview_tail
+        )
 
         self.service = CoinService()
         self.model = CoinListModel()

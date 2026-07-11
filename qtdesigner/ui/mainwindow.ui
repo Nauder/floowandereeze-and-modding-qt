@@ -16,6 +16,12 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>960</width>
+    <height>540</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -66,6 +72,12 @@ QPushButton:hover {
      <widget class="QStackedWidget" name="mainStack">
       <property name="enabled">
        <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="styleSheet">
        <string notr="true"/>
@@ -230,7 +242,7 @@ QPushButton:hover {
   <action name="actioncard_icon_button">
    <property name="icon">
     <iconset resource="../resources.qrc">
-     <normaloff>:/ui/images/icon.png</normaloff>:/ui/images/icon.png</iconset>
+     <normaloff>:/ui/images/card_icon.png</normaloff>:/ui/images/card_icon.png</iconset>
    </property>
    <property name="text">
     <string>card icon button</string>

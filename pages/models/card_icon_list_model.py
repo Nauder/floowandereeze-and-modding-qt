@@ -33,6 +33,22 @@ class CardIconListModel(AssetListModel):
         self.atlas_image = None
         self.refresh()
 
+    @staticmethod
+    def _display_name(name: str, max_length: int = 18) -> str:
+        """Return a compact name that keeps the icon grid aligned."""
+        for prefix in (
+            "GUI_ICON_",
+            "GUI_CARDPICTURE_",
+            "GUI_T_ICON1_",
+        ):
+            if name.upper().startswith(prefix):
+                name = name[len(prefix) :]
+                break
+
+        if len(name) <= max_length:
+            return name
+        return f"{name[: max_length - 3]}..."
+
     def _load_atlas_image(self, force_reload=False):
         """Load the card sprite atlas image only once and store in self._atlas_image."""
         if self.atlas_image is not None and not force_reload:
@@ -55,10 +71,10 @@ class CardIconListModel(AssetListModel):
             self.atlas_image = None
 
     @override
-    def refresh(self):
+    def refresh(self, force_reload=False):
         """Refresh the list of card icon assets from the database."""
         self.assets = session.query(CardIconModel).order_by(CardIconModel.name).all()
-        self._load_atlas_image()  # Ensure atlas is loaded before threads
+        self._load_atlas_image(force_reload)  # Ensure atlas is loaded before threads
 
         # Load thumbnails in separate threads
         refresh_threads = [
@@ -113,7 +129,10 @@ class CardIconListModel(AssetListModel):
         """Provide data for the list view."""
         if role == Qt.DisplayRole:
             asset = self.assets[index.row()]
-            return asset.name
+            return self._display_name(asset.name)
+
+        if role == Qt.ToolTipRole:
+            return self.assets[index.row()].name
 
         if role == Qt.DecorationRole:
             return (

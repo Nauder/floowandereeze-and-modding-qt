@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
 from database.models import FaceModel
+from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.face_list_model import FaceListModel
 from pages.ui.face import Ui_Face
 from services.face_service import FaceService
@@ -15,10 +16,20 @@ from util.image_utils import slugify
 from util.ui_util import show_toast
 
 
-class Face(QtWidgets.QWidget, Ui_Face):
+class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
     def __init__(self):
-        super(Face, self).__init__()
+        QtWidgets.QWidget.__init__(self)
+        ResponsivePageMixin.__init__(self)
         self.setupUi(self)
+
+        # Configure responsive images with aspect ratio
+        self.setup_responsive_images(
+            self.current,
+            self.preview,
+            aspect_ratio=(256, 374),
+            max_image_size=250,
+            min_image_size=64,
+        )
 
         self.service = FaceService()
         self.model = FaceListModel()
@@ -78,7 +89,9 @@ class Face(QtWidgets.QWidget, Ui_Face):
     def _on_face_clicked(self, index) -> None:
         self.selected = self.model.assets[index.row()]
 
-        icon = fetch_bundle_image_by_key(self.selected.bundle, self.selected.key, (256, 375))
+        icon = fetch_bundle_image_by_key(
+            self.selected.bundle, self.selected.key, (256, 375)
+        )
         if icon:
             self.current.setPixmap(icon.pixmap(256, 375))
         self.service.bundle = self.selected.bundle
@@ -115,7 +128,9 @@ class Face(QtWidgets.QWidget, Ui_Face):
 
         self.service.replace_bundle()
         self.model.refresh()
-        icon = fetch_bundle_image_by_key(self.selected.bundle, self.selected.key, (256, 375))
+        icon = fetch_bundle_image_by_key(
+            self.selected.bundle, self.selected.key, (256, 375)
+        )
         if icon:
             self.current.setPixmap(icon.pixmap(256, 375))
 

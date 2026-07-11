@@ -8,12 +8,13 @@ from io import BytesIO
 from typing import Optional
 
 from PIL import Image
-from PySide6 import QtWidgets
+from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
 from database.models import CardIconModel
+from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.card_icon_list_model import CardIconListModel
 from pages.ui.card_icon import Ui_CardIcon
 from services.card_icon_service import CardIconService
@@ -21,7 +22,7 @@ from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 
 
-class CardIcon(QtWidgets.QWidget, Ui_CardIcon):
+class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
     """
     Card icon modding page.
 
@@ -30,18 +31,43 @@ class CardIcon(QtWidgets.QWidget, Ui_CardIcon):
     """
 
     def __init__(self):
-        super(CardIcon, self).__init__()
+        QtWidgets.QWidget.__init__(self)
+        ResponsivePageMixin.__init__(self)
         self.setupUi(self)
+
+        # Configure responsive images with aspect ratio
+        self.setup_responsive_images(
+            self.current,
+            self.preview,
+            aspect_ratio=(374, 374),
+            max_image_size=250,
+            min_image_size=128,
+        )
 
         self.service = CardIconService()
         self.model = CardIconListModel()
         self.iconsList.setModel(self.model)
+        self.iconsList.setGridSize(QtCore.QSize(112, 96))
+        self.iconsList.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
+        self.iconsList.setUniformItemSizes(True)
+        self.iconsList.setWordWrap(False)
         self.selected: Optional[CardIconModel] = None
 
         # Enable drag and drop
         self.setAcceptDrops(True)
 
         self._connect_callbacks()
+
+    def resizeEvent(self, event: QtCore.QEvent) -> None:
+        """Keep icon previews square while the list consumes spare height."""
+        super().resizeEvent(event)
+        self._adjust_preview_sizes()
+
+    def _adjust_preview_sizes(self) -> None:
+        """Clamp preview labels to a square size so scaled images never stretch."""
+        side = max(128, min(self.width() // 4, self.height() // 3, 250))
+        for label in (self.current, self.preview):
+            label.setFixedSize(side, side)
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         """Accepts drag and drop of image files."""
@@ -176,13 +202,21 @@ class CardIcon(QtWidgets.QWidget, Ui_CardIcon):
             )
             return
 
-        self.service.extract_texture(self.selected.name)
-        show_toast(
-            self,
-            "Icon Extraction",
-            f'Icon "{self.selected.name}" extracted to the "icons" folder',
-            ToastPreset.SUCCESS_DARK,
-        )
+        try:
+            self.service.extract_texture(self.selected.name)
+            show_toast(
+                self,
+                "Icon Extraction",
+                f'Icon "{self.selected.name}" extracted to the "icons" folder',
+                ToastPreset.SUCCESS_DARK,
+            )
+        except Exception as e:
+            show_toast(
+                self,
+                "Icon Extraction",
+                f"Icon extraction failed: {str(e)}",
+                ToastPreset.ERROR_DARK,
+            )
 
     def _restore(self):
         """Restore icon from backup."""
@@ -197,8 +231,8 @@ class CardIcon(QtWidgets.QWidget, Ui_CardIcon):
 
         if self.service.restore_asset(self.selected.name):
             # Refresh displays
+            self.model.refresh(force_reload=True)
             self._load_current_icon_display()
-            self.model.refresh()
             show_toast(
                 self,
                 "Backup",
@@ -243,8 +277,8 @@ class CardIcon(QtWidgets.QWidget, Ui_CardIcon):
             self.service.replace_bundle()
 
             # Refresh displays
+            self.model.refresh(force_reload=True)
             self._load_current_icon_display()
-            self.model.refresh()
 
             show_toast(
                 self,

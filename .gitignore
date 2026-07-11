@@ -295,8 +295,10 @@ cython_debug/
 # wakatime
 .wakatime-project
 
-# kiro
+# agents
 .kiro
+.codex
+.claude
 
 # QT Build files
 /pages/ui/*

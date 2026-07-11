@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
 from database.objects import session
+from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.icon_list_model import IconListModel
 from pages.ui.icon import Ui_Icon
 from services.icon_service import IconService
@@ -13,10 +14,20 @@ from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 
 
-class Icon(QtWidgets.QWidget, Ui_Icon):
+class Icon(ResponsivePageMixin, QtWidgets.QWidget, Ui_Icon):
     def __init__(self):
-        super(Icon, self).__init__()
+        QtWidgets.QWidget.__init__(self)
+        ResponsivePageMixin.__init__(self)
         self.setupUi(self)
+
+        # Configure responsive images with aspect ratio
+        self.setup_responsive_images(
+            self.current,
+            self.preview,
+            aspect_ratio=(256, 256),
+            max_image_size=250,
+            min_image_size=64,
+        )
 
         self.service = IconService()
         self.model = IconListModel()

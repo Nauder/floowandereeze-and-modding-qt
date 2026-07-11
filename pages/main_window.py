@@ -52,6 +52,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.splash = splash
         self.setupUi(self)
 
+        # Set minimum size for responsive behavior (16:9 aspect ratio)
+        self.setMinimumSize(960, 540)
+
         self._load_pages()
         self._connect_menu_callbacks()
         self._load_bg()

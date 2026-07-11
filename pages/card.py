@@ -7,6 +7,7 @@ from pyqttoast import ToastPreset
 from database.models import CardModel
 from database.objects import session
 from dialogs.card_edit_dialog import CardEditDialog
+from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.card_list_model import CardListModel
 from pages.ui.card import Ui_Card
 from services.card_service import CardService
@@ -16,10 +17,18 @@ from util.python_utils import remove_alt_tags
 from util.ui_util import show_toast
 
 
-class Card(QWidget, Ui_Card):
+class Card(ResponsivePageMixin, QWidget, Ui_Card):
     def __init__(self):
-        super(Card, self).__init__()
+        QWidget.__init__(self)
+        ResponsivePageMixin.__init__(self)
         self.setupUi(self)
+
+        # Configure responsive images with aspect ratio
+        self.setup_responsive_images(
+            self.current,
+            self.preview,
+            aspect_ratio=(374, 374)
+        )
 
         self.service = CardService()
         self.model = CardListModel()

@@ -3,6 +3,7 @@ from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
+from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.field_list_model import FieldListModel
 from pages.ui.field import Ui_Field
 from services.field_service import FieldService
@@ -11,10 +12,18 @@ from util.constants import IMAGE_FILTER
 from util.ui_util import show_toast
 
 
-class Field(QtWidgets.QWidget, Ui_Field):
+class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
     def __init__(self):
-        super(Field, self).__init__()
+        QtWidgets.QWidget.__init__(self)
+        ResponsivePageMixin.__init__(self)
         self.setupUi(self)
+
+        # Configure responsive images with aspect ratio
+        self.setup_responsive_images(
+            self.current,
+            self.preview,
+            aspect_ratio=(768, 267)
+        )
 
         self.service = FieldService()
         self.model = FieldListModel()
