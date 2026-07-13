@@ -36,6 +36,9 @@ class FieldListModel(QtCore.QAbstractListModel):
         if role == Qt.DisplayRole:
             return ""
 
+        if role == Qt.ToolTipRole:
+            return self.fields[index.row()].bundle
+
         if role == Qt.DecorationRole:
             return self.fields[index.row()].thumb
 

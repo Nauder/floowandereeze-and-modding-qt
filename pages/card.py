@@ -1,5 +1,5 @@
 from typing_extensions import Optional
-from PySide6.QtCore import Qt, QSize, QSettings
+from PySide6.QtCore import Qt, QSize, QSettings, QTimer
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -45,7 +45,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             self.current,
             self.preview,
             aspect_ratio=(374, 374),
-            max_image_size=340,
+            max_image_size=500,
         )
 
         self.service = CardService()
@@ -69,6 +69,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.searchEdit.setPlaceholderText("Search cards, min 3 characters")
         self._set_editor_context("Select a Card")
         self._configure_results_grid()
+        self._queue_initial_layout_update()
 
         # Enable drag and drop
         self.setAcceptDrops(True)
@@ -81,6 +82,10 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_results_grid()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._queue_initial_layout_update()
 
     def _configure_split_layout(self):
         self.verticalLayout.setSpacing(8)
@@ -127,8 +132,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.cardSplitter.setStretchFactor(0, 3)
         self.cardSplitter.setStretchFactor(1, 2)
         self.cardSplitter.splitterMoved.connect(self._persist_splitter_state)
-        self.cardSplitter.splitterMoved.connect(lambda *_: self._adjust_image_sizes())
-        self.cardSplitter.splitterMoved.connect(lambda *_: self._update_results_grid())
+        self.cardSplitter.splitterMoved.connect(lambda *_: self._queue_layout_update())
 
         stored_state = self._settings.value("cards/splitter_state")
         if stored_state:
@@ -243,6 +247,9 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             super()._adjust_image_sizes()
             return
 
+        if self.editorPanel.width() <= 0 or self.editorPanel.height() <= 0:
+            return
+
         available_height = max(96, self.editorPanel.height() - 34)
         available_width = max(96, self.editorPanel.width() // 3)
         target_size = max(
@@ -253,6 +260,21 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         for label in (self.current, self.preview):
             label.setFixedSize(QSize(target_size, target_size))
             label.updateGeometry()
+
+    def _queue_initial_layout_update(self):
+        for delay in (0, 50, 150):
+            QTimer.singleShot(delay, self._refresh_layout_after_show)
+
+    def _queue_layout_update(self):
+        QTimer.singleShot(0, self._refresh_layout_after_show)
+        QTimer.singleShot(25, self._refresh_layout_after_show)
+
+    def _refresh_layout_after_show(self):
+        self.cardSplitter.updateGeometry()
+        self.editorPanel.updateGeometry()
+        self.resultsPanel.updateGeometry()
+        self._adjust_image_sizes()
+        self._update_results_grid()
 
     def _persist_splitter_state(self):
         self._settings.setValue("cards/splitter_state", self.cardSplitter.saveState())
