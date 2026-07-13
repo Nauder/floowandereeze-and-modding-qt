@@ -32,13 +32,13 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
         self.setup_responsive_images(
             self.current, None, aspect_ratio=(1920, 1080)  # No preview label
         )
-        self._configure_background_preview()
         configure_editor_chrome(
             self,
             current_widget=self.current,
             current_title="Current",
             file_edits=(self.assetEdit,),
         )
+        self._configure_background_preview()
         set_button_roles(self)
 
         # Enable drag and drop
@@ -67,6 +67,7 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
             QtWidgets.QSizePolicy.Policy.Fixed,
             QtWidgets.QSizePolicy.Policy.Fixed,
         )
+        self._configure_current_preview_layout()
 
         for spacer in (self.horizontalSpacer_6, self.horizontalSpacer_5):
             spacer.changeSize(
@@ -97,17 +98,44 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
         self.verticalLayout.invalidate()
         self.verticalLayout_5.invalidate()
 
-        QtCore.QTimer.singleShot(0, self._resize_background_preview)
+        self._queue_background_preview_resize()
+
+    def _configure_current_preview_layout(self) -> None:
+        """Keep the preview title compact so the image gets the spare height."""
+        current_header = self.findChild(QtWidgets.QLabel, "currentHeaderLabel")
+        if current_header is not None:
+            current_header.setSizePolicy(
+                QtWidgets.QSizePolicy.Policy.Preferred,
+                QtWidgets.QSizePolicy.Policy.Fixed,
+            )
+            current_header.setMinimumHeight(0)
+            current_header.setMaximumHeight(current_header.sizeHint().height())
+
+        preview_layout = self.horizontalLayout.itemAt(1).layout()
+        if preview_layout is not None:
+            if current_header is not None:
+                preview_layout.setAlignment(
+                    current_header,
+                    QtCore.Qt.AlignmentFlag.AlignHCenter,
+                )
+            preview_layout.setAlignment(
+                self.current,
+                QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignTop,
+            )
 
     def resizeEvent(self, event: QtCore.QEvent) -> None:
         """Resize the background preview to the largest available 16:9 size."""
-        super().resizeEvent(event)
+        QtWidgets.QWidget.resizeEvent(self, event)
         self._resize_background_preview()
 
+    def _queue_background_preview_resize(self) -> None:
+        """Resize after Qt has settled inserted labels and layout geometry."""
+        QtCore.QTimer.singleShot(0, self._resize_background_preview)
+
     def _resize_background_preview(self) -> None:
-        available_size = self.horizontalLayout.geometry().size()
-        available_width = available_size.width()
-        available_height = available_size.height()
+        available_width = self.horizontalLayout.geometry().width()
+        current_top = self.current.mapTo(self, QtCore.QPoint(0, 0)).y()
+        available_height = self.contentsRect().bottom() - current_top + 1
 
         if available_width <= 0 or available_height <= 0:
             return
@@ -119,8 +147,8 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
             target_height = available_height
             target_width = round(target_height * 16 / 9)
 
-        target_width = max(128, target_width)
-        target_height = max(72, target_height)
+        target_width = max(1, target_width)
+        target_height = max(1, target_height)
 
         if (
             self.current.size().width() != target_width
@@ -165,6 +193,7 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
                 Image.open(backup).resize((1920, 1080), Resampling.LANCZOS),
             )
             self.current.setPixmap(fetch_home_bg().pixmap(1920, 1080))
+            self._queue_background_preview_resize()
             show_toast(
                 self,
                 "Backup",
@@ -180,6 +209,7 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
         home_bg = fetch_home_bg()
         if home_bg:
             self.current.setPixmap(home_bg.pixmap(1920, 1080))
+            self._queue_background_preview_resize()
 
     def _select_image(self):
         file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)
@@ -210,6 +240,7 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
             Image.open(self.image_path).resize((1920, 1080), Resampling.LANCZOS),
         )
         self.current.setPixmap(fetch_home_bg().pixmap(1920, 1080))
+        self._queue_background_preview_resize()
 
         show_toast(
             self,
