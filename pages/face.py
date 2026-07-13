@@ -14,6 +14,7 @@ from unity.unity_utils import fetch_bundle_image_by_key
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.image_utils import slugify
 from util.ui_util import show_toast
+from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 
 
 class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
@@ -35,6 +36,15 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
         self.model = FaceListModel()
         self.facesView.setModel(self.model)
         self.selected: Optional[FaceModel] = None
+        configure_editor_chrome(
+            self,
+            current_widget=self.current,
+            preview_widget=self.preview,
+            file_edits=(self.assetEdit,),
+            list_views=(self.facesView,),
+            helper_after=self.bundle,
+        )
+        set_button_roles(self)
 
         # Enable drag and drop
         self.setAcceptDrops(True)
@@ -101,6 +111,7 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
         self.replaceButton.setEnabled(True)
         self.extractButton.setEnabled(True)
         self.restoreButton.setEnabled(True)
+        hide_selection_helper(self)
 
     def _select_image(self) -> None:
         file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)

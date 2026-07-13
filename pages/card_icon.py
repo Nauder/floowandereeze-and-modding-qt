@@ -20,6 +20,7 @@ from pages.ui.card_icon import Ui_CardIcon
 from services.card_icon_service import CardIconService
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
+from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 
 
 class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
@@ -52,6 +53,15 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
         self.iconsList.setUniformItemSizes(True)
         self.iconsList.setWordWrap(False)
         self.selected: Optional[CardIconModel] = None
+        configure_editor_chrome(
+            self,
+            current_widget=self.current,
+            preview_widget=self.preview,
+            file_edits=(self.iconEdit,),
+            list_views=(self.iconsList,),
+            helper_after=self.bundle,
+        )
+        set_button_roles(self)
 
         # Enable drag and drop
         self.setAcceptDrops(True)
@@ -135,6 +145,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
         self.extractButton.setEnabled(True)
         self.restoreButton.setEnabled(True)
         self._check_replace_button()
+        hide_selection_helper(self)
 
     def _load_current_icon_display(self) -> None:
         """Load and display the current icon from the sprite atlas."""

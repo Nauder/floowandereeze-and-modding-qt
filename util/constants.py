@@ -17,7 +17,7 @@ FILE: dict[str, str | list[str]] = {
 }
 
 # Coin coordinates related constants
-COIN: dict[str, dict] = {
+COIN: dict[str, dict[str, list[int]] | list[int]] = {
     "HEAD": {"START": [86, 493], "END": [586, 990]},
     "TAIL": {"START": [407, 34], "END": [904, 530]},
     "REFERENCE_SIZE": [1024, 1024],  # Reference size for the above coordinates
@@ -36,10 +36,28 @@ BG_TEMPLATE: str = """
     }
     
     .QPushButton {
-        border: 1px solid #121212;
+        background-color: #171717;
+        color: white;
+        border: 1px solid #2f2f2f;
         border-radius: 5px;
-        padding: 3px;
+        padding: 4px 10px;
         width: 90%;
+    }
+
+    .QPushButton[buttonRole="primary"] {
+        background-color: #0d6f4f;
+        border-color: #15a06f;
+        font-weight: 600;
+    }
+
+    .QPushButton[buttonRole="warning"] {
+        background-color: #5c2d1c;
+        border-color: #a65331;
+    }
+
+    .QPushButton[buttonRole="neutral"] {
+        background-color: #202020;
+        border-color: #454545;
     }
     
     .QToolBar::item:hover {
@@ -47,11 +65,33 @@ BG_TEMPLATE: str = """
     }
     
     .QPushButton:hover {
-        border: 1px solid darkgreen;
+        border: 1px solid #15a06f;
     }
     
     .QPushButton:disabled {
         border: 1px solid #523000;
+        color: #858585;
+    }
+
+    QToolBar {
+        background-color: rgba(12, 12, 12, 0.82);
+        spacing: 0px;
+    }
+
+    QToolBar QToolButton {
+        color: white;
+        min-width: 92px;
+        max-width: 92px;
+        min-height: 68px;
+        max-height: 68px;
+        padding: 4px 0px;
+        margin: 0px;
+        text-align: center;
+    }
+
+    QToolBar QToolButton:checked {
+        background-color: rgba(13, 111, 79, 0.85);
+        border-bottom: 2px solid #15a06f;
     }
 """
 """
@@ -72,6 +112,16 @@ DATA_URL: str = (
 )
 """
     Data update file URL
+"""
+
+HIDDEN_ICON_NAME_PARTS: tuple[str, str, str, str] = (
+    "link_num",
+    "mask",
+    "rarity",
+    "turncounter",
+)
+"""
+    Icons that most users don't want to edit, so they are hidden by default
 """
 
 # Check for migrations before getting app config data

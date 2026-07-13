@@ -11,6 +11,7 @@ from unity.unity_utils import fetch_bundle_thumb
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 from widgets.image_viewer import ImageViewer
+from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 
 
 class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
@@ -27,6 +28,15 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
             QPixmap.fromImage(QImage(":ui/images/wallpaper_preview.png"))
         )
         self.main_content.addWidget(self.preview)
+        configure_editor_chrome(
+            self,
+            current_widget=self.preview,
+            current_title="Selected Asset",
+            file_edits=(self.wallpaperEdit,),
+            list_views=(self.wallpaperView,),
+            helper_after=self.bundle,
+        )
+        set_button_roles(self)
 
         # Enable drag and drop
         self.setAcceptDrops(True)
@@ -96,6 +106,7 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
         self.extractButton.setEnabled(True)
         self.restoreButton.setEnabled(True)
         self.copyButton.setEnabled(True)
+        hide_selection_helper(self)
 
     def _select_image(self):
         file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)

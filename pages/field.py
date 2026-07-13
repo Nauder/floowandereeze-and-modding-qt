@@ -10,6 +10,7 @@ from services.field_service import FieldService
 from unity.unity_utils import fetch_field_thumb
 from util.constants import IMAGE_FILTER
 from util.ui_util import show_toast
+from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 
 
 class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
@@ -20,15 +21,22 @@ class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
 
         # Configure responsive images with aspect ratio
         self.setup_responsive_images(
-            self.current,
-            self.preview,
-            aspect_ratio=(768, 267)
+            self.current, self.preview, aspect_ratio=(768, 267)
         )
 
         self.service = FieldService()
         self.model = FieldListModel()
         self.fieldsView.setModel(self.model)
         self.selected = None
+        configure_editor_chrome(
+            self,
+            current_widget=self.current,
+            preview_widget=self.preview,
+            file_edits=(self.assetEdit,),
+            list_views=(self.fieldsView,),
+            helper_after=self.bundle,
+        )
+        set_button_roles(self)
 
         # Enable drag and drop
         self.setAcceptDrops(True)
@@ -52,6 +60,7 @@ class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
         self.replaceButton.setEnabled(True)
         self.extractButton.setEnabled(True)
         self.copyButton.setEnabled(True)
+        hide_selection_helper(self)
 
     def _select_image(self):
         file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)

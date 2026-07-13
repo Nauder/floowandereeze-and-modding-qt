@@ -4,7 +4,7 @@ from os.path import join
 from typing import Optional
 
 from PIL import Image, ImageDraw
-from PySide6 import QtWidgets
+from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from UnityPy import load as unity_load
@@ -17,6 +17,7 @@ from pages.ui.coin import Ui_Coin
 from services.coin_service import CoinService
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
+from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 
 
 class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
@@ -38,12 +39,20 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
             self.current_head,
             self.current_tail,
             self.preview_head,
-            self.preview_tail
+            self.preview_tail,
         )
+        self._adjust_preview_sizes()
 
         self.service = CoinService()
         self.model = CoinListModel()
         self.selected: Optional[CoinModel] = None
+        configure_editor_chrome(
+            self,
+            file_edits=(self.headEdit, self.tailEdit),
+            list_views=(self.coin_list,),
+            helper_after=self.bundle,
+        )
+        set_button_roles(self)
 
         # Enable drag and drop
         self.setAcceptDrops(True)
@@ -116,7 +125,27 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
         """Set up the coin thumbnail list for selection."""
         # Set the model and connect the clicked signal
         self.coin_list.setModel(self.model)
+        self.coin_list.setGridSize(QtCore.QSize(112, 96))
+        self.coin_list.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
+        self.coin_list.setUniformItemSizes(True)
+        self.coin_list.setWordWrap(False)
         self.coin_list.clicked.connect(self._on_coin_selected_index)
+
+    def resizeEvent(self, event: QtCore.QEvent) -> None:
+        """Keep coin previews square while the list consumes spare height."""
+        super().resizeEvent(event)
+        self._adjust_preview_sizes()
+
+    def _adjust_preview_sizes(self) -> None:
+        """Clamp coin preview labels to a stable square size."""
+        side = max(112, min(self.width() // 6, self.height() // 4, 200))
+        for label in (
+            self.current_head,
+            self.current_tail,
+            self.preview_head,
+            self.preview_tail,
+        ):
+            label.setFixedSize(side, side)
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         """Accepts drag and drop of image files."""
@@ -166,6 +195,7 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
                 # Enable buttons
                 self.extractButton.setEnabled(True)
                 self.restoreButton.setEnabled(True)
+                hide_selection_helper(self)
 
                 # Load current coin display
                 self._load_current_coin_display()
@@ -286,8 +316,9 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
         """Enable replace buttons based on selected images."""
         has_head = bool(self.service.head_image_path)
         has_tail = bool(self.service.tail_image_path)
-        self.replaceHeadButton.setEnabled(has_head)
-        self.replaceTailButton.setEnabled(has_tail)
+        has_selection = bool(self.selected)
+        self.replaceHeadButton.setEnabled(has_head and has_selection)
+        self.replaceTailButton.setEnabled(has_tail and has_selection)
 
     def _extract_texture(self) -> None:
         """Extract coin textures to the images folder."""

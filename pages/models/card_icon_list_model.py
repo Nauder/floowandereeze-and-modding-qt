@@ -17,7 +17,7 @@ from typing_extensions import override
 from database.models import CardIconModel
 from database.objects import session
 from pages.models.asset_list_model import AssetListModel
-from util.constants import APP_CONFIG, FILE
+from util.constants import APP_CONFIG, FILE, HIDDEN_ICON_NAME_PARTS
 
 
 class CardIconListModel(AssetListModel):
@@ -73,7 +73,15 @@ class CardIconListModel(AssetListModel):
     @override
     def refresh(self, force_reload=False):
         """Refresh the list of card icon assets from the database."""
-        self.assets = session.query(CardIconModel).order_by(CardIconModel.name).all()
+        icons = session.query(CardIconModel).order_by(CardIconModel.name).all()
+        self.assets = [
+            icon
+            for icon in icons
+            if not any(
+                hidden_part in icon.name.lower()
+                for hidden_part in HIDDEN_ICON_NAME_PARTS
+            )
+        ]
         self._load_atlas_image(force_reload)  # Ensure atlas is loaded before threads
 
         # Load thumbnails in separate threads

@@ -12,6 +12,7 @@ from services.sleeve_service import SleeveService
 from unity.unity_utils import fetch_bundle_thumb
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
+from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 
 
 class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
@@ -32,6 +33,15 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
         self.model = SleeveListModel()
         self.sleevesView.setModel(self.model)
         self.selected = None
+        configure_editor_chrome(
+            self,
+            current_widget=self.current,
+            preview_widget=self.preview,
+            file_edits=(self.sleeveEdit,),
+            list_views=(self.sleevesView,),
+            helper_after=self.bundle,
+        )
+        set_button_roles(self)
 
         # Enable drag and drop
         self.setAcceptDrops(True)
@@ -126,6 +136,7 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
         self.restoreButton.setEnabled(True)
         self.copyButton.setEnabled(True)
         self.favoriteBox.setChecked(self.selected.favorite)
+        hide_selection_helper(self)
 
     def _select_image(self):
         file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)
@@ -184,13 +195,11 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
 
         if border_enabled:
             # For preview, we'll use a simple border - the actual fade effect will be applied during replacement
-            self.preview.setStyleSheet(
-                f"""
+            self.preview.setStyleSheet(f"""
                 #preview {{
                     border: 15px solid {self.service.border_color};
                 }}
-            """
-            )
+            """)
         else:
             self.preview.setStyleSheet("")
             self.fadeCheckBox.setChecked(False)

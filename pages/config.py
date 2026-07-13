@@ -3,7 +3,7 @@ import os
 from threading import Thread
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFileDialog, QWidget, QProgressDialog
+from PySide6.QtWidgets import QFileDialog, QLabel, QWidget, QProgressDialog
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from pyqttoast import ToastPreset
 
@@ -30,6 +30,7 @@ from services.update_service import (
 from util.constants import APP_CONFIG, IMAGE_FILTER, BG_TEMPLATE
 from util.python_utils import get_instances_of_subclasses, is_valid_game_path
 from util.ui_util import show_toast
+from widgets.ux import set_button_roles
 
 
 class Config(QWidget, Ui_Config):
@@ -43,6 +44,7 @@ class Config(QWidget, Ui_Config):
     def __init__(self):
         super(Config, self).__init__()
         self.setupUi(self)
+        self._configure_ux()
         self._connect_callbacks()
         self._set_variables()
         # Enable drag and drop
@@ -157,6 +159,35 @@ class Config(QWidget, Ui_Config):
         # Connect background mode radio buttons
         for radio in [self.stretchedButton, self.croppedButton]:
             radio.toggled.connect(lambda checked, r=radio: self._set_background_mode(r))
+
+    def _configure_ux(self):
+        """Add section labels and shared button hierarchy to the config page."""
+        self.bgLine.setPlaceholderText("Select or drop an image")
+        self.gameLine.setPlaceholderText("Select Master Duel 0x000000 folder")
+        self.updateLine.setPlaceholderText("No data version installed")
+
+        sections = [
+            (6, "Asset Build Settings"),
+            (5, "Backups"),
+            (4, "Card Text"),
+            (1, "Appearance"),
+            (0, "Game Data"),
+        ]
+        for index, title in sections:
+            self._insert_config_section(index, title)
+
+        set_button_roles(self)
+
+    def _insert_config_section(self, index: int, title: str) -> None:
+        label = QLabel(title, self)
+        label.setObjectName(f"{title.replace(' ', '').lower()}SectionLabel")
+        label.setStyleSheet("font-weight: 600; color: #ffffff; margin-top: 10px;")
+        self.verticalLayout_5.insertWidget(index, label)
+
+        spacer = QLabel("", self)
+        spacer.setObjectName(f"{title.replace(' ', '').lower()}SectionSpacer")
+        spacer.setStyleSheet("margin-top: 10px;")
+        self.verticalLayout_3.insertWidget(index, spacer)
 
     def _set_packer(self, radio):
         # Ignore the event if it was turned off
@@ -289,8 +320,23 @@ class Config(QWidget, Ui_Config):
             or datetime.strptime(local.strip(), "%Y-%m-%d").date()
             < datetime.strptime(remote.strip(), "%Y-%m-%d").date()
         ):
+            update_tasks = [
+                ("sleeves", update_sleeves),
+                ("cards", update_cards),
+                ("card icons", update_card_icons),
+                ("faces", update_faces),
+                ("wallpapers", update_wallpapers),
+                ("fields", update_fields),
+                ("icons", update_icons),
+                ("deck boxes", update_boxes),
+                ("card metadata", update_card_metadata),
+                ("coins", update_coins),
+            ]
+
             # Create progress dialog
-            progress = QProgressDialog("Updating data...", "Cancel", 0, 9, self)
+            progress = QProgressDialog(
+                "Preparing data update...", "Cancel", 0, len(update_tasks), self
+            )
             progress.setWindowModality(Qt.WindowModality.WindowModal)
             progress.setWindowTitle("Updating")
             progress.setCancelButton(
@@ -298,25 +344,16 @@ class Config(QWidget, Ui_Config):
             )  # Remove cancel button since we can't cancel the update
             progress.show()
 
-            update_threads = [
-                Thread(target=update_sleeves),
-                Thread(target=update_cards),
-                Thread(target=update_card_icons),
-                Thread(target=update_faces),
-                Thread(target=update_wallpapers),
-                Thread(target=update_fields),
-                Thread(target=update_icons),
-                Thread(target=update_boxes),
-                Thread(target=update_card_metadata),
-                Thread(target=update_coins),
-            ]
-
-            for thread in update_threads:
+            for task_index, (task_name, update_task) in enumerate(
+                update_tasks, start=1
+            ):
+                progress.setLabelText(
+                    f"Updating {task_name} ({task_index}/{len(update_tasks)})"
+                )
+                thread = Thread(target=update_task)
                 thread.start()
-                progress.setValue(progress.value() + 1)
-
-            for thread in update_threads:
                 thread.join()
+                progress.setValue(task_index)
 
             progress.close()
 
@@ -374,9 +411,18 @@ class Config(QWidget, Ui_Config):
             )
             return
 
+        if not show_confirmation_dialog(
+            f"Reapply text edits to {len(modified_cards)} cards?", True
+        ):
+            return
+
         # Create progress dialog
         progress = QProgressDialog(
-            "Applying text edits...", "Cancel", 0, len(modified_cards), self
+            f"Applying text edits to {len(modified_cards)} cards...",
+            "Cancel",
+            0,
+            len(modified_cards),
+            self,
         )
         progress.setWindowModality(Qt.WindowModality.WindowModal)
         progress.setWindowTitle("Applying Text Edits")
@@ -389,6 +435,9 @@ class Config(QWidget, Ui_Config):
         success_count = 0
 
         for card in modified_cards:
+            progress.setLabelText(
+                f"Applying text edits ({success_count + 1}/{len(modified_cards)})"
+            )
             card_service.bundle = card.bundle
             if card.modded_name:
                 card_service.replace_name(card.modded_name)
@@ -428,9 +477,18 @@ class Config(QWidget, Ui_Config):
             )
             return
 
+        if not show_confirmation_dialog(
+            f"Restore original text for {len(modified_cards)} cards?", True
+        ):
+            return
+
         # Create progress dialog
         progress = QProgressDialog(
-            "Restoring text edits...", "Cancel", 0, len(modified_cards), self
+            f"Restoring text edits for {len(modified_cards)} cards...",
+            "Cancel",
+            0,
+            len(modified_cards),
+            self,
         )
         progress.setWindowModality(Qt.WindowModality.WindowModal)
         progress.setWindowTitle("Restoring Text Edits")
@@ -443,6 +501,9 @@ class Config(QWidget, Ui_Config):
         success_count = 0
 
         for card in modified_cards:
+            progress.setLabelText(
+                f"Restoring text edits ({success_count + 1}/{len(modified_cards)})"
+            )
             card_service.bundle = card.bundle
             if card.modded_name:
                 card_service.replace_name(card.name)  # Restore original name

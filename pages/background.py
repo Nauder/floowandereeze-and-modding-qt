@@ -17,7 +17,7 @@ from unity.unity_utils import (
 )
 from util.constants import IMAGE_FILTER, FILE, APP_CONFIG
 from util.ui_util import show_toast
-
+from widgets.ux import configure_editor_chrome, set_button_roles
 
 WIDGET_SIZE_MAX = 16777215
 
@@ -33,6 +33,13 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
             self.current, None, aspect_ratio=(1920, 1080)  # No preview label
         )
         self._configure_background_preview()
+        configure_editor_chrome(
+            self,
+            current_widget=self.current,
+            current_title="Current",
+            file_edits=(self.assetEdit,),
+        )
+        set_button_roles(self)
 
         # Enable drag and drop
         self.setAcceptDrops(True)

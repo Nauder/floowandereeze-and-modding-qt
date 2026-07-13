@@ -34,7 +34,7 @@ if __name__ == "__main__":
         splash.showMessage("Loading interface...", 4, "#FFFFFF")
         window = MainWindow(splash)
         window.setWindowTitle("Floowandereeze & Modding")
-        window.show()
+        window.showMaximized()
 
         # Close splash screen when main window is ready
         splash.finish(window)

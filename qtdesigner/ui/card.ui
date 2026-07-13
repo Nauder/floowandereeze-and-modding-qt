@@ -417,7 +417,11 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLineEdit" name="searchEdit"/>
+      <widget class="QLineEdit" name="searchEdit">
+       <property name="placeholderText">
+        <string>Search cards, min 3 characters</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="searchButton">

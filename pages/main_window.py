@@ -7,7 +7,7 @@ pages and handles navigation between them.
 import pathlib
 from typing import List, Type
 
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtWidgets import QSplashScreen
 from pyqttoast import ToastPreset
 
@@ -56,10 +56,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setMinimumSize(960, 540)
 
         self._load_pages()
+        self._configure_navigation()
         self._connect_menu_callbacks()
         self._load_bg()
 
-        self.show()
+        self.showMaximized()
 
     def _load_pages(self) -> None:
         """Loads the pages into the main stack based on the validity of the game path."""
@@ -121,7 +122,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def _connect_menu_callbacks(self) -> None:
         """Connects the menu buttons to their respective pages in the stack."""
-        buttons = [
+        for index, button in enumerate(self._navigation_buttons):
+            button.triggered.connect(
+                lambda _, idx=index: self.mainStack.setCurrentIndex(idx)
+            )
+
+        self.mainStack.currentChanged.connect(self._sync_navigation_state)
+        self._sync_navigation_state(self.mainStack.currentIndex())
+
+    def _configure_navigation(self) -> None:
+        """Configure toolbar labels, active states, and text placement."""
+        button_size = QtCore.QSize(92, 68)
+        icon_size = QtCore.QSize(30, 30)
+
+        self.toolBar.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextUnderIcon
+        )
+        self.toolBar.setIconSize(icon_size)
+        self._navigation_buttons = [
             self.actionconfig_button,
             self.actionsleeve_button,
             self.actioncard_button,
@@ -133,11 +151,66 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actionwallpaper_button,
             self.actioncoin_button,
         ]
+        labels = [
+            "Configuration",
+            "Sleeves",
+            "Cards",
+            "Card Icons",
+            "Faces",
+            "Background",
+            "Icons",
+            "Fields",
+            "Wallpapers",
+            "Coins",
+        ]
+        action_group = QtGui.QActionGroup(self)
+        action_group.setExclusive(True)
+        self._navigation_group = action_group
 
-        for index, button in enumerate(buttons):
-            button.triggered.connect(
-                lambda _, idx=index: self.mainStack.setCurrentIndex(idx)
-            )
+        for action, label in zip(self._navigation_buttons, labels):
+            action.setText(label)
+            action.setToolTip(label)
+            action.setCheckable(True)
+            self._normalize_navigation_icon(action, icon_size)
+            action_group.addAction(action)
+            tool_button = self.toolBar.widgetForAction(action)
+            if isinstance(tool_button, QtWidgets.QToolButton):
+                tool_button.setFixedSize(button_size)
+                tool_button.setIconSize(icon_size)
+                tool_button.setToolButtonStyle(
+                    QtCore.Qt.ToolButtonStyle.ToolButtonTextUnderIcon
+                )
+
+    def _sync_navigation_state(self, index: int) -> None:
+        """Keep the toolbar active state aligned with the stacked page."""
+        if 0 <= index < len(self._navigation_buttons):
+            self._navigation_buttons[index].setChecked(True)
+
+    @staticmethod
+    def _normalize_navigation_icon(action: QtGui.QAction, size: QtCore.QSize) -> None:
+        """Center each toolbar icon in a fixed square pixmap."""
+        source = action.icon().pixmap(QtCore.QSize(256, 256))
+        if source.isNull():
+            return
+
+        source.setDevicePixelRatio(1)
+        scaled = source.scaled(
+            size,
+            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            QtCore.Qt.TransformationMode.SmoothTransformation,
+        )
+
+        canvas = QtGui.QPixmap(size)
+        canvas.fill(QtCore.Qt.GlobalColor.transparent)
+
+        x = (size.width() - scaled.width()) // 2
+        y = (size.height() - scaled.height()) // 2
+
+        painter = QtGui.QPainter(canvas)
+        painter.drawPixmap(x, y, scaled)
+        painter.end()
+
+        action.setIcon(QtGui.QIcon(canvas))
 
     def _load_bg(self) -> None:
         """Loads the background image based on the configuration."""
