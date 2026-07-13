@@ -5,9 +5,10 @@ Provides base functionality for pages to adapt to different window sizes
 while maintaining aspect ratios and usability.
 """
 
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QSize, Qt
 from typing import Tuple, Optional, Dict
+
+from PySide6 import QtWidgets, QtCore
+from PySide6.QtCore import QSize
 
 
 class AspectRatioLabel(QtWidgets.QLabel):
@@ -19,7 +20,7 @@ class AspectRatioLabel(QtWidgets.QLabel):
         self.setScaledContents(True)
         size_policy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Policy.Expanding,
-            QtWidgets.QSizePolicy.Policy.Expanding
+            QtWidgets.QSizePolicy.Policy.Expanding,
         )
         size_policy.setHeightForWidth(True)
         self.setSizePolicy(size_policy)
@@ -89,23 +90,28 @@ class ResponsivePageMixin:
         if min_image_size is not None:
             self._min_image_size = min_image_size
 
-        labels = [label for label in [current_label, preview_label] if label is not None]
+        labels = [
+            label for label in [current_label, preview_label] if label is not None
+        ]
 
         for label in labels:
             self._original_image_aspect_ratios[label] = aspect_ratio
 
             # Inject aspect ratio behavior by monkey-patching the label
+            # pylint: disable-next=protected-access
             label._aspect_ratio = aspect_ratio[0] / aspect_ratio[1]
 
             # Override hasHeightForWidth and heightForWidth
             label.hasHeightForWidth = lambda: True
-            label.heightForWidth = lambda w, ar=aspect_ratio[0]/aspect_ratio[1]: int(w / ar)
+            label.heightForWidth = lambda w, ar=aspect_ratio[0] / aspect_ratio[1]: (
+                int(w / ar)
+            )
 
             # Set size policies for responsive behavior
             label.setScaledContents(True)
             size_policy = QtWidgets.QSizePolicy(
                 QtWidgets.QSizePolicy.Policy.Preferred,
-                QtWidgets.QSizePolicy.Policy.Preferred
+                QtWidgets.QSizePolicy.Policy.Preferred,
             )
             size_policy.setHeightForWidth(True)
             label.setSizePolicy(size_policy)
@@ -115,7 +121,7 @@ class ResponsivePageMixin:
         current_head: Optional[QtWidgets.QLabel],
         current_tail: Optional[QtWidgets.QLabel],
         preview_head: Optional[QtWidgets.QLabel],
-        preview_tail: Optional[QtWidgets.QLabel]
+        preview_tail: Optional[QtWidgets.QLabel],
     ):
         """
         Special setup for coin page with 4 circular images.
@@ -127,8 +133,11 @@ class ResponsivePageMixin:
             preview_head: Preview head texture label
             preview_tail: Preview tail texture label
         """
-        labels = [label for label in [current_head, current_tail, preview_head, preview_tail]
-                  if label is not None]
+        labels = [
+            label
+            for label in [current_head, current_tail, preview_head, preview_tail]
+            if label is not None
+        ]
 
         for label in labels:
             # Coin images are always square
@@ -137,7 +146,7 @@ class ResponsivePageMixin:
             label.setScaledContents(True)
             size_policy = QtWidgets.QSizePolicy(
                 QtWidgets.QSizePolicy.Policy.Expanding,
-                QtWidgets.QSizePolicy.Policy.Expanding
+                QtWidgets.QSizePolicy.Policy.Expanding,
             )
             size_policy.setHeightForWidth(True)
             label.setSizePolicy(size_policy)
@@ -154,8 +163,6 @@ class ResponsivePageMixin:
 
         # Get available width and height
         available_width = self.width()
-        available_height = self.height()
-
         # Calculate optimal base size with responsive breakpoints
         if available_width < 1024:  # Small screens
             target_base = min(available_width // 3, 256)
@@ -170,7 +177,7 @@ class ResponsivePageMixin:
         target_base = max(self._min_image_size, min(target_base, self._max_image_size))
 
         # Apply to labels - heightForWidth will maintain aspect ratio
-        for label, (aspect_w, aspect_h) in self._original_image_aspect_ratios.items():
+        for label in self._original_image_aspect_ratios:
             # Set maximum width only - height will be calculated by heightForWidth
             label.setMaximumWidth(target_base)
             label.setMinimumWidth(self._min_image_size)
@@ -182,7 +189,9 @@ class ResponsivePageMixin:
             # Force layout to recalculate with heightForWidth
             label.updateGeometry()
 
-    def _adjust_list_view_icons(self, list_view: QtWidgets.QListView, base_width: int, base_height: int):
+    def _adjust_list_view_icons(
+        self, list_view: QtWidgets.QListView, base_width: int, base_height: int
+    ):
         """
         Dynamically adjust QListView icon sizes based on window width.
         Call this from resizeEvent if you want responsive thumbnail grids.

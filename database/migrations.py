@@ -4,9 +4,9 @@ This module ensures that database schema changes are applied automatically
 when users update to a new version of the application.
 """
 
-import sqlite3
 import logging
-from typing import List, Tuple
+import sqlite3
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +45,8 @@ def run_migrations(db_path: str = "database.db") -> None:
         #     conn.commit()
 
         conn.close()
-    except Exception as e:
-        logger.error(f"Database migration failed: {e}")
+    except sqlite3.Error as e:
+        logger.error("Database migration failed: %s", e)
         if "conn" in locals():
             conn.close()
         # Don't re-raise the exception - we want the app to continue even if migration fails

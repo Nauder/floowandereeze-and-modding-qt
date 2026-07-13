@@ -42,7 +42,7 @@ class Config(QWidget, Ui_Config):
     """
 
     def __init__(self):
-        super(Config, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self._configure_ux()
         self._connect_callbacks()
@@ -130,7 +130,7 @@ class Config(QWidget, Ui_Config):
         )
 
     def _get_services_and_models(self):
-        # This SHOULD return the correct service per model as long as the naming standard is followed
+        # This returns the matching service per model while the naming standard holds.
         services: list[UnityService] = get_instances_of_subclasses(UnityService)
         models: list[AssetListModel] = get_instances_of_subclasses(AssetListModel)
 

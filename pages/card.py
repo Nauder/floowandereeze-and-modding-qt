@@ -1,4 +1,4 @@
-from typing_extensions import Optional
+from typing import Optional
 from PySide6.QtCore import Qt, QSize, QSettings, QTimer
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
@@ -52,6 +52,8 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.model = CardListModel()
         self.cardsView.setModel(self.model)
         self.selected: Optional[CardModel] = None
+        self.resultsLabel = None
+        self._visible_result_rows = 1
         self.searchHelperLabel = QLabel("", self)
         self.searchHelperLabel.setObjectName("searchHelperLabel")
         self.searchHelperLabel.setStyleSheet("color: #d6d6d6; font-size: 11px;")
@@ -317,7 +319,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.restoreButton.clicked.connect(self._restore)
         self.editButton.clicked.connect(self._open_edit_modal)
         self.searchEdit.returnPressed.connect(self._search)
-        self.searchEdit.textChanged.connect(lambda: self.searchHelperLabel.clear())
+        self.searchEdit.textChanged.connect(self.searchHelperLabel.clear)
         self.favorite.stateChanged.connect(self._toggle_favorite)
         self.favorites.stateChanged.connect(self._toggle_favorites_filter)
         self.searchDescription.stateChanged.connect(self._toggle_description_search)

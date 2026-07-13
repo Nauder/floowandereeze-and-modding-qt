@@ -32,7 +32,7 @@ class AspectRatioLabel(QtWidgets.QLabel):
         # Set size policy to respect heightForWidth
         size_policy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Policy.Preferred,
-            QtWidgets.QSizePolicy.Policy.Preferred
+            QtWidgets.QSizePolicy.Policy.Preferred,
         )
         size_policy.setHeightForWidth(True)
         self.setSizePolicy(size_policy)
