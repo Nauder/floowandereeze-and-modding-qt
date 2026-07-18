@@ -15,13 +15,13 @@ from PySide6.QtWidgets import (
     QListView,
     QLayout,
     QSizePolicy,
-    QSplitter,
     QVBoxLayout,
 )
 from UnityPy import load as unity_load
 from pyqttoast import ToastPreset
 
 from database.models import CoinModel
+from widgets.grip_splitter import GripSplitter
 from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.coin_list_model import CoinListModel
 from pages.ui.coin import Ui_Coin
@@ -197,7 +197,7 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
         results_layout.addLayout(self._build_results_header())
         results_layout.addWidget(self.coin_list, 1)
 
-        self.coinSplitter = QSplitter(QtCore.Qt.Orientation.Vertical, self)
+        self.coinSplitter = GripSplitter(QtCore.Qt.Orientation.Vertical, self)
         self.coinSplitter.setObjectName("coinSplitter")
         self.coinSplitter.setChildrenCollapsible(False)
         self.coinSplitter.setOpaqueResize(True)

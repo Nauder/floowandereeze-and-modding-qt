@@ -11,13 +11,13 @@ from PySide6.QtWidgets import (
     QListView,
     QLayout,
     QSizePolicy,
-    QSplitter,
     QVBoxLayout,
     QWidget,
 )
 from pyqttoast import ToastPreset
 
 from database.models import CardModel
+from widgets.grip_splitter import GripSplitter
 from database.objects import session
 from dialogs.card_edit_dialog import CardEditDialog
 from dialogs.card_mass_edit_dialog import CardMassEditDialog
@@ -128,7 +128,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         results_layout.addWidget(self.searchHelperLabel)
         results_layout.addWidget(self.cardsView, 1)
 
-        self.cardSplitter = QSplitter(Qt.Orientation.Vertical, self)
+        self.cardSplitter = GripSplitter(Qt.Orientation.Vertical, self)
         self.cardSplitter.setObjectName("cardSplitter")
         self.cardSplitter.setChildrenCollapsible(False)
         self.cardSplitter.setOpaqueResize(True)

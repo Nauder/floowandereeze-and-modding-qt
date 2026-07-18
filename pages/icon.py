@@ -9,12 +9,12 @@ from PySide6.QtWidgets import (
     QListView,
     QLayout,
     QSizePolicy,
-    QSplitter,
     QVBoxLayout,
 )
 from pyqttoast import ToastPreset
 
 from database.objects import session
+from widgets.grip_splitter import GripSplitter
 from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.icon_list_model import IconListModel
 from pages.ui.icon import Ui_Icon
@@ -111,7 +111,7 @@ class Icon(ResponsivePageMixin, QtWidgets.QWidget, Ui_Icon):
         results_layout.addLayout(self._build_results_header())
         results_layout.addWidget(self.iconsView, 1)
 
-        self.iconSplitter = QSplitter(Qt.Orientation.Vertical, self)
+        self.iconSplitter = GripSplitter(Qt.Orientation.Vertical, self)
         self.iconSplitter.setObjectName("iconSplitter")
         self.iconSplitter.setChildrenCollapsible(False)
         self.iconSplitter.setOpaqueResize(True)

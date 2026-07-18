@@ -19,12 +19,12 @@ from PySide6.QtWidgets import (
     QListView,
     QLayout,
     QSizePolicy,
-    QSplitter,
     QVBoxLayout,
 )
 from pyqttoast import ToastPreset
 
 from database.models import CardIconModel
+from widgets.grip_splitter import GripSplitter
 from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.card_icon_list_model import CardIconListModel
 from pages.ui.card_icon import Ui_CardIcon
@@ -134,7 +134,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
         results_layout.addLayout(self._build_results_header())
         results_layout.addWidget(self.iconsList, 1)
 
-        self.cardIconSplitter = QSplitter(QtCore.Qt.Orientation.Vertical, self)
+        self.cardIconSplitter = GripSplitter(QtCore.Qt.Orientation.Vertical, self)
         self.cardIconSplitter.setObjectName("cardIconSplitter")
         self.cardIconSplitter.setChildrenCollapsible(False)
         self.cardIconSplitter.setOpaqueResize(True)

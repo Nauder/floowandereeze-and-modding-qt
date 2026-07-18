@@ -73,6 +73,14 @@ BG_TEMPLATE: str = """
         color: #858585;
     }
 
+    QSplitter::handle:vertical {
+        background-color: rgba(28, 28, 28, 0.65);
+    }
+
+    QSplitter::handle:vertical:hover {
+        background-color: rgba(52, 52, 52, 0.78);
+    }
+
     QToolBar {
         background-color: rgba(12, 12, 12, 0.82);
         spacing: 0px;
@@ -82,16 +90,25 @@ BG_TEMPLATE: str = """
         color: white;
         min-width: 92px;
         max-width: 92px;
-        min-height: 68px;
-        max-height: 68px;
-        padding: 4px 0px;
+        min-height: 62px;
+        max-height: 62px;
+        padding: 1px 0px;
         margin: 0px;
         text-align: center;
+        border: none;
+    }
+
+    QToolBar QToolButton:hover {
+        background-color: rgba(8, 76, 53, 0.9);
     }
 
     QToolBar QToolButton:checked {
         background-color: rgba(13, 111, 79, 0.85);
         border-bottom: 2px solid #15a06f;
+    }
+
+    QToolBar QToolButton:checked:hover {
+        background-color: rgba(13, 111, 79, 0.96);
     }
 """
 """

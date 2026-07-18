@@ -9,12 +9,12 @@ from PySide6.QtWidgets import (
     QListView,
     QLayout,
     QSizePolicy,
-    QSplitter,
     QVBoxLayout,
 )
 from pyqttoast import ToastPreset
 
 from database.objects import session
+from widgets.grip_splitter import GripSplitter
 from dialogs.simple_dialogs import show_color_dialog
 from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.sleeve_list_model import SleeveListModel
@@ -112,7 +112,7 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
         results_layout.addLayout(self._build_results_header())
         results_layout.addWidget(self.sleevesView, 1)
 
-        self.sleeveSplitter = QSplitter(QtCore.Qt.Orientation.Vertical, self)
+        self.sleeveSplitter = GripSplitter(QtCore.Qt.Orientation.Vertical, self)
         self.sleeveSplitter.setObjectName("sleeveSplitter")
         self.sleeveSplitter.setChildrenCollapsible(False)
         self.sleeveSplitter.setOpaqueResize(True)

@@ -132,7 +132,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def _configure_navigation(self) -> None:
         """Configure toolbar labels, active states, and text placement."""
-        button_size = QtCore.QSize(92, 68)
+        button_size = QtCore.QSize(92, 62)
         icon_size = QtCore.QSize(30, 30)
 
         self.toolBar.setToolButtonStyle(

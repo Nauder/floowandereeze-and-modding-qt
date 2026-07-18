@@ -9,12 +9,12 @@ from PySide6.QtWidgets import (
     QListView,
     QLayout,
     QSizePolicy,
-    QSplitter,
     QVBoxLayout,
 )
 from pyqttoast import ToastPreset
 
 from pages.base_responsive_page import ResponsivePageMixin
+from widgets.grip_splitter import GripSplitter
 from pages.models.field_list_model import FieldListModel
 from pages.ui.field import Ui_Field
 from services.field_service import FieldService
@@ -109,7 +109,7 @@ class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
         results_layout.addLayout(self._build_results_header())
         results_layout.addWidget(self.fieldsView, 1)
 
-        self.fieldSplitter = QSplitter(Qt.Orientation.Vertical, self)
+        self.fieldSplitter = GripSplitter(Qt.Orientation.Vertical, self)
         self.fieldSplitter.setObjectName("fieldSplitter")
         self.fieldSplitter.setChildrenCollapsible(False)
         self.fieldSplitter.setOpaqueResize(True)
