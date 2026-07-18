@@ -49,7 +49,7 @@ def fetch_unity3d_image(path_id: int, aspect: tuple) -> QtGui.QIcon | None:
     env = unity_load(join(APP_CONFIG.game_path[:-18], "masterduel_Data", FILE["UNITY"]))
 
     for obj in env.objects:
-        if obj.type.name == "Texture2D" and str(obj.path_id) == path_id:
+        if obj.type.name == "Texture2D" and obj.path_id == path_id:
             data = obj.read()
             img = data.image.resize(aspect)
             img.convert("RGB")
@@ -59,6 +59,8 @@ def fetch_unity3d_image(path_id: int, aspect: tuple) -> QtGui.QIcon | None:
             icon.addPixmap(QtGui.QPixmap(ImageQt(img)))
 
             return icon
+
+    return None
 
 
 def batch_fetch_unity3d_images(path_ids: list[int], aspect: tuple) -> dict[QtGui.QIcon]:
@@ -320,7 +322,7 @@ def batch_fetch_bundle_images_by_key(
             bundle_groups[bundle] = []
         bundle_groups[bundle].append(key)
 
-    # Load each bundle once and fetch all needed images
+    # Load each bundle once and fetch all necessary images
     for bundle, keys in bundle_groups.items():
         env = unity_load(prepare_environment(unity_file, bundle))
 

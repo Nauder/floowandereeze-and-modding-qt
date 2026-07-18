@@ -5,8 +5,7 @@ from UnityPy.enums import TextureFormat
 from typing_extensions import override
 
 from services.unity_service import UnityService
-from unity.unity_utils import prepare_environment
-from util.constants import APP_CONFIG
+from util.constants import APP_CONFIG, FILE
 from util.image_utils import convert_image, slugify
 
 from UnityPy import load as unity_load
@@ -20,13 +19,15 @@ class FaceService(UnityService):
 
     @override
     def replace_bundle(self) -> None:
-        bundle_path = prepare_environment(False, self.bundle)
-        env = unity_load(bundle_path)
+        unity_file_path = join(
+            APP_CONFIG.game_path[:-18], "masterduel_Data", FILE["UNITY"]
+        )
+        env = unity_load(unity_file_path)
 
         for obj in env.objects:
             if obj.type.name == "Texture2D":
                 data = obj.read()
-                if obj.path_id == self.key or self.key == data.m_Name:
+                if obj.path_id == self.key:
                     img = convert_image(self.image_path)
                     data.m_Width, data.m_Height = img.size
 
@@ -34,18 +35,22 @@ class FaceService(UnityService):
 
                     data.save()
                     break
+        else:
+            return
 
-        with open(bundle_path, "wb") as f:
+        with open(unity_file_path, "wb") as f:
             f.write(env.file.save())
 
     @override
     def extract_texture(self, name: str, field=False, miss=False, backup=False) -> None:
-        bundle_path = prepare_environment(False, self.bundle)
+        unity_file_path = join(
+            APP_CONFIG.game_path[:-18], "masterduel_Data", FILE["UNITY"]
+        )
 
-        for obj in unity_load(bundle_path).objects:
+        for obj in unity_load(unity_file_path).objects:
             if obj.type.name == "Texture2D":
                 data = obj.read()
-                if obj.path_id == self.key or self.key == data.m_Name:
+                if obj.path_id == self.key:
                     makedirs(
                         join("backups" if backup else "images", self.subfolder),
                         exist_ok=True,

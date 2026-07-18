@@ -358,6 +358,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="massEditButton">
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
+       </property>
+       <property name="text">
+        <string>Mass Edit</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="replaceButton">
        <property name="enabled">
         <bool>false</bool>

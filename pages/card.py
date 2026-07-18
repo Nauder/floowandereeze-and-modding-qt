@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 from PySide6.QtCore import Qt, QSize, QSettings, QTimer
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
@@ -19,6 +20,8 @@ from pyqttoast import ToastPreset
 from database.models import CardModel
 from database.objects import session
 from dialogs.card_edit_dialog import CardEditDialog
+from dialogs.card_mass_edit_dialog import CardMassEditDialog
+from dialogs.simple_dialogs import show_confirmation_dialog
 from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.card_list_model import CardListModel
 from pages.ui.card import Ui_Card
@@ -160,6 +163,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             (self.horizontalLayout_4, self.extractButton),
             (self.horizontalLayout_4, self.copyButton),
             (self.horizontalLayout_4, self.editButton),
+            (self.horizontalLayout_4, self.massEditButton),
             (self.horizontalLayout_4, self.replaceButton),
             (self.horizontalLayout_4, self.favorite),
         ):
@@ -183,7 +187,11 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         secondary_actions.addWidget(self.copyButton)
         self.verticalLayout_5.addLayout(secondary_actions)
 
-        self.verticalLayout_5.addWidget(self.editButton)
+        text_actions = QHBoxLayout()
+        text_actions.setSpacing(6)
+        text_actions.addWidget(self.editButton)
+        text_actions.addWidget(self.massEditButton)
+        self.verticalLayout_5.addLayout(text_actions)
         self.verticalLayout_5.addWidget(self.favorite)
         self.verticalLayout_5.addStretch(1)
 
@@ -318,6 +326,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.searchButton.clicked.connect(self._search)
         self.restoreButton.clicked.connect(self._restore)
         self.editButton.clicked.connect(self._open_edit_modal)
+        self.massEditButton.clicked.connect(self._open_mass_edit_modal)
         self.searchEdit.returnPressed.connect(self._search)
         self.searchEdit.textChanged.connect(self.searchHelperLabel.clear)
         self.favorite.stateChanged.connect(self._toggle_favorite)
@@ -358,18 +367,34 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             self._search()
 
     def _open_edit_modal(self):
+        if not self.selected:
+            return
+
         dialog = CardEditDialog(self.selected)
 
         if dialog.exec():
+            if dialog.get_action() == "regex":
+                self._apply_regex_replacement(*dialog.get_regex_inputs(), all_cards=False)
+                return
+
             name, description = dialog.get_inputs()
             if name and description:
                 # This is done in a pretty inefficient way, but one missing
                 # card and the game can break, so everything needs to be
                 # updated before any changes, in case of any CARD_* file update.
-                if name != remove_alt_tags(self.selected.name):
-                    self.service.replace_name(name)
-                if description != self.selected.description:
-                    self.service.replace_description(description)
+                try:
+                    if name != remove_alt_tags(self.selected.name):
+                        self.service.replace_name(name)
+                    if description != self.selected.description:
+                        self.service.replace_description(description)
+                except (OSError, RuntimeError) as error:
+                    show_toast(
+                        self,
+                        "Text Edit",
+                        f"Card text could not be saved: {error}",
+                        ToastPreset.ERROR_DARK,
+                    )
+                    return
                 self.model.refresh()
                 show_toast(
                     self,
@@ -377,6 +402,56 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
                     "Card text edited successfully",
                     ToastPreset.SUCCESS_DARK,
                 )
+
+    def _open_mass_edit_modal(self):
+        dialog = CardMassEditDialog(self)
+
+        if dialog.exec():
+            self._apply_regex_replacement(*dialog.get_inputs(), all_cards=True)
+
+    def _apply_regex_replacement(
+        self, pattern, replacement, replace_names, replace_descriptions, all_cards
+    ):
+
+        if all_cards and not show_confirmation_dialog(
+            "Apply this regex replacement to all cards?", True
+        ):
+            return
+
+        try:
+            changed_cards, replacements = self.service.replace_text_with_regex(
+                pattern,
+                replacement,
+                replace_names,
+                replace_descriptions,
+                None if all_cards else self.selected,
+            )
+        except (OSError, RuntimeError, ValueError, re.error) as error:
+            show_toast(
+                self,
+                "Regex replacement",
+                f"Could not apply regex: {error}",
+                ToastPreset.ERROR_DARK,
+            )
+            return
+
+        if not changed_cards:
+            show_toast(
+                self,
+                "Regex replacement",
+                "No matching card text found",
+                ToastPreset.WARNING_DARK,
+            )
+            return
+
+        self.model.refresh()
+        scope = "all cards" if all_cards else "the selected card"
+        show_toast(
+            self,
+            "Regex replacement",
+            f"Replaced {replacements} match(es) across {changed_cards} card(s) in {scope}",
+            ToastPreset.SUCCESS_DARK,
+        )
 
     def _restore(self):
         if self.service.restore_asset():

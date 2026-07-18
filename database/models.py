@@ -205,7 +205,6 @@ class FaceModel(UnityAsset, base):
 
     name: Mapped[str] = mapped_column(String(255), unique=True)
     key: Mapped[int] = mapped_column(Integer, unique=True)
-    bundle: Mapped[str] = mapped_column(String(8), unique=False)
     thumb: QIcon = QIcon()
 
 

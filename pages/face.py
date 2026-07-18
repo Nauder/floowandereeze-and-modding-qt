@@ -10,7 +10,7 @@ from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.face_list_model import FaceListModel
 from pages.ui.face import Ui_Face
 from services.face_service import FaceService
-from unity.unity_utils import fetch_bundle_image_by_key
+from unity.unity_utils import fetch_unity3d_image
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.image_utils import slugify
 from util.ui_util import show_toast
@@ -99,12 +99,9 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
     def _on_face_clicked(self, index) -> None:
         self.selected = self.model.assets[index.row()]
 
-        icon = fetch_bundle_image_by_key(
-            self.selected.bundle, self.selected.key, (256, 375)
-        )
+        icon = fetch_unity3d_image(self.selected.key, (256, 375))
         if icon:
             self.current.setPixmap(icon.pixmap(256, 375))
-        self.service.bundle = self.selected.bundle
         self.service.key = self.selected.key
         self.bundle.setText(f"Editing {self.selected.name} ({self.selected.key})")
 
@@ -124,7 +121,7 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
             self.service.image_path = local_file
 
     def _extract_texture(self) -> None:
-        self.service.extract_texture(self.service.bundle)
+        self.service.extract_texture(self.service.key)
         show_toast(
             self,
             "Face Extraction",
@@ -139,9 +136,7 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
 
         self.service.replace_bundle()
         self.model.refresh()
-        icon = fetch_bundle_image_by_key(
-            self.selected.bundle, self.selected.key, (256, 375)
-        )
+        icon = fetch_unity3d_image(self.service.key, (256, 375))
         if icon:
             self.current.setPixmap(icon.pixmap(256, 375))
 

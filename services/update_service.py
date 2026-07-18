@@ -174,7 +174,7 @@ def update_faces() -> None:
     session.query(FaceModel).delete()
     session.add_all(
         [
-            FaceModel(key=face["key"], name=face["name"], bundle=face["bundle"])
+            FaceModel(key=face["key"], name=face["name"])
             for _, face in remote_faces.iterrows()
         ]
     )
