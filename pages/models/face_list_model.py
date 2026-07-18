@@ -23,8 +23,7 @@ class FaceListModel(AssetListModel):
 
             # Fetch all thumbnails in batch
             thumbnails = batch_fetch_unity3d_images(
-                [face.key for face in self.assets],
-                (128, 181)
+                [face.key for face in self.assets], (128, 181)
             )
 
             # Assign thumbnails to faces

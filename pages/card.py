@@ -374,7 +374,9 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
 
         if dialog.exec():
             if dialog.get_action() == "regex":
-                self._apply_regex_replacement(*dialog.get_regex_inputs(), all_cards=False)
+                self._apply_regex_replacement(
+                    *dialog.get_regex_inputs(), all_cards=False
+                )
                 return
 
             name, description = dialog.get_inputs()
