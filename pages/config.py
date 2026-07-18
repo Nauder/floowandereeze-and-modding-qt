@@ -482,45 +482,17 @@ class Config(QWidget, Ui_Config):
         ):
             return
 
-        # Create progress dialog
-        progress = QProgressDialog(
-            f"Restoring text edits for {len(modified_cards)} cards...",
-            "Cancel",
-            0,
-            len(modified_cards),
-            self,
-        )
-        progress.setWindowModality(Qt.WindowModality.WindowModal)
-        progress.setWindowTitle("Restoring Text Edits")
-        progress.setCancelButton(
-            None
-        )  # Remove cancel button since we can't cancel the process
-        progress.show()
-
         card_service = CardService()
-        success_count = 0
-
-        for card in modified_cards:
-            progress.setLabelText(
-                f"Restoring text edits ({success_count + 1}/{len(modified_cards)})"
+        try:
+            success_count = card_service.restore_text_edits(modified_cards)
+        except (OSError, RuntimeError, ValueError) as error:
+            show_toast(
+                self,
+                "Text Edits",
+                f"Text edits could not be restored: {error}",
+                ToastPreset.ERROR_DARK,
             )
-            card_service.bundle = card.bundle
-            if card.modded_name:
-                card_service.replace_name(card.name)  # Restore original name
-            if card.modded_description:
-                card_service.replace_description(
-                    card.description
-                )  # Restore original description
-            success_count += 1
-            progress.setValue(progress.value() + 1)
-
-        # Clear all modded fields in the database
-        for card in modified_cards:
-            card.modded_name = None
-            card.modded_description = None
-        session.commit()
-
-        progress.close()
+            return
 
         show_toast(
             self,

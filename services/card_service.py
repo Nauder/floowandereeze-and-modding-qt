@@ -309,3 +309,53 @@ class CardService(UnityService):
         session.commit()
 
         return len(changes), replacement_count
+
+    def restore_text_edits(self, cards: list[CardModel]) -> int:
+        """Restore saved text edits and rebuild card metadata once for the batch."""
+        if not cards:
+            return 0
+
+        if not APP_SESSION.fresh_card_metadata:
+            self.update_card_files()
+            APP_SESSION.fresh_card_metadata = True
+
+        name_file: CardMetadataModel = (
+            session.query(CardMetadataModel)
+            .filter(CardMetadataModel.name == "card_name.bytes")
+            .first()
+        )
+        description_file: CardMetadataModel = (
+            session.query(CardMetadataModel)
+            .filter(CardMetadataModel.name == "card_desc.bytes")
+            .first()
+        )
+        index_file: CardMetadataModel = (
+            session.query(CardMetadataModel)
+            .filter(CardMetadataModel.name == "card_indx.bytes")
+            .first()
+        )
+
+        for card in cards:
+            if card.modded_name is not None:
+                name_file.data_json = replace_entry(
+                    card.data_index, name_file.data_json, card.name
+                )
+                card.modded_name = None
+            if card.modded_description is not None:
+                description_file.data_json = replace_entry(
+                    card.data_index, description_file.data_json, card.description
+                )
+                card.modded_description = None
+
+        try:
+            session.flush()
+            name_data, description_data, index_data = merge_data()
+            self.replace_card_data(name_file, name_data)
+            self.replace_card_data(description_file, description_data)
+            self.replace_card_data(index_file, index_data)
+        except Exception:
+            session.rollback()
+            raise
+        session.commit()
+
+        return len(cards)
