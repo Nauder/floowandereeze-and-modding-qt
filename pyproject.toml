@@ -3,7 +3,7 @@ name = "floowandereeze-and-modding-qt"
 version = "0.1.0"
 description = "Tool to mod the Yu-Gi-Oh! Master Duel game"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11"
 dependencies = [
     "altgraph==0.17.4",
     "black>=26.5.1",
@@ -15,18 +15,18 @@ dependencies = [
     "cramjam>=2.8.3",
     "darkdetect==0.8.0",
     "etcpak>=0.9.9",
-    "fastparquet==2024.5.0",
+    "fastparquet==2026.3.0",
     "fsspec==2024.9.0",
     "greenlet>=3.0.3",
     "idna==3.10",
     "lz4==4.3.3",
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.7.1",
-    "numpy==2.1.1",
+    "numpy==2.4.6",
     "packaging==24.1",
     "pandas>=2.3.3",
     "pefile==2024.8.26",
-    "pillow>=11.3.0",
+    "pillow>=12.3.0",
     "pyfmodex==0.7.2",
     "pyinstaller==6.10.0",
     "pyinstaller-hooks-contrib==2024.8",
@@ -36,11 +36,11 @@ dependencies = [
     "pyside6-addons==6.7.2",
     "pyside6-essentials==6.7.2",
     "python-dateutil==2.9.0.post0",
-    "python-dotenv==1.0.1",
+    "python-dotenv==1.2.2",
     "pytz==2024.2",
     "pywin32-ctypes==0.2.3",
     "qtpy==2.4.1",
-    "requests==2.32.4",
+    "requests==2.34.2",
     "shiboken6==6.7.2",
     "six==1.16.0",
     "sqlalchemy==2.0.34",
@@ -49,7 +49,7 @@ dependencies = [
     "typing-extensions==4.12.2",
     "tzdata==2024.1",
     "unitypy==1.25.2",
-    "urllib3==2.5.0",
+    "urllib3==2.7.0",
 ]
 
 [tool.pylint.main]
