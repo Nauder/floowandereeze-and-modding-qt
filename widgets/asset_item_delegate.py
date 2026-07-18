@@ -3,7 +3,16 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
 
-class AssetStateBadgeDelegate(QtWidgets.QStyledItemDelegate):
+class AssetGridDelegate(QtWidgets.QStyledItemDelegate):
+    """Paint asset items without the native focus rectangle."""
+
+    def paint(self, painter, option, index):
+        paint_option = QtWidgets.QStyleOptionViewItem(option)
+        paint_option.state &= ~QtWidgets.QStyle.StateFlag.State_HasFocus
+        super().paint(painter, paint_option, index)
+
+
+class AssetStateBadgeDelegate(AssetGridDelegate):
     """Overlay small state badges on asset grid items without changing model data."""
 
     def paint(self, painter, option, index):
