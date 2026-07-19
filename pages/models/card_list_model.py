@@ -61,10 +61,13 @@ class CardListModel(AssetListModel):
         if role == Qt.DisplayRole:
             return shorten(
                 self.assets[index.row()].name,
-                width=20,
+                width=32,
                 placeholder="...",
                 replace_whitespace=False,
             )
+
+        if role == Qt.ToolTipRole:
+            return self.assets[index.row()].name
 
         if role == Qt.DecorationRole:
             return self.assets[index.row()].thumb

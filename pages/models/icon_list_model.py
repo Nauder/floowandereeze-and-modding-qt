@@ -43,5 +43,8 @@ class IconListModel(AssetListModel):
         if role == Qt.DisplayRole:
             return ""
 
+        if role == Qt.ToolTipRole:
+            return self.assets[index.row()].name
+
         if role == Qt.DecorationRole:
             return self.assets[index.row()].thumb

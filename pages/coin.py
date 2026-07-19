@@ -1,112 +1,389 @@
-import re
-from io import BytesIO
-from os.path import join
-from typing import Optional
-
-from PIL import Image, ImageDraw
 from PySide6 import QtWidgets
+from PySide6.QtCore import Qt, QSize, QSettings, QTimer
 from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
-from PySide6.QtWidgets import QFileDialog
-from UnityPy import load as unity_load
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
+    QListView,
+    QLayout,
+    QSizePolicy,
+    QVBoxLayout,
+)
 from pyqttoast import ToastPreset
 
-from database.models import CoinModel
+from database.objects import session
+from widgets.grip_splitter import GripSplitter
+from pages.base_responsive_page import ResponsivePageMixin
 from pages.models.coin_list_model import CoinListModel
 from pages.ui.coin import Ui_Coin
 from services.coin_service import CoinService
+from unity.unity_utils import fetch_bundle_thumb
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
+from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 
 
-class Coin(QtWidgets.QWidget, Ui_Coin):
-    """
-    Coin modding page.
-
-    This page allows users to modify the head and tail textures of the game's coin.
-    It searches for coin assets in the CoinModel and provides separate
-    controls for head and tail image replacement.
-    """
+class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
+    RESULT_ITEM_SIZE = QSize(116, 132)
+    RESULT_ICON_SIZE = QSize(96, 96)
+    RESULTS_MIN_HEIGHT = 315
 
     def __init__(self):
-        super(Coin, self).__init__()
+        QtWidgets.QWidget.__init__(self)
+        ResponsivePageMixin.__init__(self)
         self.setupUi(self)
+
+        # Configure responsive images with aspect ratio
+        self.setup_responsive_images(
+            self.current,
+            self.preview,
+            aspect_ratio=(256, 256),
+            max_image_size=500,
+            min_image_size=64,
+        )
 
         self.service = CoinService()
         self.model = CoinListModel()
-        self.selected: Optional[CoinModel] = None
+        self.coinsView.setModel(self.model)
+        self.selected = None
+        self._settings = QSettings("Floowandereeze", "FloowandereezeAndModding")
+        configure_editor_chrome(
+            self,
+            current_widget=self.current,
+            preview_widget=self.preview,
+            file_edits=(self.assetEdit,),
+            list_views=(self.coinsView,),
+            helper_after=self.bundle,
+        )
+        set_button_roles(self)
+        self._configure_split_layout()
+        self._set_editor_context("Select a Coin")
+        self._configure_results_grid()
+        self._queue_initial_layout_update()
 
         # Enable drag and drop
         self.setAcceptDrops(True)
 
-        self._setup_coin_list()
         self._connect_callbacks()
-        self._load_coin_data()
 
-    def _create_circular_preview(
-        self, image_path: str, size: tuple = (100, 100)
-    ) -> QPixmap:
-        """Create a circular preview of an image."""
-        try:
-            # Load and resize the image
-            img = Image.open(image_path).convert("RGBA")
-            img = img.resize(size, Image.Resampling.LANCZOS)
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_results_grid()
 
-            # Create circular mask
-            mask = Image.new("L", size, 0)
-            draw = ImageDraw.Draw(mask)
-            draw.ellipse((0, 0, size[0], size[1]), fill=255)
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._queue_initial_layout_update()
 
-            # Apply circular mask
-            circular_img = Image.new("RGBA", size, (0, 0, 0, 0))
-            circular_img.paste(img, (0, 0))
-            circular_img.putalpha(mask)
+    def _configure_split_layout(self):
+        self.verticalLayout.setSpacing(8)
+        self.verticalLayout.setContentsMargins(12, 8, 12, 12)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.label.setStyleSheet("font-size: 15px; font-weight: 600;")
+        self.bundle.hide()
 
-            # Convert to QPixmap
-            img_bytes = BytesIO()
-            circular_img.save(img_bytes, format="PNG")
-            img_bytes.seek(0)
-            pixmap = QPixmap()
-            pixmap.loadFromData(img_bytes.getvalue())
+        for layout in (
+            self.main_content,
+            self.horizontalLayout_3,
+            self.horizontalLayout_4,
+            self.favoritesLayout,
+        ):
+            self.verticalLayout.removeItem(layout)
+        self.verticalLayout.removeWidget(self.coinsView)
 
-            return pixmap
-        except Exception as e:
-            print(f"Error creating circular preview: {e}")
-            return QPixmap()
+        self._configure_editor_controls()
 
-    def _pil_to_circular_pixmap(self, pil_image: Image.Image) -> QPixmap:
-        """Convert a PIL image to a circular QPixmap."""
-        try:
-            # Ensure RGBA mode
-            if pil_image.mode != "RGBA":
-                pil_image = pil_image.convert("RGBA")
+        self.editorPanel = QtWidgets.QWidget(self)
+        self.editorPanel.setObjectName("coinEditorPanel")
+        self.editorPanel.setMinimumHeight(230)
+        editor_layout = QVBoxLayout(self.editorPanel)
+        editor_layout.setContentsMargins(0, 0, 0, 0)
+        editor_layout.setSpacing(8)
+        editor_layout.addLayout(self.main_content)
 
-            # Create circular mask
-            mask = Image.new("L", pil_image.size, 0)
-            draw = ImageDraw.Draw(mask)
-            draw.ellipse((0, 0, pil_image.size[0], pil_image.size[1]), fill=255)
+        self.resultsPanel = QtWidgets.QWidget(self)
+        self.resultsPanel.setObjectName("coinResultsPanel")
+        self.resultsPanel.setMinimumHeight(self.RESULTS_MIN_HEIGHT)
+        results_layout = QVBoxLayout(self.resultsPanel)
+        results_layout.setContentsMargins(0, 0, 0, 0)
+        results_layout.setSpacing(6)
+        results_layout.addLayout(self._build_results_header())
+        results_layout.addWidget(self.coinsView, 1)
 
-            # Apply circular mask
-            circular_img = Image.new("RGBA", pil_image.size, (0, 0, 0, 0))
-            circular_img.paste(pil_image, (0, 0))
-            circular_img.putalpha(mask)
+        self.coinSplitter = GripSplitter(Qt.Orientation.Vertical, self)
+        self.coinSplitter.setObjectName("coinSplitter")
+        self.coinSplitter.setChildrenCollapsible(False)
+        self.coinSplitter.setOpaqueResize(True)
+        self.coinSplitter.addWidget(self.editorPanel)
+        self.coinSplitter.addWidget(self.resultsPanel)
+        self.coinSplitter.setStretchFactor(0, 3)
+        self.coinSplitter.setStretchFactor(1, 2)
+        self.coinSplitter.splitterMoved.connect(self._persist_splitter_state)
+        self.coinSplitter.splitterMoved.connect(lambda *_: self._queue_layout_update())
 
-            # Convert to QPixmap
-            img_bytes = BytesIO()
-            circular_img.save(img_bytes, format="PNG")
-            img_bytes.seek(0)
-            pixmap = QPixmap()
-            pixmap.loadFromData(img_bytes.getvalue())
+        stored_state = self._settings.value("coins/splitter_state")
+        if stored_state:
+            self.coinSplitter.restoreState(stored_state)
+        else:
+            self.coinSplitter.setSizes([520, 360])
 
-            return pixmap
-        except Exception as e:
-            print(f"Error converting PIL to circular pixmap: {e}")
-            return QPixmap()
+        self.verticalLayout.addWidget(self.coinSplitter, 1)
 
-    def _setup_coin_list(self) -> None:
-        """Set up the coin thumbnail list for selection."""
-        # Set the model and connect the clicked signal
-        self.coin_list.setModel(self.model)
-        self.coin_list.clicked.connect(self._on_coin_selected_index)
+    def _configure_editor_controls(self):
+        self.label_4.setText("Image source")
+        self.label_4.setStyleSheet("font-weight: 600; color: #ffffff;")
+        self.assetEdit.setMinimumWidth(210)
+        self.assetEdit.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
+
+        for layout, widget in (
+            (self.verticalLayout_2, self.label_4),
+            (self.verticalLayout_3, self.assetEdit),
+            (self.verticalLayout_4, self.selectButton),
+            (self.horizontalLayout_4, self.restoreButton),
+            (self.horizontalLayout_4, self.extractButton),
+            (self.horizontalLayout_4, self.copyButton),
+            (self.horizontalLayout_4, self.replaceButton),
+            (self.favoritesLayout, self.favoriteBox),
+        ):
+            layout.removeWidget(widget)
+
+        self.verticalLayout_5.setSpacing(8)
+        self.verticalLayout_5.setContentsMargins(0, 26, 0, 0)
+        self.verticalLayout_5.addStretch(1)
+        self.verticalLayout_5.addWidget(self.label_4)
+        self.verticalLayout_5.addWidget(self.assetEdit)
+        self.verticalLayout_5.addWidget(self.selectButton)
+        self.verticalLayout_5.addSpacing(6)
+        self.verticalLayout_5.addWidget(
+            self.replaceButton, alignment=Qt.AlignmentFlag.AlignHCenter
+        )
+        self.verticalLayout_5.addWidget(self.restoreButton)
+
+        secondary_actions = QHBoxLayout()
+        secondary_actions.setSpacing(6)
+        secondary_actions.addWidget(self.extractButton)
+        secondary_actions.addWidget(self.copyButton)
+        self.verticalLayout_5.addLayout(secondary_actions)
+
+        self.verticalLayout_5.addWidget(self.favoriteBox)
+        self.verticalLayout_5.addStretch(1)
+
+    def _build_results_header(self):
+        self.resultsLabel = QLabel("Results", self)
+        self.resultsLabel.setObjectName("resultsLabel")
+        self.resultsLabel.setStyleSheet("font-weight: 600; color: #ffffff;")
+
+        self.favoritesLayout.removeItem(self.horizontalSpacer_9)
+        self.favoritesLayout.removeItem(self.horizontalSpacer_10)
+        self.favoritesLayout.removeItem(self.horizontalSpacer_11)
+        self.favoritesLayout.insertWidget(0, self.resultsLabel)
+        self.favoritesLayout.setSpacing(8)
+        self.favoritesLayout.setContentsMargins(0, 0, 0, 0)
+        self.favoritesLayout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        return self.favoritesLayout
+
+    def _configure_results_grid(self):
+        self.coinsView.setFlow(QListView.Flow.TopToBottom)
+        self.coinsView.setWrapping(True)
+        self.coinsView.setResizeMode(QListView.ResizeMode.Adjust)
+        self.coinsView.setMovement(QListView.Movement.Static)
+        self.coinsView.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        self.coinsView.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.coinsView.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.coinsView.setUniformItemSizes(True)
+        self.coinsView.setWordWrap(True)
+        self.coinsView.setIconSize(self.RESULT_ICON_SIZE)
+        self.coinsView.setGridSize(self.RESULT_ITEM_SIZE)
+        self.coinsView.setStyleSheet("""
+            QListView::item {
+                border: 1px solid transparent;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QListView::item:selected {
+                background: rgba(21, 160, 111, 0.24);
+                border: 2px solid #15a06f;
+            }
+            QListView::item:focus {
+                border: 2px solid #15a06f;
+            }
+            """)
+        self._update_results_grid()
+
+    def _update_results_grid(self):
+        if not hasattr(self, "coinsView"):
+            return
+
+        self.coinsView.setIconSize(self.RESULT_ICON_SIZE)
+        self.coinsView.setGridSize(self.RESULT_ITEM_SIZE)
+        self.coinsView.doItemsLayout()
+
+    def _adjust_image_sizes(self):
+        if not hasattr(self, "editorPanel"):
+            super()._adjust_image_sizes()
+            return
+
+        if self.editorPanel.width() <= 0 or self.editorPanel.height() <= 0:
+            return
+
+        available_height = max(64, self.editorPanel.height() - 34)
+        available_width = max(64, self.editorPanel.width() // 3)
+        target_size = max(
+            64,
+            min(self._max_image_size, available_height, available_width),
+        )
+
+        for label in (self.current, self.preview):
+            label.setFixedSize(QSize(target_size, target_size))
+            label.updateGeometry()
+
+    def _queue_initial_layout_update(self):
+        for delay in (0, 50, 150):
+            QTimer.singleShot(delay, self._refresh_layout_after_show)
+
+    def _queue_layout_update(self):
+        QTimer.singleShot(0, self._refresh_layout_after_show)
+        QTimer.singleShot(25, self._refresh_layout_after_show)
+
+    def _refresh_layout_after_show(self):
+        self.coinSplitter.updateGeometry()
+        self.editorPanel.updateGeometry()
+        self.resultsPanel.updateGeometry()
+        self._adjust_image_sizes()
+        self._update_results_grid()
+
+    def _persist_splitter_state(self):
+        self._settings.setValue("coins/splitter_state", self.coinSplitter.saveState())
+
+    def _set_editor_context(self, text):
+        self.bundle.setText(text)
+        self.label.setText(f"Coins · {text}")
+
+    def _connect_callbacks(self):
+        self.coinsView.clicked.connect(self._on_coin_clicked)
+        self.selectButton.clicked.connect(self._select_image)
+        self.replaceButton.clicked.connect(self._replace)
+        self.copyButton.clicked.connect(self._copy)
+        self.extractButton.clicked.connect(self._extract_texture)
+        self.restoreButton.clicked.connect(self._restore)
+        self.favoriteBox.stateChanged.connect(self._toggle_favorite)
+        self.favoritesBox.stateChanged.connect(self._toggle_favorites_filter)
+
+    def _restore(self):
+        coins = self.service.bundle
+        self.service.bundle = self.service.bundle.bundle_big
+        if self.service.restore_asset():
+            self.model.refresh()
+            show_toast(
+                self, "Backup", "Coin restored successfully", ToastPreset.SUCCESS_DARK
+            )
+        else:
+            show_toast(
+                self, "Backup", "Card backup not found", ToastPreset.WARNING_DARK
+            )
+        self.service.bundle = coins
+
+    def _on_coin_clicked(self, index):
+        self.selected = self.model.assets[index.row()]
+
+        self.current.setPixmap(
+            fetch_bundle_thumb(self.selected.bundle_big, (256, 256)).pixmap(256, 256)
+        )
+        self.service.bundle = self.selected
+        self._set_editor_context(
+            f"Editing {self.model.assets[index.row()].name} (S: {self.selected.bundle_small} M: {self.selected.bundle_medium} B: {self.selected.bundle_big})"
+        )
+        self.replaceButton.setEnabled(True)
+        self.extractButton.setEnabled(True)
+        self.restoreButton.setEnabled(True)
+        self.copyButton.setEnabled(True)
+        self.favoriteBox.setEnabled(True)
+        self.favoriteBox.setChecked(self.selected.favorite)
+        hide_selection_helper(self)
+
+    def _copy(self):
+        self.service.copy_bundle()
+        show_toast(
+            self,
+            "Coin Copying",
+            'Coin copied to the "coins" folder',
+            ToastPreset.SUCCESS_DARK,
+        )
+
+    def _select_image(self):
+        file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)
+
+        if file and file.url() != "":
+            local_file = file.toLocalFile()
+
+            self.assetEdit.setText(local_file)
+            self.preview.setPixmap(QPixmap(local_file))
+            self.service.image_path = local_file
+
+    def _extract_texture(self):
+        coins = self.service.bundle
+        for bundle in [
+            self.service.bundle.bundle_small,
+            self.service.bundle.bundle_medium,
+            self.service.bundle.bundle_big,
+        ]:
+            self.service.bundle = bundle
+            self.service.extract_texture(bundle)
+
+        self.service.bundle = coins
+        show_toast(
+            self,
+            "Coin Extraction",
+            'Coin extracted to the "coins" folder',
+            ToastPreset.SUCCESS_DARK,
+        )
+
+    def _replace(self):
+        if APP_CONFIG.create_backup and not self.selected.has_backup:
+            coins = self.service.bundle
+            self.service.bundle = self.service.bundle.bundle_big
+            self.service.create_backup(self.service.bundle)
+            self.service.bundle = coins
+            self.model.set_backup_state(self.selected.id, True)
+
+        self.service.replace_bundle()
+        self.model.refresh()
+        self.current.setPixmap(
+            fetch_bundle_thumb(self.service.bundle.bundle_big, (256, 256)).pixmap(
+                256, 256
+            )
+        )
+
+        show_toast(
+            self, "Coin", "Coin replacement successful", ToastPreset.SUCCESS_DARK
+        )
+
+    def _toggle_favorite(self, state):
+        if self.selected and self.selected.favorite != (
+            state == Qt.CheckState.Checked.value
+        ):
+            self.selected.favorite = state == Qt.CheckState.Checked.value
+            session.commit()
+            show_toast(
+                self,
+                "Favorite",
+                "Coin favorite status updated",
+                ToastPreset.SUCCESS_DARK,
+            )
+
+    def _toggle_favorites_filter(self, state):
+        self.model.show_favorites = state == Qt.CheckState.Checked.value
+        if self.model.show_favorites:
+            self.model.refresh()
+            self.model.layoutChanged.emit()
+        else:
+            self.model.refresh()
+            self.model.layoutChanged.emit()
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         """Accepts drag and drop of image files."""
@@ -127,310 +404,7 @@ class Coin(QtWidgets.QWidget, Ui_Coin):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                # For now, set as head image - could be enhanced to detect drop target
-                self.headEdit.setText(file_path)
-                circular_pixmap = self._create_circular_preview(file_path)
-                self.preview_head.setPixmap(circular_pixmap)
-                self.service.head_image_path = file_path
-                self._check_replace_buttons()
+                self.assetEdit.setText(file_path)
+                self.preview.setPixmap(QPixmap(file_path))
+                self.service.image_path = file_path
                 break
-
-    def _connect_callbacks(self) -> None:
-        """Connect UI callbacks to their respective methods."""
-        self.selectHeadButton.clicked.connect(self._select_head_image)
-        self.selectTailButton.clicked.connect(self._select_tail_image)
-        self.replaceHeadButton.clicked.connect(self._replace_head)
-        self.replaceTailButton.clicked.connect(self._replace_tail)
-        self.extractButton.clicked.connect(self._extract_texture)
-        self.restoreButton.clicked.connect(self._restore)
-
-    def _on_coin_selected_index(self, index) -> None:
-        """Handle coin selection from the thumbnail list using QModelIndex."""
-        if index.isValid():
-            coin_index = index.row()
-            if 0 <= coin_index < len(self.model.assets):
-                self.selected = self.model.assets[coin_index]
-                self.service.coin_metadata = self.selected
-                self.bundle.setText(f"Editing Coin ({self.selected.bundle})")
-
-                # Enable buttons
-                self.extractButton.setEnabled(True)
-                self.restoreButton.setEnabled(True)
-
-                # Load current coin display
-                self._load_current_coin_display()
-
-    def _load_coin_data(self) -> None:
-        """Load coin data and populate the thumbnail list."""
-        # The model will handle thumbnail creation automatically
-        if self.model.assets:
-            # Select the first coin by default
-            if len(self.model.assets) > 0:
-                first_index = self.model.index(0, 0)
-                self.coin_list.setCurrentIndex(first_index)
-                self._on_coin_selected_index(first_index)
-        else:
-            self.bundle.setText("No coin data found - update database first")
-
-    def _load_current_coin_display(self) -> None:
-        """Load and display the current coin texture regions directly from game files."""
-        try:
-            if not self.service.coin_metadata:
-                self.current_head.setText("Current Head")
-                self.current_tail.setText("Current Tail")
-                return
-
-            # Read coin texture directly from the game bundle
-            bundle_path = join(
-                APP_CONFIG.game_path,
-                "0000",
-                self.service.coin_metadata.bundle[:2],
-                self.service.coin_metadata.bundle,
-            )
-
-            # Load the Unity bundle
-            env = unity_load(bundle_path)
-            coin_img = None
-
-            # Find and extract the coin texture
-            for obj in env.objects:
-                if obj.type.name == "Texture2D":
-                    data = obj.read()
-
-                    # Look for the coin texture
-                    if re.search(re.compile(r"coin\d\dtex"), data.m_Name.lower()) or (
-                        "cointoss" in data.m_Name.lower()
-                        and "icon" not in data.m_Name.lower()
-                    ):
-
-                        coin_img = data.image.convert("RGBA")
-                        break
-
-            if coin_img:
-                # Get head and tail regions
-                head_region, tail_region = self.service.get_coin_regions(coin_img.size)
-
-                # Extract head region
-                head_img = coin_img.crop(
-                    (
-                        head_region[0],
-                        head_region[1],
-                        head_region[0] + head_region[2],
-                        head_region[1] + head_region[3],
-                    )
-                )
-
-                # Extract tail region
-                tail_img = coin_img.crop(
-                    (
-                        tail_region[0],
-                        tail_region[1],
-                        tail_region[0] + tail_region[2],
-                        tail_region[1] + tail_region[3],
-                    )
-                )
-
-                # Convert PIL images to circular QPixmaps for display
-                head_pixmap = self._pil_to_circular_pixmap(head_img)
-                self.current_head.setPixmap(head_pixmap)
-
-                tail_pixmap = self._pil_to_circular_pixmap(tail_img)
-                self.current_tail.setPixmap(tail_pixmap)
-
-            else:
-                self.current_head.setText("Coin texture not found")
-                self.current_tail.setText("Coin texture not found")
-
-        except Exception as e:
-            print(f"Error loading current coin display: {e}")
-            self.current_head.setText("Error loading coin")
-            self.current_tail.setText("Error loading coin")
-
-    def _select_head_image(self) -> None:
-        """Select head image file."""
-        file, _ = QFileDialog.getOpenFileUrl(
-            self, "Select Head Image", "", IMAGE_FILTER
-        )
-
-        self._select_image(file)
-
-    def _select_tail_image(self) -> None:
-        """Select tail image file."""
-        file, _ = QFileDialog.getOpenFileUrl(
-            self, "Select Tail Image", "", IMAGE_FILTER
-        )
-
-        self._select_image(file)
-
-    def _select_image(self, file):
-        """Select image file and update UI."""
-        if file and file.url() != "":
-            local_file = file.toLocalFile()
-            self.tailEdit.setText(local_file)
-            circular_pixmap = self._create_circular_preview(local_file)
-            self.preview_tail.setPixmap(circular_pixmap)
-            self.service.tail_image_path = local_file
-            self._check_replace_buttons()
-
-    def _check_replace_buttons(self) -> None:
-        """Enable replace buttons based on selected images."""
-        has_head = bool(self.service.head_image_path)
-        has_tail = bool(self.service.tail_image_path)
-        self.replaceHeadButton.setEnabled(has_head)
-        self.replaceTailButton.setEnabled(has_tail)
-
-    def _extract_texture(self) -> None:
-        """Extract coin textures to the images folder."""
-        if not self.selected:
-            show_toast(
-                self,
-                "Extract",
-                "No coin selected",
-                ToastPreset.WARNING_DARK,
-            )
-            return
-
-        self.service.extract_texture(self.selected.bundle)
-        show_toast(
-            self,
-            "Coin Extraction",
-            'Coin textures extracted to the "coins" folder',
-            ToastPreset.SUCCESS_DARK,
-        )
-
-    def _restore(self) -> None:
-        """Restore coin from backup."""
-        if not self.selected:
-            show_toast(
-                self,
-                "Restore",
-                "No coin selected",
-                ToastPreset.WARNING_DARK,
-            )
-            return
-
-        if self.service.restore_asset(self.selected.bundle):
-            # Refresh the current display to show the restored coin
-            self._load_current_coin_display()
-            show_toast(
-                self,
-                "Backup",
-                "Coin restored successfully",
-                ToastPreset.SUCCESS_DARK,
-            )
-        else:
-            show_toast(
-                self,
-                "Backup",
-                "Coin backup not found",
-                ToastPreset.WARNING_DARK,
-            )
-
-    def _replace_head(self) -> None:
-        """Replace coin head texture with the selected image."""
-        if not self.selected:
-            show_toast(
-                self,
-                "Replace Head",
-                "No coin selected",
-                ToastPreset.WARNING_DARK,
-            )
-            return
-
-        if not self.service.head_image_path:
-            show_toast(
-                self,
-                "Replace Head",
-                "Please select a head image first",
-                ToastPreset.WARNING_DARK,
-            )
-            return
-
-        try:
-            # Create backup if enabled
-            if APP_CONFIG.create_backup:
-                self.service.create_backup(self.selected.bundle)
-
-            # Temporarily clear tail image to replace only head
-            temp_tail = self.service.tail_image_path
-            self.service.tail_image_path = None
-
-            # Replace the coin head region
-            self.service.replace_bundle()
-
-            # Restore tail image path
-            self.service.tail_image_path = temp_tail
-
-            # Refresh the current display to show the updated coin
-            self._load_current_coin_display()
-
-            # Refresh the coin list model to update thumbnails
-            self.model.refresh()
-
-            show_toast(
-                self,
-                "Coin Head",
-                "Head replacement successful",
-                ToastPreset.SUCCESS_DARK,
-            )
-
-        except Exception as e:
-            show_toast(
-                self,
-                "Coin Head",
-                f"Head replacement failed: {str(e)}",
-                ToastPreset.ERROR_DARK,
-            )
-
-    def _replace_tail(self) -> None:
-        """Replace coin tail texture with selected image."""
-        if not self.selected:
-            show_toast(
-                self,
-                "Replace Tail",
-                "No coin selected",
-                ToastPreset.WARNING_DARK,
-            )
-            return
-
-        if not self.service.tail_image_path:
-            show_toast(
-                self,
-                "Replace Tail",
-                "Please select a tail image first",
-                ToastPreset.WARNING_DARK,
-            )
-            return
-
-        try:
-            # Create backup if enabled
-            if APP_CONFIG.create_backup:
-                self.service.create_backup(self.selected.bundle)
-
-            # Temporarily clear head image to replace only tail
-            temp_head = self.service.head_image_path
-            self.service.head_image_path = None
-
-            # Replace the coin tail region
-            self.service.replace_bundle()
-
-            # Restore head image path
-            self.service.head_image_path = temp_head
-
-            # Refresh the current display to show the updated coin
-            self._load_current_coin_display()
-
-            show_toast(
-                self,
-                "Coin Tail",
-                "Tail replacement successful",
-                ToastPreset.SUCCESS_DARK,
-            )
-
-        except Exception as e:
-            show_toast(
-                self,
-                "Coin Tail",
-                f"Tail replacement failed: {str(e)}",
-                ToastPreset.ERROR_DARK,
-            )

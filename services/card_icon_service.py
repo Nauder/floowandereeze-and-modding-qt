@@ -29,13 +29,17 @@ class CardIconService(UnityService):
         super().__init__("icons")
         self.selected_icon: Optional[CardIconModel] = None
 
+    def _atlas_path(self) -> str:
+        """Return the Unity data file that contains the card icon atlas."""
+        return join(APP_CONFIG.game_path[:-18], "masterduel_Data", FILE["UNITY"])
+
     def replace_bundle(self) -> None:
         """Replace the card icon in the sprite atlas with a new image."""
         if not self.selected_icon or not self.image_path:
             raise ValueError("No icon selected or image path not set")
 
         # Load the card sprite atlas
-        atlas_path = f"{APP_CONFIG.game_path}/0000/{FILE['CARD_SPRITE_ATLAS'][:2]}/{FILE['CARD_SPRITE_ATLAS']}"
+        atlas_path = self._atlas_path()
 
         env = unity_load(atlas_path)
         modified = False
@@ -45,7 +49,7 @@ class CardIconService(UnityService):
                 data = obj.read()
 
                 # Look for the card sprite atlas texture
-                if "CardSpriteAtlas" in data.m_Name:
+                if FILE["CARD_SPRITE_ATLAS"] in data.m_Name.lower():
                     # Get the current atlas texture
                     current_atlas = data.image.convert("RGBA")
 
@@ -56,9 +60,9 @@ class CardIconService(UnityService):
                         Image.Resampling.LANCZOS,
                     )
 
-                    # Replace the icon region in the atlas
+                    # Replace the whole region, including transparent pixels.
                     current_atlas.paste(
-                        new_icon, (self.selected_icon.x, self.selected_icon.y), new_icon
+                        new_icon, (self.selected_icon.x, self.selected_icon.y)
                     )
 
                     # Update the texture data
@@ -74,44 +78,43 @@ class CardIconService(UnityService):
         else:
             raise ValueError("Card sprite atlas texture not found in bundle")
 
-    def extract_texture(self, name: str, field=False, miss=False) -> None:
+    def extract_texture(self, name: str, field=False, miss=False) -> str:
         """Extract the card icon texture."""
         if not self.selected_icon:
-            return
+            raise ValueError("No icon selected")
 
-        try:
-            # Load the card sprite atlas
-            atlas_path = f"{APP_CONFIG.game_path}/0000/{FILE['CARD_SPRITE_ATLAS'][:2]}/{FILE['CARD_SPRITE_ATLAS']}"
-            env = unity_load(atlas_path)
+        atlas_path = self._atlas_path()
+        env = unity_load(atlas_path)
 
-            for obj in env.objects:
-                if obj.type.name == "Texture2D":
-                    data = obj.read()
+        for obj in env.objects:
+            if obj.type.name != "Texture2D":
+                continue
 
-                    # Look for the card sprite atlas texture
-                    if "CardSpriteAtlas" in data.m_Name:
-                        atlas_img = data.image.convert("RGBA")
+            data = obj.read()
 
-                        # Extract the icon region
-                        icon_img = atlas_img.crop(
-                            (
-                                self.selected_icon.x,
-                                self.selected_icon.y,
-                                self.selected_icon.x + self.selected_icon.width,
-                                self.selected_icon.y + self.selected_icon.height,
-                            )
-                        )
+            # Look for the card sprite atlas texture
+            if FILE["CARD_SPRITE_ATLAS"] not in data.m_Name.lower():
+                continue
 
-                        # Save the extracted icon
-                        makedirs(join("images", self.subfolder), exist_ok=True)
-                        icon_path = join(
-                            "images", self.subfolder, f"{slugify(name)}.png"
-                        )
-                        icon_img.save(icon_path)
-                        break
+            atlas_img = data.image.convert("RGBA")
 
-        except Exception as e:
-            print(f"Error extracting card icon texture: {e}")
+            # Extract the icon region
+            icon_img = atlas_img.crop(
+                (
+                    self.selected_icon.x,
+                    self.selected_icon.y,
+                    self.selected_icon.x + self.selected_icon.width,
+                    self.selected_icon.y + self.selected_icon.height,
+                )
+            )
+
+            # Save the extracted icon
+            makedirs(join("images", self.subfolder), exist_ok=True)
+            icon_path = join("images", self.subfolder, f"{slugify(name)}.png")
+            icon_img.save(icon_path)
+            return icon_path
+
+        raise ValueError("Card sprite atlas texture not found in bundle")
 
     def create_backup(self, name: str, field=False, miss=False) -> None:
         """Create a backup of the current card icon."""
@@ -120,7 +123,7 @@ class CardIconService(UnityService):
 
         try:
             # Load the card sprite atlas
-            atlas_path = f"{APP_CONFIG.game_path}/0000/{FILE['CARD_SPRITE_ATLAS'][:2]}/{FILE['CARD_SPRITE_ATLAS']}"
+            atlas_path = self._atlas_path()
             env = unity_load(atlas_path)
 
             for obj in env.objects:
@@ -128,7 +131,7 @@ class CardIconService(UnityService):
                     data = obj.read()
 
                     # Look for the card sprite atlas texture
-                    if "CardSpriteAtlas" in data.m_Name:
+                    if FILE["CARD_SPRITE_ATLAS"] in data.m_Name.lower():
                         atlas_img = data.image.convert("RGBA")
 
                         # Extract the icon region

@@ -12,7 +12,6 @@ from database.models import CardMetadataModel
 from database.objects import session
 from util.constants import APP_CONFIG
 
-
 # 0. Definitions
 
 

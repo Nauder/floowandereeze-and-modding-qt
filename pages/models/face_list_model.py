@@ -4,7 +4,7 @@ from typing_extensions import override
 from database.models import FaceModel
 from database.objects import session
 from pages.models.asset_list_model import AssetListModel
-from unity.unity_utils import batch_fetch_bundle_images_by_key
+from unity.unity_utils import batch_fetch_unity3d_images
 
 
 class FaceListModel(AssetListModel):
@@ -19,10 +19,12 @@ class FaceListModel(AssetListModel):
 
         if self.assets:
             # Create a mapping of key to bundle for batch fetching
-            key_to_bundle = {face.key: face.bundle for face in self.assets}
+            key_to_bundle = {face.key: str(face.key) for face in self.assets}
 
             # Fetch all thumbnails in batch
-            thumbnails = batch_fetch_bundle_images_by_key(key_to_bundle, (128, 181))
+            thumbnails = batch_fetch_unity3d_images(
+                [face.key for face in self.assets], (128, 181)
+            )
 
             # Assign thumbnails to faces
             for face in self.assets:

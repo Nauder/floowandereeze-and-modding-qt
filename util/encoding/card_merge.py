@@ -14,7 +14,6 @@ from database.models import CardMetadataModel
 from database.objects import session
 from util.constants import APP_CONFIG
 
-
 CARD_Indx_filename = "card_indx.bytes"
 CARD_Name_filename = "card_name.bytes"
 CARD_Desc_filename = "card_desc.bytes"

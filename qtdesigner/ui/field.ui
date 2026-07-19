@@ -69,20 +69,20 @@
         <widget class="QLabel" name="current">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
+           <horstretch>1</horstretch>
+           <verstretch>1</verstretch>
           </sizepolicy>
          </property>
          <property name="minimumSize">
           <size>
-           <width>1</width>
-           <height>1</height>
+           <width>128</width>
+           <height>128</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>768</width>
-           <height>267</height>
+           <width>500</width>
+           <height>500</height>
           </size>
          </property>
          <property name="toolTip">
@@ -109,15 +109,21 @@
        <item>
         <widget class="QLabel" name="preview">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>1</horstretch>
+           <verstretch>1</verstretch>
           </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>128</width>
+           <height>128</height>
+          </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>768</width>
-           <height>267</height>
+           <width>500</width>
+           <height>500</height>
           </size>
          </property>
          <property name="toolTip">
@@ -150,7 +156,7 @@
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
+         <width>20</width>
          <height>20</height>
         </size>
        </property>
@@ -205,7 +211,7 @@
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
+         <width>20</width>
          <height>20</height>
         </size>
        </property>
@@ -295,7 +301,7 @@
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
+         <width>20</width>
          <height>20</height>
         </size>
        </property>

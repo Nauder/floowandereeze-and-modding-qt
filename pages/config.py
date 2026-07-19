@@ -3,12 +3,13 @@ import os
 from threading import Thread
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFileDialog, QWidget, QProgressDialog
+from PySide6.QtWidgets import QDialog, QFileDialog, QLabel, QWidget, QProgressDialog
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from pyqttoast import ToastPreset
 
 from database.objects import session
 from database.models import CardModel
+from dialogs.game_path_select_dialog import GamePathSelectDialog
 from dialogs.simple_dialogs import show_confirmation_dialog
 from pages.models.asset_list_model import AssetListModel
 from pages.ui.config import Ui_Config
@@ -28,8 +29,13 @@ from services.update_service import (
     update_coins,
 )
 from util.constants import APP_CONFIG, IMAGE_FILTER, BG_TEMPLATE
-from util.python_utils import get_instances_of_subclasses, is_valid_game_path
+from util.python_utils import (
+    find_steam_master_duel_paths,
+    get_instances_of_subclasses,
+    is_valid_game_path,
+)
 from util.ui_util import show_toast
+from widgets.ux import set_button_roles
 
 
 class Config(QWidget, Ui_Config):
@@ -41,8 +47,9 @@ class Config(QWidget, Ui_Config):
     """
 
     def __init__(self):
-        super(Config, self).__init__()
+        super().__init__()
         self.setupUi(self)
+        self._configure_ux()
         self._connect_callbacks()
         self._set_variables()
         # Enable drag and drop
@@ -128,7 +135,7 @@ class Config(QWidget, Ui_Config):
         )
 
     def _get_services_and_models(self):
-        # This SHOULD return the correct service per model as long as the naming standard is followed
+        # This returns the matching service per model while the naming standard holds.
         services: list[UnityService] = get_instances_of_subclasses(UnityService)
         models: list[AssetListModel] = get_instances_of_subclasses(AssetListModel)
 
@@ -136,6 +143,7 @@ class Config(QWidget, Ui_Config):
 
     def _connect_callbacks(self):
         self.gameButton.clicked.connect(self._get_game_path)
+        self.autoDetectGameButton.clicked.connect(self._auto_detect_game_path)
         self.updateButton.clicked.connect(self._check_update)
         self.bgButton.clicked.connect(self._get_background)
         self.bgResetButton.clicked.connect(self._reset_background)
@@ -157,6 +165,35 @@ class Config(QWidget, Ui_Config):
         # Connect background mode radio buttons
         for radio in [self.stretchedButton, self.croppedButton]:
             radio.toggled.connect(lambda checked, r=radio: self._set_background_mode(r))
+
+    def _configure_ux(self):
+        """Add section labels and shared button hierarchy to the config page."""
+        self.bgLine.setPlaceholderText("Select or drop an image")
+        self.gameLine.setPlaceholderText("Select Master Duel 0x000000 folder")
+        self.updateLine.setPlaceholderText("No data version installed")
+
+        sections = [
+            (6, "Asset Build Settings"),
+            (5, "Backups"),
+            (4, "Card Text"),
+            (1, "Appearance"),
+            (0, "Game Data"),
+        ]
+        for index, title in sections:
+            self._insert_config_section(index, title)
+
+        set_button_roles(self)
+
+    def _insert_config_section(self, index: int, title: str) -> None:
+        label = QLabel(title, self)
+        label.setObjectName(f"{title.replace(' ', '').lower()}SectionLabel")
+        label.setStyleSheet("font-weight: 600; color: #ffffff; margin-top: 10px;")
+        self.verticalLayout_5.insertWidget(index, label)
+
+        spacer = QLabel("", self)
+        spacer.setObjectName(f"{title.replace(' ', '').lower()}SectionSpacer")
+        spacer.setStyleSheet("margin-top: 10px;")
+        self.verticalLayout_3.insertWidget(index, spacer)
 
     def _set_packer(self, radio):
         # Ignore the event if it was turned off
@@ -222,28 +259,48 @@ class Config(QWidget, Ui_Config):
     def _get_game_path(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Game Folder")
         if folder and folder != "":
-            is_valid = is_valid_game_path(folder)
-            if is_valid[0]:
-                APP_CONFIG.game_path = folder
-                session.commit()
-                self.gameLine.setText(APP_CONFIG.game_path)
+            self._set_game_path(folder)
 
-                if not APP_CONFIG.version:
-                    self._check_update()
+    def _auto_detect_game_path(self):
+        game_paths = find_steam_master_duel_paths()
+        if not game_paths:
+            show_toast(
+                self,
+                "Game Path",
+                "Could not find Master Duel player data in your Steam libraries",
+                ToastPreset.WARNING_DARK,
+            )
+            return
 
-                show_toast(
-                    self,
-                    "Game Path",
-                    "Game Path set, restart the app to see changes",
-                    ToastPreset.SUCCESS_DARK,
-                )
-            else:
-                show_toast(
-                    self,
-                    "Game Path",
-                    f"There was a problem with the Game Path: {is_valid[1]}",
-                    ToastPreset.WARNING_DARK,
-                )
+        dialog = GamePathSelectDialog(game_paths, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            selected_game_path = dialog.selected_game_path()
+            if selected_game_path:
+                self._set_game_path(selected_game_path)
+
+    def _set_game_path(self, folder: str):
+        is_valid = is_valid_game_path(folder)
+        if is_valid[0]:
+            APP_CONFIG.game_path = folder
+            session.commit()
+            self.gameLine.setText(APP_CONFIG.game_path)
+
+            if not APP_CONFIG.version:
+                self._check_update()
+
+            show_toast(
+                self,
+                "Game Path",
+                "Game Path set, restart the app to see changes",
+                ToastPreset.SUCCESS_DARK,
+            )
+        else:
+            show_toast(
+                self,
+                "Game Path",
+                f"There was a problem with the Game Path: {is_valid[1]}",
+                ToastPreset.WARNING_DARK,
+            )
 
     def _set_variables(self):
         self.gameLine.setText(APP_CONFIG.game_path)
@@ -289,8 +346,23 @@ class Config(QWidget, Ui_Config):
             or datetime.strptime(local.strip(), "%Y-%m-%d").date()
             < datetime.strptime(remote.strip(), "%Y-%m-%d").date()
         ):
+            update_tasks = [
+                ("sleeves", update_sleeves),
+                ("cards", update_cards),
+                ("card icons", update_card_icons),
+                ("faces", update_faces),
+                ("wallpapers", update_wallpapers),
+                ("fields", update_fields),
+                ("icons", update_icons),
+                ("deck boxes", update_boxes),
+                ("card metadata", update_card_metadata),
+                ("coins", update_coins),
+            ]
+
             # Create progress dialog
-            progress = QProgressDialog("Updating data...", "Cancel", 0, 9, self)
+            progress = QProgressDialog(
+                "Preparing data update...", "Cancel", 0, len(update_tasks), self
+            )
             progress.setWindowModality(Qt.WindowModality.WindowModal)
             progress.setWindowTitle("Updating")
             progress.setCancelButton(
@@ -298,25 +370,16 @@ class Config(QWidget, Ui_Config):
             )  # Remove cancel button since we can't cancel the update
             progress.show()
 
-            update_threads = [
-                Thread(target=update_sleeves),
-                Thread(target=update_cards),
-                Thread(target=update_card_icons),
-                Thread(target=update_faces),
-                Thread(target=update_wallpapers),
-                Thread(target=update_fields),
-                Thread(target=update_icons),
-                Thread(target=update_boxes),
-                Thread(target=update_card_metadata),
-                Thread(target=update_coins),
-            ]
-
-            for thread in update_threads:
+            for task_index, (task_name, update_task) in enumerate(
+                update_tasks, start=1
+            ):
+                progress.setLabelText(
+                    f"Updating {task_name} ({task_index}/{len(update_tasks)})"
+                )
+                thread = Thread(target=update_task)
                 thread.start()
-                progress.setValue(progress.value() + 1)
-
-            for thread in update_threads:
                 thread.join()
+                progress.setValue(task_index)
 
             progress.close()
 
@@ -374,9 +437,18 @@ class Config(QWidget, Ui_Config):
             )
             return
 
+        if not show_confirmation_dialog(
+            f"Reapply text edits to {len(modified_cards)} cards?", True
+        ):
+            return
+
         # Create progress dialog
         progress = QProgressDialog(
-            "Applying text edits...", "Cancel", 0, len(modified_cards), self
+            f"Applying text edits to {len(modified_cards)} cards...",
+            "Cancel",
+            0,
+            len(modified_cards),
+            self,
         )
         progress.setWindowModality(Qt.WindowModality.WindowModal)
         progress.setWindowTitle("Applying Text Edits")
@@ -389,6 +461,9 @@ class Config(QWidget, Ui_Config):
         success_count = 0
 
         for card in modified_cards:
+            progress.setLabelText(
+                f"Applying text edits ({success_count + 1}/{len(modified_cards)})"
+            )
             card_service.bundle = card.bundle
             if card.modded_name:
                 card_service.replace_name(card.modded_name)
@@ -428,38 +503,22 @@ class Config(QWidget, Ui_Config):
             )
             return
 
-        # Create progress dialog
-        progress = QProgressDialog(
-            "Restoring text edits...", "Cancel", 0, len(modified_cards), self
-        )
-        progress.setWindowModality(Qt.WindowModality.WindowModal)
-        progress.setWindowTitle("Restoring Text Edits")
-        progress.setCancelButton(
-            None
-        )  # Remove cancel button since we can't cancel the process
-        progress.show()
+        if not show_confirmation_dialog(
+            f"Restore original text for {len(modified_cards)} cards?", True
+        ):
+            return
 
         card_service = CardService()
-        success_count = 0
-
-        for card in modified_cards:
-            card_service.bundle = card.bundle
-            if card.modded_name:
-                card_service.replace_name(card.name)  # Restore original name
-            if card.modded_description:
-                card_service.replace_description(
-                    card.description
-                )  # Restore original description
-            success_count += 1
-            progress.setValue(progress.value() + 1)
-
-        # Clear all modded fields in the database
-        for card in modified_cards:
-            card.modded_name = None
-            card.modded_description = None
-        session.commit()
-
-        progress.close()
+        try:
+            success_count = card_service.restore_text_edits(modified_cards)
+        except (OSError, RuntimeError, ValueError) as error:
+            show_toast(
+                self,
+                "Text Edits",
+                f"Text edits could not be restored: {error}",
+                ToastPreset.ERROR_DARK,
+            )
+            return
 
         show_toast(
             self,

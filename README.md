@@ -14,7 +14,7 @@ A modding tool for Yu-Gi-Oh! Master Duel, built with PySide6 (Qt6) for Windows. 
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg?logo=python&logoColor=white)](https://www.python.org)
 [![PySide6](https://img.shields.io/badge/PySide6-6.7.2-41CD52.svg?logo=qt&logoColor=white)](https://doc.qt.io/qtforpython-6/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0.34-29B6F6.svg?logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org)
-[![UnityPy](https://img.shields.io/badge/UnityPy-1.10.18-000000.svg?logo=unity&logoColor=white)](https://github.com/K0lb3/UnityPy)
+[![UnityPy](https://img.shields.io/badge/UnityPy-1.25.2-000000.svg?logo=unity&logoColor=white)](https://github.com/K0lb3/UnityPy)
 [![Windows](https://img.shields.io/badge/Windows-10+-0078D6.svg?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 
 ## Table of Contents
