@@ -23,7 +23,7 @@ class CardMassEditDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Mass Edit Card Text")
         self.setModal(True)
-        self.resize(500, 280)
+        self.resize(500, 200)
 
         icon = QIcon()
         icon.addFile(
@@ -32,7 +32,8 @@ class CardMassEditDialog(QDialog):
         self.setWindowIcon(icon)
 
         layout = QVBoxLayout(self)
-        warning = QLabel("This replacement will be applied to all cards in the game.")
+        warning = QLabel("*This replacement will be applied to all cards in the game.")
+        warning.setStyleSheet("font-weight: bold;")
         warning.setWordWrap(True)
         layout.addWidget(warning)
 
@@ -71,6 +72,8 @@ class CardMassEditDialog(QDialog):
         buttons.addWidget(cancel_button)
         buttons.addWidget(apply_button)
         layout.addLayout(buttons)
+
+        self.setFixedHeight(self.sizeHint().height())
 
     def get_inputs(self):
         """Return the regex replacement and selected text fields."""
