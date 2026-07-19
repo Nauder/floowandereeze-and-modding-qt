@@ -48,7 +48,7 @@ class AppConfig(base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     mipmap_count: Mapped[int] = mapped_column(Integer, default=10)
-    game_path: Mapped[str] = mapped_column(String(610))
+    game_path: Mapped[str] = mapped_column(String(610), nullable=True)
     background_path: Mapped[str] = mapped_column(String(610), nullable=True)
     version: Mapped[str] = mapped_column(String(100), nullable=True)
     crypto_key: Mapped[str] = mapped_column(String(100), nullable=True)
@@ -233,17 +233,18 @@ class DeckBoxModel(UnityAsset, base):
 
 class CoinModel(UnityAsset, base):
     """
-    Model for interface metadata.
+    Model for coin assets.
 
-    Stores information about interface elements including:
-    - bundle: Bundle identifier
-    - name: Name of the interface element
-    - asset_name: Name of the asset within the bundle
+    Coins use the same three-resolution bundle layout as player icons.
     """
 
-    __tablename__ = "interface_metadata"
+    __tablename__ = "coin"
 
-    bundle: Mapped[str] = mapped_column(String(8))
+    name: Mapped[str] = mapped_column(String(255), unique=True)
+    bundle_small: Mapped[str] = mapped_column(String(8), unique=True)
+    bundle_medium: Mapped[str] = mapped_column(String(8), unique=True)
+    bundle_big: Mapped[str] = mapped_column(String(8), unique=True)
+    thumb: QIcon = QIcon()
 
 
 base.metadata.create_all(engine)
