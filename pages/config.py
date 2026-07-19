@@ -3,12 +3,13 @@ import os
 from threading import Thread
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFileDialog, QLabel, QWidget, QProgressDialog
+from PySide6.QtWidgets import QDialog, QFileDialog, QLabel, QWidget, QProgressDialog
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from pyqttoast import ToastPreset
 
 from database.objects import session
 from database.models import CardModel
+from dialogs.game_path_select_dialog import GamePathSelectDialog
 from dialogs.simple_dialogs import show_confirmation_dialog
 from pages.models.asset_list_model import AssetListModel
 from pages.ui.config import Ui_Config
@@ -28,7 +29,11 @@ from services.update_service import (
     update_coins,
 )
 from util.constants import APP_CONFIG, IMAGE_FILTER, BG_TEMPLATE
-from util.python_utils import get_instances_of_subclasses, is_valid_game_path
+from util.python_utils import (
+    find_steam_master_duel_paths,
+    get_instances_of_subclasses,
+    is_valid_game_path,
+)
 from util.ui_util import show_toast
 from widgets.ux import set_button_roles
 
@@ -138,6 +143,7 @@ class Config(QWidget, Ui_Config):
 
     def _connect_callbacks(self):
         self.gameButton.clicked.connect(self._get_game_path)
+        self.autoDetectGameButton.clicked.connect(self._auto_detect_game_path)
         self.updateButton.clicked.connect(self._check_update)
         self.bgButton.clicked.connect(self._get_background)
         self.bgResetButton.clicked.connect(self._reset_background)
@@ -253,28 +259,48 @@ class Config(QWidget, Ui_Config):
     def _get_game_path(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Game Folder")
         if folder and folder != "":
-            is_valid = is_valid_game_path(folder)
-            if is_valid[0]:
-                APP_CONFIG.game_path = folder
-                session.commit()
-                self.gameLine.setText(APP_CONFIG.game_path)
+            self._set_game_path(folder)
 
-                if not APP_CONFIG.version:
-                    self._check_update()
+    def _auto_detect_game_path(self):
+        game_paths = find_steam_master_duel_paths()
+        if not game_paths:
+            show_toast(
+                self,
+                "Game Path",
+                "Could not find Master Duel player data in your Steam libraries",
+                ToastPreset.WARNING_DARK,
+            )
+            return
 
-                show_toast(
-                    self,
-                    "Game Path",
-                    "Game Path set, restart the app to see changes",
-                    ToastPreset.SUCCESS_DARK,
-                )
-            else:
-                show_toast(
-                    self,
-                    "Game Path",
-                    f"There was a problem with the Game Path: {is_valid[1]}",
-                    ToastPreset.WARNING_DARK,
-                )
+        dialog = GamePathSelectDialog(game_paths, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            selected_game_path = dialog.selected_game_path()
+            if selected_game_path:
+                self._set_game_path(selected_game_path)
+
+    def _set_game_path(self, folder: str):
+        is_valid = is_valid_game_path(folder)
+        if is_valid[0]:
+            APP_CONFIG.game_path = folder
+            session.commit()
+            self.gameLine.setText(APP_CONFIG.game_path)
+
+            if not APP_CONFIG.version:
+                self._check_update()
+
+            show_toast(
+                self,
+                "Game Path",
+                "Game Path set, restart the app to see changes",
+                ToastPreset.SUCCESS_DARK,
+            )
+        else:
+            show_toast(
+                self,
+                "Game Path",
+                f"There was a problem with the Game Path: {is_valid[1]}",
+                ToastPreset.WARNING_DARK,
+            )
 
     def _set_variables(self):
         self.gameLine.setText(APP_CONFIG.game_path)

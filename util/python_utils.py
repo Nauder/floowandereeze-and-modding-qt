@@ -4,11 +4,122 @@ This module provides various helper functions for common Python operations
 like string manipulation, list handling, and game path validation.
 """
 
+import os
 import re
 from ast import literal_eval
-from os.path import exists, join
+from ntpath import normcase, normpath
+from os.path import exists, isdir, join
 
 from util.constants import FILE
+
+try:
+    import winreg
+except ImportError:
+    winreg = None
+
+
+MASTER_DUEL_DIRECTORY = "Yu-Gi-Oh!  Master Duel"
+DEFAULT_MASTER_DUEL_PLAYER_DIRECTORY = "00000000"
+
+
+def find_steam_master_duel_paths() -> list[str]:
+    """Return all valid Master Duel player-data directories found in Steam.
+
+    Steam can be installed outside its usual Windows location and can have games
+    distributed across multiple library folders.  The Steam registry keys and
+    ``libraryfolders.vdf`` cover both cases.
+    """
+    game_paths = []
+    game_path_keys = set()
+    for library_path in _get_steam_library_paths():
+        local_data_path = join(
+            library_path,
+            "steamapps",
+            "common",
+            MASTER_DUEL_DIRECTORY,
+            "LocalData",
+        )
+        if not isdir(local_data_path):
+            continue
+
+        for player_directory in sorted(os.listdir(local_data_path)):
+            game_path = join(local_data_path, player_directory)
+            if (
+                player_directory != DEFAULT_MASTER_DUEL_PLAYER_DIRECTORY
+                and isdir(game_path)
+                and is_valid_game_path(game_path)[0]
+                and _path_key(game_path) not in game_path_keys
+            ):
+                game_paths.append(game_path)
+                game_path_keys.add(_path_key(game_path))
+
+    return game_paths
+
+
+def _get_steam_library_paths() -> list[str]:
+    """Find Steam's main install directory and configured library directories."""
+    steam_paths = _get_steam_install_paths()
+    library_paths = []
+    library_path_keys = set()
+
+    for steam_path in steam_paths:
+        if _path_key(steam_path) not in library_path_keys:
+            library_paths.append(steam_path)
+            library_path_keys.add(_path_key(steam_path))
+
+        library_file = join(steam_path, "steamapps", "libraryfolders.vdf")
+        if not exists(library_file):
+            continue
+
+        try:
+            with open(library_file, encoding="utf-8") as file:
+                contents = file.read()
+        except OSError:
+            continue
+
+        library_matches = re.findall(r'"path"\s+"([^"]+)"', contents)
+        library_matches.extend(
+            re.findall(r'^\s*"\d+"\s+"([A-Za-z]:[^"]+)"', contents, re.MULTILINE)
+        )
+        for library_path in library_matches:
+            library_path = library_path.replace("\\\\", "\\")
+            if _path_key(library_path) not in library_path_keys:
+                library_paths.append(library_path)
+                library_path_keys.add(_path_key(library_path))
+
+    return library_paths
+
+
+def _get_steam_install_paths() -> list[str]:
+    """Return likely Steam install paths, including the Windows registry value."""
+    steam_paths = []
+
+    if winreg:
+        try:
+            with winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam"
+            ) as key:
+                for value_name in ("SteamPath", "InstallPath"):
+                    try:
+                        steam_path = winreg.QueryValueEx(key, value_name)[0]
+                    except FileNotFoundError:
+                        continue
+                    if steam_path:
+                        steam_paths.append(steam_path)
+        except OSError:
+            pass
+
+    for environment_variable in ("ProgramFiles(x86)", "ProgramFiles"):
+        program_files = os.environ.get(environment_variable)
+        if program_files:
+            steam_paths.append(join(program_files, "Steam"))
+
+    return list(dict.fromkeys(steam_paths))
+
+
+def _path_key(path: str) -> str:
+    """Return a Windows-normalized key for case-insensitive path comparisons."""
+    return normcase(normpath(path))
 
 
 def get_instances_of_subclasses(base_class):

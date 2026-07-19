@@ -70,9 +70,7 @@ class CoinService(UnityService):
     def restore_asset(self, backup_name=None) -> bool:
         """Restore all coin sizes from the backup made for the biggest bundle."""
         self.bundle = (
-            session.query(CoinModel)
-            .filter(CoinModel.bundle_big == self.bundle)
-            .first()
+            session.query(CoinModel).filter(CoinModel.bundle_big == self.bundle).first()
         )
         backup_path = join("backups", self.subfolder, f"{self.bundle.bundle_big}.png")
         if not isfile(backup_path):

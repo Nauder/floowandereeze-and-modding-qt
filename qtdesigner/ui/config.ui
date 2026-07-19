@@ -212,6 +212,19 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="autoDetectGameButton">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Find Master Duel player data in your Steam libraries</string>
+           </property>
+           <property name="text">
+            <string>Auto-detect</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
