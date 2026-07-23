@@ -47,7 +47,7 @@
     background-color: rgba(12, 12, 12, 0.7);
  }</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
+  <widget class="CoverBackgroundWidget" name="centralwidget">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
      <horstretch>0</horstretch>
@@ -303,6 +303,13 @@ QPushButton:hover {
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CoverBackgroundWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets.cover_background</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resources.qrc"/>
  </resources>

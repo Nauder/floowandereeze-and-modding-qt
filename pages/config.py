@@ -28,7 +28,7 @@ from services.update_service import (
     update_card_metadata,
     update_coins,
 )
-from util.constants import APP_CONFIG, IMAGE_FILTER, BG_TEMPLATE
+from util.constants import APP_CONFIG, IMAGE_FILTER
 from util.python_utils import (
     find_steam_master_duel_paths,
     get_instances_of_subclasses,
@@ -218,17 +218,7 @@ class Config(QWidget, Ui_Config):
 
     def _apply_background_style(self, file_path):
         """Apply background image with the selected mode (stretched or cropped)."""
-        background_mode = APP_CONFIG.background_mode
-
-        if background_mode == "cropped":
-            # Use background-size: cover to scale image to smallest size that covers whole window
-            bg_style = f"border-image: url('{file_path}') 0 0 0 0 repeat repeat;"
-        else:  # stretched (default)
-            bg_style = f"border-image: url('{file_path}');"
-
-        self.parent().parent().parent().setStyleSheet(
-            BG_TEMPLATE.replace("$BG$", bg_style)
-        )
+        self.window().set_background(file_path, APP_CONFIG.background_mode)
 
     def _delete_backups(self):
         if show_confirmation_dialog(
@@ -411,9 +401,7 @@ class Config(QWidget, Ui_Config):
         session.commit()
         self.bgLine.setText("")
 
-        self.parent().parent().parent().setStyleSheet(
-            BG_TEMPLATE.replace("$BG$", "border-image: url(:/ui/images/bg.png);")
-        )
+        self.window().set_background(None, "stretched")
 
     def _apply_all_text_edits(self) -> None:
         """Applies all text edits saved in the database to the game files."""
