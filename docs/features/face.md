@@ -1,64 +1,25 @@
 # Card Face Editor
 
-The Card Face Editor page allows you to modify the face textures of cards in Yu-Gi-Oh! Master Duel. This page provides functionality to view, replace, and manage card face assets.
+The Card Face Editor changes the frame/face textures that surround card artwork.
 
-![Face Page Preview](../assets/ui/face.png)
+> **Screenshot placeholder — Card Face Editor:** Capture the current Faces page with a face selected, Current and Preview panels, image source controls, and the result list visible.
 
-## Features
+## Replace a face
 
-- Card face list with preview
-- Card face texture replacement
-- Texture extraction
-- Backup and restore functionality
-- Real-time preview updates
+1. Select a face from the list.
+2. Choose a portrait PNG or JPEG with **Select**, or drag it onto the page.
+3. Compare **Current** and **Preview**.
+4. Choose **Replace**.
 
-## Interface Elements
+Use the extracted original as a template when alignment and transparent regions matter.
 
-### Card Face List
+## Extract and restore
 
-- Displays all available card face textures
-- Click on a face to select it for editing
-- Shows the face name and key information
+- **Extract** saves the selected texture under `images\faces` with a filesystem-safe version of its name.
+- **Restore** writes the automatic backup back to the selected face.
 
-### Preview Section
+Enable backups before the first replacement if you want Restore to work.
 
-- Shows the currently selected card face texture
-- Displays the face's key information
-- Updates in real-time when changes are made
+## Important limitation
 
-### Action Buttons
-
-- **Select Image**: Choose a new face texture image
-- **Replace**: Apply the selected image to the face
-- **Extract**: Extract the face texture
-- **Restore**: Restore the face from backup
-
-## Usage
-
-1. **Selecting a Card Face**
-
-      - Click on a face in the list to select it
-      - The preview will update to show the selected face
-      - Action buttons will become enabled
-
-2. **Replacing Face Texture**
-      - Click "Select Image" to choose a new face texture
-      - Preview the selected image
-      - Click "Replace" to apply the changes
-      - A backup will be created if enabled in settings
-
-3. **Extracting Textures**
-      - Select a face
-      - Click "Extract" to save the texture
-      - The texture will be saved to the "faces" folder
-
-4. **Managing Backups**
-      - Select a modified face
-      - Click "Restore" to revert to the original version
-      - A notification will indicate if backup exists
-
-## Notes
-
-- The application creates backups automatically if enabled in settings
-- Face textures are stored in the Unity3D file, so they can be frequently reverted by game updates, and other mods that replace the Unity3D file will revert any changes
-- Face names are automatically slugified for file operations
+Card faces are stored inside `masterduel_Data\data.unity3d`. A game update or another mod that replaces that file can remove face changes and other edits stored in the same file.

@@ -1,76 +1,22 @@
-# Icon Editor
+# Player Icon Editor
 
-The Icon Editor page allows you to modify player icons in Yu-Gi-Oh! Master Duel. This page provides functionality to
-view, replace, and manage icon assets.
+The Player Icon Editor replaces profile icons and manages the small, medium, and large bundles as one asset.
 
-![Icon Page Preview](../assets/ui/icon.png)
+> **Screenshot placeholder — Player Icon Editor:** Capture the redesigned Icons page with one icon selected, its three bundle identifiers in the editor heading, Favorite and Favorites controls, and the Results grid.
 
-## Features
+## Replace an icon
 
-- Icon list with preview
-- Icon texture replacement
-- Texture extraction for all sizes
-- Bundle copying
-- Backup and restore functionality
-- Real-time preview updates
+1. Select an icon from **Results**.
+2. Choose a square PNG or JPEG with **Select**, or drag it onto the page.
+3. Check **Preview** and choose **Replace**.
 
-## Interface Elements
+The app resizes the source and writes all three icon resolutions. Use a square image to avoid distortion; PNG is recommended when transparency matters. **Current** displays the medium version.
 
-### Icon List
+## Other actions
 
-- Displays all available player icons
-- Click on an icon to select it for editing
-- Shows the icon bundle information
+- **Favorite** marks the selected icon; **Favorites** filters the result grid.
+- **Extract** saves all three textures under `images\icons`.
+- **Copy** saves all three Unity bundles under `bundles\icons`.
+- **Restore** uses the backup of the largest version to rebuild all three sizes.
 
-### Preview Section
-
-- Shows the currently selected icon
-- Displays the medium-sized version (256x256)
-- Updates in real-time when changes are made
-
-### Action Buttons
-
-- **Select Image**: Choose a new icon image
-- **Replace**: Apply the selected image to the icon
-- **Copy**: Copy the icon bundle to the icons folder
-- **Extract**: Extract all icon textures
-- **Restore**: Restore the icon from backup
-
-### Information Display
-
-- Shows the icon name
-- Displays bundle names for all three sizes:
-  - Small (S)
-  - Medium (M)
-  - Big (B)
-
-## Usage
-
-1. **Selecting an Icon**
-      - Click on an icon in the list to select it
-      - The preview will update to show the selected icon
-      - Action buttons will become enabled
-      - Bundle information for all sizes will be displayed
-
-2. **Replacing Icon**
-      - Click "Select Image" to choose a new icon
-      - Preview the selected image
-      - Click "Replace" to apply the changes
-      - A backup will be created if enabled in settings
-
-3. **Extracting Textures**
-      - Select an icon
-      - Click "Extract" to save all textures
-      - The textures will be saved to the "icons" folder
-
-4. **Managing Backups**
-      - Select a modified icon
-      - Click "Restore" to revert to the original version
-      - A notification will indicate if backup exists
-
-## Notes
-
-- All icon sizes are extracted when using the extract function
-- The preview shows the medium-sized version (256x256)
-- The application creates backups automatically if enabled in settings
-- Backups are created using the big-sized version of the icon
+Enable backups before the first replacement. Only the largest original texture is stored as the automatic backup.

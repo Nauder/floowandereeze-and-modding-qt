@@ -1,77 +1,31 @@
 # Card Sleeve Editor
 
-The Card Sleeve Editor page allows you to modify card sleeves in Yu-Gi-Oh! Master Duel. This page provides functionality
-to view, replace, and customize card sleeves with optional border effects.
+The Card Sleeve Editor replaces sleeve textures and can add an optional colored border.
 
-![Sleeve Page Preview](../assets/ui/sleeve.png)
+> **Screenshot placeholder — Sleeve Editor:** Capture the redesigned Sleeves page with a selected sleeve, Current and Preview panels, border color, Use Border, Fade-in Effect, Favorite, Favorites, and the Results grid visible.
 
-## Features
+## Replace a sleeve
 
-- Card sleeve list with preview
-- Sleeve texture replacement
-- Texture extraction
-- Border customization
-- Backup and restore functionality
-- Real-time preview updates
+1. Select a sleeve from **Results**.
+2. Choose a portrait PNG or JPEG with **Select**, or drag it onto the page.
+3. Optionally configure the border.
+4. Choose **Replace**.
 
-## Interface Elements
+Match the portrait aspect ratio shown by the current sleeve to avoid stretching.
 
-### Card Sleeve List
+## Add a border
 
-- Displays all available card sleeves
-- Click on a sleeve to select it for editing
+1. Choose the border color with the color **Select** button.
+2. Enable **Use Border**.
+3. Optionally enable **Fade-in Effect** for a softer transition into the artwork.
 
-### Preview Section
+The preview shows the border color but does not fully render the fade. The complete effect is generated during replacement. Disabling **Use Border** also disables the fade.
 
-- Shows the currently selected card sleeve
-- Displays the selected sleeve's bundle information
-- Updates in real-time when changes are made
-- Supports border preview toggle
+## Other actions
 
-### Action Buttons
+- **Favorite** marks the selected sleeve; **Favorites** filters the results.
+- **Extract** saves the texture under `images\sleeves`.
+- **Copy** saves the complete Unity bundle under `bundles\sleeves`.
+- **Restore** writes the automatic backup back to the selected sleeve.
 
-- **Select Image**: Choose a new sleeve texture image
-- **Replace**: Apply the selected image to the sleeve
-- **Copy**: Copy the sleeve bundle to the sleeves folder
-- **Extract**: Extract the sleeve texture
-- **Border Color**: Choose a color for the sleeve border
-- **Restore**: Restore the sleeve from backup
-
-### Border Options
-
-- Checkbox to toggle border
-- Color picker for border customization
-- Border width is set to 15 pixels
-
-## Usage
-
-1. **Selecting a Card Sleeve**
-      - Click on a sleeve in the list to select it
-      - The preview will update to show the selected sleeve
-      - Action buttons will become enabled
-
-2. **Replacing Sleeve Texture**
-      - Click "Select Image" to choose a new sleeve texture
-      - Preview the selected image
-      - Click "Replace" to apply the changes
-      - A backup will be created if enabled in settings
-
-3. **Customizing Border**
-      - Click "Border Color" to choose a color
-      - Use the checkbox to toggle border preview
-      - The border will be applied when replacing the sleeve
-
-4. **Extracting Textures**
-      - Select a sleeve
-      - Click "Extract" to save the texture
-      - The texture will be saved to the "sleeves" folder
-
-5. **Managing Backups**
-      - Select a modified sleeve
-      - Click "Restore" to revert to the original version
-      - A notification will indicate if backup exists
-
-## Notes
-
-- The application creates backups automatically if enabled in settings
-- Border customization is optional and can be toggled on/off
+Enable backups before the first replacement if you want Restore to work.

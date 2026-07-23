@@ -1,87 +1,63 @@
 # Configuration
 
-The Configuration page allows you to manage application settings and perform maintenance tasks in Yu-Gi-Oh! Master Duel. This page provides functionality to configure game paths, update data, manage backups, and customize the application appearance.
+Configuration controls the game path, app data, automatic backups, card-text maintenance, appearance, and settings used when writing Unity bundles.
 
-![Configuration Page Preview](../assets/ui/config.png)
+> **Screenshot placeholder — Configuration page:** Capture the full current page at 1920×1080. Show the Game Data, Appearance, Card Text, Backups, and Asset Build Settings section labels; redact the player ID and Windows username.
 
-## Features
+## Game Data
 
-- Game path configuration
-- Data update management
-- Backup system configuration
-- Application appearance customization
-- Asset compression settings
-- Mipmap count configuration
-- Bulk backup management
+### Game Path
 
-## Interface Elements
+The path must be the active player-ID folder under Master Duel's `LocalData` directory. **Auto-detect** searches the main Steam installation and configured Steam library folders. **Select** lets you browse manually.
 
-### Game Path Settings
+After changing the path, restart the application so every editor loads data for that profile. See [Getting started](../getting-started.md#select-your-game-data) for an example path.
 
-- **Game Path**: Set the path to the Master Duel installation, up to the player ID folder
-- **Update Button**: Check and update app data
-- **Version Display**: Show current data version
+### App Data Version
 
-### Backup Management
+Choose **Check** to compare the installed data index with the current version and download updates when necessary. The update covers sleeves, cards, card icons, faces, wallpapers, fields, player icons, deck boxes, card metadata, and coins.
 
-- **Enable Backups**: Toggle automatic backup creation
-- **Restore All**: Restore all modified assets with backups to their original state
-- **Clear Backups**: Delete all backup files
-- **Restore Text Edits**: Revert all text modifications to their original state
-- **Reapply Text Edits**: Reapply all previously made text modifications
+The update progress cannot be cancelled. Let all tasks finish, then restart the application if editor contents do not refresh immediately.
 
-### Appearance Settings
+## Appearance
 
-- **Background Image**: Set custom application background
-- **Reset Background**: Remove custom background
+Choose or drag an image to use as the application's background. This changes only the modding tool, not Master Duel.
 
-### Asset Settings
+- **Stretched** fills the window and may distort the image.
+- **Cropped** preserves the aspect ratio and crops overflow.
+- **Reset** removes the custom image.
 
-- **Mipmap Count**: Configure texture mipmap levels (Default 10)
-- **Compression Options**:
-  - None
-  - LZMA
-  - LZ4
-  - LZ4HC
-  - LZHAM
+Changes are applied immediately. A darker image usually keeps labels and controls easier to read.
 
-## Usage
+## Card Text
 
-1. **Setting Game Path**
-      - Click "Select Game Folder" to choose Master Duel installation
-      - Path is validated before being saved
-      - Application restart required after setting path, so assets are updated
+- **Reapply All** writes every saved modded card name and description back to the current game metadata. This is useful after a game update.
+- **Restore All** writes the original names and descriptions back for every card with saved edits.
 
-2. **Updating Data**
-      - Set game path first
-      - Click "Update" to check for new data
-      - Updates are downloaded automatically if available
+Both actions can take a long time. Confirm the prompt and leave the application open until it reports completion. Restoring text in the game does not erase the saved modded values, so they can be reapplied later.
 
-3. **Managing Backups**
-      - Toggle "Enable Backups" to control automatic backup creation
-      - Use "Restore All" to revert all changes
-      - Use "Clear Backups" to remove backup files
-      - Use "Restore Text Edits" to revert all text modifications to their original state
-      - Use "Reapply Text Edits" to reapply all previously made text modifications
+## Backups
 
-4. **Customizing Appearance**
-      - Click "Select Background" to choose custom background
-      - Use "Reset Background" to remove custom background
-      - Changes are applied immediately
-      - The app has a dark theme, so bright backgrounds are not recommended
+- Enable **Backups** before replacing assets to save the original texture on the first replacement.
+- **Restore All** restores every asset for which the app has a backup.
+- **Clear Backups** permanently deletes every automatic backup.
 
-5. **Configuring Asset Settings**
-      - Set desired mipmap count (default: 10)
-      - Choose compression method for new assets
-      - Settings affect all new asset replacements
+Bulk restore and clear operations ask for confirmation. Backups consume local disk space and are stored beside the application under `backups`.
 
-## Notes
+## Asset Build Settings
 
-- Game path must be set before using most features
-- Data updates require a valid game path first
-- Backup system affects all asset types
-- Asset settings affect all new replacements
-- Some changes require application restart
-- Backups create local copies of assets, so they take storage space
-- The text edit operations can take a *very* long time, depending on available resources and
-amount of cards modified
+### Packer
+
+The packer controls compression when the app saves modified Unity bundles. Available choices are None, LZMA, LZ4, LZ4HC, and LZHAM. LZ4 is the default and is the safest choice unless you have a specific compatibility or size requirement.
+
+### Mipmap Count
+
+This controls the number of mipmap levels generated for supported replacement textures. The default is 10. Lower values may reduce file size but can make distant or downscaled textures look worse; unusually high values may not suit small images.
+
+These settings affect replacements made after the setting changes. Some special assets use fixed texture settings and do not use the global mipmap count.
+
+## Safety notes
+
+- Backups are not retroactive.
+- Game updates and other mods can overwrite changed bundles.
+- **Clear Backups** cannot be undone from within the app.
+- Selecting another player profile changes which game files the app modifies, but the app's saved preferences and edits remain in its local database.

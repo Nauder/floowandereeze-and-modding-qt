@@ -1,51 +1,60 @@
 site_name: Floowandereeze & Modding
+site_description: User guide for the Floowandereeze & Modding Master Duel modding tool
+site_url: https://nauder.github.io/floowandereeze-and-modding-qt/
 repo_url: https://github.com/nauder/floowandereeze-and-modding-qt
+repo_name: Nauder/floowandereeze-and-modding-qt
+
 theme:
   name: material
   favicon: assets/icon.png
   logo: assets/ico.png
   features:
     - navigation.footer
-
+    - navigation.sections
+    - navigation.top
+    - toc.follow
   palette:
-
     - scheme: default
       primary: blue
-      accent: dark blue
-      font:
-        text: white
-        link: light blue
-        code: light blue
+      accent: light blue
       toggle:
-        icon: material/brightness-7 
+        icon: material/brightness-7
         name: Switch to dark mode
-
     - scheme: slate
       primary: blue
-      accent: dark blue
-      font:
-        text: white
-        link: light blue
-        code: light blue
+      accent: light blue
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-    
+
 nav:
   - Home: index.md
+  - Getting Started: getting-started.md
+  - Using the Editors: using-the-editors.md
   - Features:
-    - Configuration: features/config.md
-    - Card Editor: features/card.md
-    - Card Face Editor: features/face.md
-    - Card Sleeve Editor: features/sleeve.md
-    - Duel Field Editor: features/field.md
-    - Background Editor: features/background.md
-    - Wallpaper Editor: features/wallpaper.md
-    - Icon Editor: features/icon.md
-  
+      - Configuration: features/config.md
+      - Card Editor: features/card.md
+      - Card Icon Editor: features/card-icon.md
+      - Card Face Editor: features/face.md
+      - Card Sleeve Editor: features/sleeve.md
+      - Player Icon Editor: features/icon.md
+      - Coin Editor: features/coin.md
+      - Duel Field Editor: features/field.md
+      - Background Editor: features/background.md
+      - Wallpaper Editor: features/wallpaper.md
+  - Troubleshooting: troubleshooting.md
+
+markdown_extensions:
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/nauder/floowandereeze-and-modding-qt
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/in/nauder
+
+copyright: Floowandereeze & Modding is an unofficial fan-made tool and is not affiliated with Konami.
