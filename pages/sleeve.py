@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QSize, QSettings
-from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -24,6 +24,7 @@ from unity.unity_utils import fetch_bundle_thumb
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
+from widgets.image_fit import InlineImageFitController
 
 
 class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
@@ -42,7 +43,7 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
 
         # Configure responsive images with aspect ratio (portrait card sleeves)
         self.setup_responsive_images(
-            self.current, self.preview, aspect_ratio=(256, 374)
+            self.current, self.preview, aspect_ratio=(256, 375)
         )
 
         self.service = SleeveService()
@@ -57,6 +58,13 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
             file_edits=(self.sleeveEdit,),
             list_views=(self.sleevesView,),
             helper_after=self.bundle,
+        )
+        self.image_fit = InlineImageFitController(
+            self,
+            self.preview,
+            (256, 375),
+            lambda image_path: setattr(self.service, "image_path", image_path),
+            alignment_widget=self.current,
         )
         set_button_roles(self)
         self._configure_split_layout()
@@ -254,7 +262,9 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
         if self.editorPanel.width() <= 0 or self.editorPanel.height() <= 0:
             return
 
-        available_height = max(140, self.editorPanel.height() - 34)
+        available_height = max(
+            140, self.editorPanel.height() - 34 - self.image_fit.controls_height()
+        )
         available_width = max(96, self.editorPanel.width() // 3)
         target_height = max(
             140,
@@ -313,9 +323,7 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                self.sleeveEdit.setText(file_path)
-                self.preview.setPixmap(QPixmap(file_path))
-                self.service.image_path = file_path
+                self._set_image(file_path)
                 break
 
     def _restore(self):
@@ -386,9 +394,12 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
         if file and file.url() != "":
             local_file = file.toLocalFile()
 
-            self.sleeveEdit.setText(local_file)
-            self.preview.setPixmap(QPixmap(local_file))
-            self.service.image_path = local_file
+            self._set_image(local_file)
+
+    def _set_image(self, file_path: str) -> None:
+        if not self.image_fit.set_source(file_path):
+            return
+        self.sleeveEdit.setText(file_path)
 
     def _copy(self):
         self.service.copy_bundle()

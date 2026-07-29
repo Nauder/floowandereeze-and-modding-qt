@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PySide6 import QtWidgets
-from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QFileDialog
 from pyqttoast import ToastPreset
 
@@ -15,6 +15,7 @@ from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.image_utils import slugify
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
+from widgets.image_fit import InlineImageFitController
 
 
 class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
@@ -27,7 +28,7 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
         self.setup_responsive_images(
             self.current,
             self.preview,
-            aspect_ratio=(256, 374),
+            aspect_ratio=(256, 375),
             max_image_size=250,
             min_image_size=64,
         )
@@ -43,6 +44,13 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
             file_edits=(self.assetEdit,),
             list_views=(self.facesView,),
             helper_after=self.bundle,
+        )
+        self.image_fit = InlineImageFitController(
+            self,
+            self.preview,
+            (256, 375),
+            lambda image_path: setattr(self.service, "image_path", image_path),
+            alignment_widget=self.current,
         )
         set_button_roles(self)
 
@@ -70,10 +78,13 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                self.assetEdit.setText(file_path)
-                self.preview.setPixmap(QPixmap(file_path))
-                self.service.image_path = file_path
+                self._set_image(file_path)
                 break
+
+    def _set_image(self, file_path: str) -> None:
+        if not self.image_fit.set_source(file_path):
+            return
+        self.assetEdit.setText(file_path)
 
     def _connect_callbacks(self) -> None:
         self.facesView.clicked.connect(self._on_face_clicked)
@@ -116,9 +127,7 @@ class Face(ResponsivePageMixin, QtWidgets.QWidget, Ui_Face):
         if file and file.url() != "":
             local_file = file.toLocalFile()
 
-            self.assetEdit.setText(local_file)
-            self.preview.setPixmap(QPixmap(local_file))
-            self.service.image_path = local_file
+            self._set_image(local_file)
 
     def _extract_texture(self) -> None:
         self.service.extract_texture(self.service.key)

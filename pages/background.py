@@ -18,6 +18,7 @@ from unity.unity_utils import (
 from util.constants import IMAGE_FILTER, FILE, APP_CONFIG
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, set_button_roles
+from widgets.image_fit import InlineImageFitController
 
 WIDGET_SIZE_MAX = 16777215
 
@@ -39,6 +40,12 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
             file_edits=(self.assetEdit,),
         )
         self._configure_background_preview()
+        self.image_fit = InlineImageFitController(
+            self,
+            self.current,
+            (1920, 1080),
+            lambda image_path: setattr(self, "image_path", image_path),
+        )
         set_button_roles(self)
 
         # Enable drag and drop
@@ -135,7 +142,12 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
     def _resize_background_preview(self) -> None:
         available_width = self.horizontalLayout.geometry().width()
         current_top = self.current.mapTo(self, QtCore.QPoint(0, 0)).y()
-        available_height = self.contentsRect().bottom() - current_top + 1
+        available_height = (
+            self.contentsRect().bottom()
+            - current_top
+            + 1
+            - self.image_fit.controls_height()
+        )
 
         if available_width <= 0 or available_height <= 0:
             return
@@ -175,8 +187,7 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                self.assetEdit.setText(file_path)
-                self.image_path = file_path
+                self._set_image(file_path)
                 break
 
     def _connect_callbacks(self):
@@ -217,8 +228,12 @@ class Background(ResponsivePageMixin, QtWidgets.QWidget, Ui_Background):
         if file and file.url() != "":
             local_file = file.toLocalFile()
 
-            self.assetEdit.setText(local_file)
-            self.image_path = local_file
+            self._set_image(local_file)
+
+    def _set_image(self, file_path: str) -> None:
+        if not self.image_fit.set_source(file_path):
+            return
+        self.assetEdit.setText(file_path)
 
     def _extract_texture(self):
         extract_unity3d_image(FILE["BACKGROUND"])

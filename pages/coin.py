@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QSize, QSettings, QTimer
-from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -23,6 +23,7 @@ from unity.unity_utils import fetch_bundle_thumb
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
+from widgets.image_fit import InlineImageFitController
 
 
 class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
@@ -56,6 +57,13 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
             file_edits=(self.assetEdit,),
             list_views=(self.coinsView,),
             helper_after=self.bundle,
+        )
+        self.image_fit = InlineImageFitController(
+            self,
+            self.preview,
+            (512, 512),
+            lambda image_path: setattr(self.service, "image_path", image_path),
+            alignment_widget=self.current,
         )
         set_button_roles(self)
         self._configure_split_layout()
@@ -231,7 +239,9 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
         if self.editorPanel.width() <= 0 or self.editorPanel.height() <= 0:
             return
 
-        available_height = max(64, self.editorPanel.height() - 34)
+        available_height = max(
+            64, self.editorPanel.height() - 34 - self.image_fit.controls_height()
+        )
         available_width = max(64, self.editorPanel.width() // 3)
         target_size = max(
             64,
@@ -321,9 +331,12 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
         if file and file.url() != "":
             local_file = file.toLocalFile()
 
-            self.assetEdit.setText(local_file)
-            self.preview.setPixmap(QPixmap(local_file))
-            self.service.image_path = local_file
+            self._set_image(local_file)
+
+    def _set_image(self, file_path: str) -> None:
+        if not self.image_fit.set_source(file_path):
+            return
+        self.assetEdit.setText(file_path)
 
     def _extract_texture(self):
         coins = self.service.bundle
@@ -404,7 +417,5 @@ class Coin(ResponsivePageMixin, QtWidgets.QWidget, Ui_Coin):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                self.assetEdit.setText(file_path)
-                self.preview.setPixmap(QPixmap(file_path))
-                self.service.image_path = file_path
+                self._set_image(file_path)
                 break

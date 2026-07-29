@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QSize, QSettings, QTimer
-from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -22,6 +22,7 @@ from unity.unity_utils import fetch_field_thumb
 from util.constants import IMAGE_FILTER
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
+from widgets.image_fit import InlineImageFitController
 
 
 class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
@@ -55,6 +56,12 @@ class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
             file_edits=(self.assetEdit,),
             list_views=(self.fieldsView,),
             helper_after=self.bundle,
+        )
+        self.image_fit = InlineImageFitController(
+            self,
+            self.preview,
+            (2048, 712),
+            lambda image_path: setattr(self.service, "image_path", image_path),
         )
         set_button_roles(self)
         self._configure_split_layout()
@@ -231,7 +238,14 @@ class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
         controls_height = max(72, self.verticalLayout_5.sizeHint().height())
         available_width = max(180, self.editorPanel.width() - 48)
         available_height = max(
-            64, (self.editorPanel.height() - controls_height - 56) // 2
+            64,
+            (
+                self.editorPanel.height()
+                - controls_height
+                - self.image_fit.controls_height()
+                - 56
+            )
+            // 2,
         )
 
         target_width = min(
@@ -292,9 +306,12 @@ class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
         if file and file.url() != "":
             local_file = file.toLocalFile()
 
-            self.assetEdit.setText(local_file)
-            self.preview.setPixmap(QPixmap(local_file))
-            self.service.image_path = local_file
+            self._set_image(local_file)
+
+    def _set_image(self, file_path: str) -> None:
+        if not self.image_fit.set_source(file_path):
+            return
+        self.assetEdit.setText(file_path)
 
     def _extract_texture(self):
         self.service.extract_texture(self.service.bundle, field=True)
@@ -342,7 +359,5 @@ class Field(ResponsivePageMixin, QtWidgets.QWidget, Ui_Field):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                self.assetEdit.setText(file_path)
-                self.preview.setPixmap(QPixmap(file_path))
-                self.service.image_path = file_path
+                self._set_image(file_path)
                 break

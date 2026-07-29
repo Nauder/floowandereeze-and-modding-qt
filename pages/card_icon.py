@@ -32,6 +32,7 @@ from services.card_icon_service import CardIconService
 from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
+from widgets.image_fit import InlineImageFitController
 
 
 class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
@@ -72,6 +73,17 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
             file_edits=(self.iconEdit,),
             list_views=(self.iconsList,),
             helper_after=self.bundle,
+        )
+        self.image_fit = InlineImageFitController(
+            self,
+            self.preview,
+            lambda: (
+                (self.selected.width, self.selected.height)
+                if self.selected
+                else (0, 0)
+            ),
+            lambda image_path: setattr(self.service, "image_path", image_path),
+            alignment_widget=self.current,
         )
         set_button_roles(self)
         self._configure_split_layout()
@@ -274,7 +286,9 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
         if self.editorPanel.width() <= 0 or self.editorPanel.height() <= 0:
             return
 
-        available_height = max(128, self.editorPanel.height() - 34)
+        available_height = max(
+            128, self.editorPanel.height() - 34 - self.image_fit.controls_height()
+        )
         available_width = max(128, self.editorPanel.width() // 3)
         target_size = max(
             128,
@@ -328,29 +342,22 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                self.iconEdit.setText(file_path)
-                self._update_preview(file_path)
-                self.service.image_path = file_path
-                self._check_replace_button()
+                self._set_image(file_path)
                 break
 
-    def _update_preview(self, image_path: str) -> None:
-        """Update the preview with the selected image."""
-        try:
-            # Load and resize image for preview
-            img = Image.open(image_path).convert("RGBA")
-            img = img.resize((128, 128), Image.Resampling.LANCZOS)
-
-            # Convert to QPixmap
-            img_bytes = BytesIO()
-            img.save(img_bytes, format="PNG")
-            img_bytes.seek(0)
-            pixmap = QPixmap()
-            pixmap.loadFromData(img_bytes.getvalue())
-
-            self.preview.setPixmap(pixmap)
-        except Exception as e:
-            print(f"Error updating preview: {e}")
+    def _set_image(self, file_path: str) -> None:
+        if not self.selected:
+            show_toast(
+                self,
+                "Card Icon",
+                "Select a card icon before choosing its replacement image",
+                ToastPreset.WARNING_DARK,
+            )
+            return
+        if not self.image_fit.set_source(file_path):
+            return
+        self.iconEdit.setText(file_path)
+        self._check_replace_button()
 
     def _connect_callbacks(self):
         """Connect UI callbacks to their respective methods."""
@@ -364,6 +371,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
         """Handle icon selection from the list."""
         self.selected = self.model.assets[index.row()]
         self.service.selected_icon = self.selected
+        self.image_fit.refresh_target_size()
 
         # Update UI
         self._set_editor_context(f"Editing {self.selected.name}")
@@ -421,10 +429,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
 
         if file and file.url() != "":
             local_file = file.toLocalFile()
-            self.iconEdit.setText(local_file)
-            self._update_preview(local_file)
-            self.service.image_path = local_file
-            self._check_replace_button()
+            self._set_image(local_file)
 
     def _check_replace_button(self):
         """Enable replace button if conditions are met."""

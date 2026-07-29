@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 from PySide6.QtCore import Qt, QSize, QSettings, QTimer
-from PySide6.QtGui import QPixmap, QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -31,6 +31,7 @@ from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.python_utils import remove_alt_tags
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
+from widgets.image_fit import InlineImageFitController
 
 
 class Card(ResponsivePageMixin, QWidget, Ui_Card):
@@ -68,6 +69,13 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             file_edits=(self.cardEdit,),
             list_views=(self.cardsView,),
             helper_after=self.bundle,
+        )
+        self.image_fit = InlineImageFitController(
+            self,
+            self.preview,
+            (512, 512),
+            lambda image_path: setattr(self.service, "image_path", image_path),
+            alignment_widget=self.current,
         )
         set_button_roles(self)
         self._configure_split_layout()
@@ -260,7 +268,9 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         if self.editorPanel.width() <= 0 or self.editorPanel.height() <= 0:
             return
 
-        available_height = max(96, self.editorPanel.height() - 34)
+        available_height = max(
+            96, self.editorPanel.height() - 34 - self.image_fit.controls_height()
+        )
         available_width = max(96, self.editorPanel.width() // 3)
         target_size = max(
             96,
@@ -312,10 +322,13 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         for url in event.mimeData().urls():
             file_path = url.toLocalFile()
             if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
-                self.cardEdit.setText(file_path)
-                self.preview.setPixmap(QPixmap(file_path))
-                self.service.image_path = file_path
+                self._set_image(file_path)
                 break
+
+    def _set_image(self, file_path: str) -> None:
+        if not self.image_fit.set_source(file_path):
+            return
+        self.cardEdit.setText(file_path)
 
     def _connect_callbacks(self):
         self.cardsView.clicked.connect(self._on_card_clicked)
@@ -500,9 +513,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         if file and file.url() != "":
             local_file = file.toLocalFile()
 
-            self.cardEdit.setText(local_file)
-            self.preview.setPixmap(QPixmap(local_file))
-            self.service.image_path = local_file
+            self._set_image(local_file)
 
     def _copy(self):
         if not self.service.unity_file:
