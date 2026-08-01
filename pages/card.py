@@ -34,7 +34,6 @@ from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 from widgets.image_fit import InlineImageFitController
 
-
 logger = logging.getLogger(__name__)
 
 

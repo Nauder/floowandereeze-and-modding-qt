@@ -9,7 +9,6 @@ import threading
 from types import TracebackType
 from typing import Optional, Type
 
-
 LOGGER_NAME = "floowandereeze"
 LOG_DIRECTORY_NAME = "logs"
 LOG_FILE_NAME = "error.log"
@@ -31,7 +30,9 @@ def _create_log_directory() -> Path:
         return preferred_directory
     except OSError:
         fallback_directory = (
-            Path(tempfile.gettempdir()) / "FloowandereezeAndModding" / LOG_DIRECTORY_NAME
+            Path(tempfile.gettempdir())
+            / "FloowandereezeAndModding"
+            / LOG_DIRECTORY_NAME
         )
         fallback_directory.mkdir(parents=True, exist_ok=True)
         return fallback_directory

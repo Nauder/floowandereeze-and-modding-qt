@@ -16,7 +16,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

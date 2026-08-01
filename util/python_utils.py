@@ -13,7 +13,6 @@ from os.path import exists, isdir, join
 
 from util.constants import FILE
 
-
 logger = logging.getLogger(__name__)
 
 try:

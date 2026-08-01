@@ -38,7 +38,6 @@ from util.python_utils import (
 from util.ui_util import show_toast
 from widgets.ux import set_button_roles
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -29,7 +29,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-
 logger = logging.getLogger(__name__)
 _IMAGE_TEMP_DIR = QTemporaryDir(f"{QDir.tempPath()}/floowandereeze-images-XXXXXX")
 _IMAGE_SEQUENCE = count()
@@ -111,7 +110,9 @@ class CropPreview(QWidget):
         )
 
     def _clamp_crop(self) -> None:
-        left = min(max(0.0, self._crop.left()), self._pixmap.width() - self._crop.width())
+        left = min(
+            max(0.0, self._crop.left()), self._pixmap.width() - self._crop.width()
+        )
         top = min(
             max(0.0, self._crop.top()), self._pixmap.height() - self._crop.height()
         )
@@ -254,9 +255,7 @@ class InlineImageFitController(QObject):
         buttons_layout.setContentsMargins(0, 0, 0, 0)
         buttons_layout.setSpacing(6)
         self.stretch_button = QRadioButton("Stretch", container)
-        self.stretch_button.setObjectName(
-            f"{self._preview.objectName()}StretchButton"
-        )
+        self.stretch_button.setObjectName(f"{self._preview.objectName()}StretchButton")
         self.stretch_button.setChecked(True)
         self.stretch_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.stretch_button.setToolTip("Stretch the source image to fill the asset.")
@@ -371,10 +370,13 @@ class InlineImageFitController(QObject):
 
     def controls_height(self) -> int:
         """Return vertical space reserved beneath the preview."""
-        return max(
-            self.stretch_button.sizeHint().height(),
-            self.crop_button.sizeHint().height(),
-        ) + 6
+        return (
+            max(
+                self.stretch_button.sizeHint().height(),
+                self.crop_button.sizeHint().height(),
+            )
+            + 6
+        )
 
     def _current_target_size(self) -> tuple[int, int]:
         return self._target_size() if callable(self._target_size) else self._target_size

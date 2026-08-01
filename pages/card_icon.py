@@ -35,7 +35,6 @@ from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 from widgets.image_fit import InlineImageFitController
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -82,9 +81,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
             self,
             self.preview,
             lambda: (
-                (self.selected.width, self.selected.height)
-                if self.selected
-                else (0, 0)
+                (self.selected.width, self.selected.height) if self.selected else (0, 0)
             ),
             lambda image_path: setattr(self.service, "image_path", image_path),
             alignment_widget=self.current,

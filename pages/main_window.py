@@ -27,7 +27,6 @@ from util.python_utils import is_valid_game_path
 from util.constants import APP_CONFIG, BG_TEMPLATE
 from util.ui_util import show_toast
 
-
 logger = logging.getLogger(__name__)
 
 

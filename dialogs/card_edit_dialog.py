@@ -20,7 +20,6 @@ from PySide6.QtWidgets import (
 from database.models import CardModel
 from util.python_utils import remove_alt_tags
 
-
 logger = logging.getLogger(__name__)
 
 

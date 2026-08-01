@@ -20,7 +20,6 @@ from database.objects import session
 from pages.models.asset_list_model import AssetListModel
 from util.constants import APP_CONFIG, FILE, HIDDEN_ICON_NAME_PARTS
 
-
 logger = logging.getLogger(__name__)
 
 

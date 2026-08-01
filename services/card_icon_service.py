@@ -17,7 +17,6 @@ from services.unity_service import UnityService
 from util.constants import APP_CONFIG, FILE
 from util.image_utils import slugify
 
-
 logger = logging.getLogger(__name__)
 
 

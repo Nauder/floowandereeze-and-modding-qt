@@ -23,6 +23,7 @@ from database.objects import session
 from database.migrations import run_migrations
 from pages.main_window import MainWindow
 from util.ui_util import get_dark_mode_palette
+
 # pylint: enable=wrong-import-position,wrong-import-order,ungrouped-imports
 
 if __name__ == "__main__":
