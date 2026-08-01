@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from itertools import count
+import logging
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -29,6 +30,7 @@ from PySide6.QtWidgets import (
 )
 
 
+logger = logging.getLogger(__name__)
 _IMAGE_TEMP_DIR = QTemporaryDir(f"{QDir.tempPath()}/floowandereeze-images-XXXXXX")
 _IMAGE_SEQUENCE = count()
 
@@ -345,6 +347,7 @@ class InlineImageFitController(QObject):
                     "RGBA"
                 )
         except (OSError, ValueError) as error:
+            logger.exception("Could not open replacement image %s", image_path)
             QMessageBox.warning(
                 self._page, "Image", f"Could not open this image:\n{error}"
             )

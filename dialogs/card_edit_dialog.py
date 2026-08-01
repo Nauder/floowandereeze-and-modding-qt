@@ -1,3 +1,4 @@
+import logging
 import re
 
 from PySide6.QtCore import QSize
@@ -18,6 +19,9 @@ from PySide6.QtWidgets import (
 
 from database.models import CardModel
 from util.python_utils import remove_alt_tags
+
+
+logger = logging.getLogger(__name__)
 
 
 class CardEditDialog(QDialog):
@@ -149,6 +153,7 @@ class CardEditDialog(QDialog):
         try:
             re.compile(pattern)
         except re.error as error:
+            logger.exception("Invalid regular expression in card edit dialog")
             self._show_regex_error(f"Invalid regular expression: {error}")
             return
 

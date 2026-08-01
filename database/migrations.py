@@ -45,8 +45,8 @@ def run_migrations(db_path: str = "database.db") -> None:
         #     conn.commit()
 
         conn.close()
-    except sqlite3.Error as e:
-        logger.error("Database migration failed: %s", e)
+    except sqlite3.Error:
+        logger.exception("Database migration failed")
         if "conn" in locals():
             conn.close()
         # Don't re-raise the exception - we want the app to continue even if migration fails

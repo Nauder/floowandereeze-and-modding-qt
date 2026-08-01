@@ -5,6 +5,7 @@ It allows users to modify card icons from the sprite atlas.
 """
 
 from io import BytesIO
+import logging
 from typing import Optional
 
 from PIL import Image
@@ -33,6 +34,9 @@ from util.constants import IMAGE_FILTER, APP_CONFIG
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 from widgets.image_fit import InlineImageFitController
+
+
+logger = logging.getLogger(__name__)
 
 
 class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
@@ -417,8 +421,8 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
             self.current.setPixmap(pixmap)
             return
 
-        except Exception as e:
-            print(f"Error loading current icon display: {e}")
+        except Exception:
+            logger.exception("Error loading the current card icon display")
             self.current.setText("Error loading icon")
 
     def _select_image(self):
@@ -457,6 +461,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
                 ToastPreset.SUCCESS_DARK,
             )
         except Exception as e:
+            logger.exception("Icon extraction failed")
             show_toast(
                 self,
                 "Icon Extraction",
@@ -534,6 +539,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
             )
 
         except Exception as e:
+            logger.exception("Icon replacement failed")
             show_toast(
                 self,
                 "Card Icon",

@@ -7,10 +7,14 @@ like string manipulation, list handling, and game path validation.
 import os
 import re
 from ast import literal_eval
+import logging
 from ntpath import normcase, normpath
 from os.path import exists, isdir, join
 
 from util.constants import FILE
+
+
+logger = logging.getLogger(__name__)
 
 try:
     import winreg
@@ -176,6 +180,7 @@ def is_valid_game_path(folder: str) -> list[bool | str]:
             return [False, "Could not locate Unity3D file"]
 
     except Exception as e:
+        logger.exception("Game path validation failed for %s", folder)
         return [False, str(e)]
 
 
@@ -219,6 +224,7 @@ def replace_entry(index: int, list_str: str, new_value: str) -> str:
         return str(parsed_list)
 
     except (SyntaxError, ValueError, IndexError) as e:
+        logger.exception("Could not replace entry %s in serialized list", index)
         return f"Error: {str(e)}"
 
 

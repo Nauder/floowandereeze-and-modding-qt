@@ -5,6 +5,7 @@ and management of card icons from the sprite atlas.
 """
 
 from io import BytesIO
+import logging
 from os.path import join
 from threading import Thread
 
@@ -18,6 +19,9 @@ from database.models import CardIconModel
 from database.objects import session
 from pages.models.asset_list_model import AssetListModel
 from util.constants import APP_CONFIG, FILE, HIDDEN_ICON_NAME_PARTS
+
+
+logger = logging.getLogger(__name__)
 
 
 class CardIconListModel(AssetListModel):
@@ -66,8 +70,8 @@ class CardIconListModel(AssetListModel):
                     if FILE["CARD_SPRITE_ATLAS"] in data.m_Name.lower():
                         self.atlas_image = data.image.convert("RGBA")
                         return
-        except Exception as e:
-            print(f"Error loading card sprite atlas: {e}")
+        except Exception:
+            logger.exception("Error loading the card sprite atlas")
             self.atlas_image = None
 
     @override
@@ -99,8 +103,8 @@ class CardIconListModel(AssetListModel):
         """Load thumbnail for a card icon asset."""
         try:
             icon.thumb = self._create_icon_thumbnail(icon)
-        except Exception as e:
-            print(f"Error creating card icon thumbnail for {icon.name}: {e}")
+        except Exception:
+            logger.exception("Error creating thumbnail for card icon %s", icon.name)
             icon.thumb = QIcon(":/ui/images/icon.png")  # Fallback icon
 
     def _create_icon_thumbnail(self, icon: CardIconModel) -> QIcon:
@@ -128,8 +132,8 @@ class CardIconListModel(AssetListModel):
             pixmap.loadFromData(img_bytes.getvalue())
 
             return QIcon(pixmap)
-        except Exception as e:
-            print(f"Error creating card icon thumbnail for {icon.name}: {e}")
+        except Exception:
+            logger.exception("Error creating thumbnail for card icon %s", icon.name)
 
         return QIcon(":/ui/images/icon.png")  # Fallback icon
 

@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Optional
 from PySide6.QtCore import Qt, QSize, QSettings, QTimer
@@ -32,6 +33,9 @@ from util.python_utils import remove_alt_tags
 from util.ui_util import show_toast
 from widgets.ux import configure_editor_chrome, hide_selection_helper, set_button_roles
 from widgets.image_fit import InlineImageFitController
+
+
+logger = logging.getLogger(__name__)
 
 
 class Card(ResponsivePageMixin, QWidget, Ui_Card):
@@ -403,6 +407,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
                     if description != self.selected.description:
                         self.service.replace_description(description)
                 except (OSError, RuntimeError) as error:
+                    logger.exception("Card text could not be saved")
                     show_toast(
                         self,
                         "Text Edit",
@@ -442,6 +447,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
                 None if all_cards else self.selected,
             )
         except (OSError, RuntimeError, ValueError, re.error) as error:
+            logger.exception("Card regular-expression replacement failed")
             show_toast(
                 self,
                 "Regex replacement",

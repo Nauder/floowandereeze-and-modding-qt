@@ -4,6 +4,7 @@ This module provides the main application window that hosts all the different
 pages and handles navigation between them.
 """
 
+import logging
 import pathlib
 from typing import List, Type
 
@@ -25,6 +26,9 @@ from pages.wallpaper import Wallpaper
 from util.python_utils import is_valid_game_path
 from util.constants import APP_CONFIG, BG_TEMPLATE
 from util.ui_util import show_toast
+
+
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -93,6 +97,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     )
                     self.mainStack.addWidget(page())
                 except Exception as e:
+                    logger.exception("Failed to load the %s tab", page.__name__)
                     show_toast(
                         self,
                         f"{page.__name__} Error",

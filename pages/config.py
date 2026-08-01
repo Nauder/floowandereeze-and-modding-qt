@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import os
 from threading import Thread
 
@@ -36,6 +37,9 @@ from util.python_utils import (
 )
 from util.ui_util import show_toast
 from widgets.ux import set_button_roles
+
+
+logger = logging.getLogger(__name__)
 
 
 class Config(QWidget, Ui_Config):
@@ -500,6 +504,7 @@ class Config(QWidget, Ui_Config):
         try:
             success_count = card_service.restore_text_edits(modified_cards)
         except (OSError, RuntimeError, ValueError) as error:
+            logger.exception("Text edits could not be restored")
             show_toast(
                 self,
                 "Text Edits",

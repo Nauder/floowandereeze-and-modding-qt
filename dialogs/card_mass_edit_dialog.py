@@ -1,3 +1,4 @@
+import logging
 import re
 
 from PySide6.QtCore import QSize
@@ -14,6 +15,9 @@ from PySide6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class CardMassEditDialog(QDialog):
@@ -98,6 +102,7 @@ class CardMassEditDialog(QDialog):
         try:
             re.compile(pattern)
         except re.error as error:
+            logger.exception("Invalid regular expression in mass edit dialog")
             self._show_error(f"Invalid regular expression: {error}")
             return
 

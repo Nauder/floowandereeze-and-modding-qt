@@ -4,6 +4,7 @@ This module provides service functionality for handling card icon asset modifica
 It manages the replacement of card icons within the sprite atlas.
 """
 
+import logging
 from os import makedirs
 from os.path import join, isfile
 from typing import Optional
@@ -15,6 +16,9 @@ from database.models import CardIconModel
 from services.unity_service import UnityService
 from util.constants import APP_CONFIG, FILE
 from util.image_utils import slugify
+
+
+logger = logging.getLogger(__name__)
 
 
 class CardIconService(UnityService):
@@ -152,8 +156,8 @@ class CardIconService(UnityService):
                         icon_img.save(backup_path)
                         break
 
-        except Exception as e:
-            print(f"Error creating card icon backup: {e}")
+        except Exception:
+            logger.exception("Error creating backup for card icon %s", name)
 
     def restore_asset(self, backup_name=None) -> bool:
         """Restore card icon from backup."""
@@ -180,8 +184,10 @@ class CardIconService(UnityService):
 
                 return True
 
-            except Exception as e:
-                print(f"Error restoring card icon from backup: {str(e)}")
+            except Exception:
+                logger.exception(
+                    "Error restoring card icon from backup %s", backup_name
+                )
                 self.image_path = original_path
                 return False
 
