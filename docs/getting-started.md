@@ -33,7 +33,7 @@ For manual selection, choose the player-ID folder under:
 
 Select the folder whose contents begin with directories such as `0000`; do not select `LocalData`, `masterduel_Data`, or `data.unity3d` itself. The placeholder profile folder `00000000` is not a usable player profile.
 
-> **Screenshot placeholder — game path setup:** Capture the Configuration page's Game Data section with the Select and Auto-detect buttons visible. Replace the real Steam username and player ID with neutral example values.
+![game path setup](./assets/ui/config.png)
 
 After saving the path, the app starts its first data update if no local data version exists. Wait for all update tasks to finish, then restart the application to load the editor pages.
 

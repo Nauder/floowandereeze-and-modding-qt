@@ -2,7 +2,7 @@
 
 The Card Face Editor changes the frame/face textures that surround card artwork.
 
-> **Screenshot placeholder — Card Face Editor:** Capture the current Faces page with a face selected, Current and Preview panels, image source controls, and the result list visible.
+![Card Face Editor](../assets/ui/face.png)
 
 ## Replace a face
 

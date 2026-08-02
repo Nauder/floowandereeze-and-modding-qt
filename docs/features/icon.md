@@ -2,7 +2,7 @@
 
 The Player Icon Editor replaces profile icons and manages the small, medium, and large bundles as one asset.
 
-> **Screenshot placeholder — Player Icon Editor:** Capture the redesigned Icons page with one icon selected, its three bundle identifiers in the editor heading, Favorite and Favorites controls, and the Results grid.
+![Player Icon Editor](../assets/ui/icon.png)
 
 ## Replace an icon
 

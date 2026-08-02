@@ -10,7 +10,7 @@ Most asset pages follow the same workflow: select an asset, choose a source imag
 - **Results** contains the available assets. Select one to enable its actions.
 - The horizontal grip between the editor and results can be dragged on the responsive grid pages. Its position is remembered separately for each editor.
 
-> **Screenshot placeholder — shared editor anatomy:** Capture an annotated Sleeves page showing Current, Preview, Image source, primary Replace button, secondary actions, Results grid, Favorites filter, and draggable splitter.
+![shared editor anatomy](./assets/ui/editor_anatomy.png)
 
 The application has a minimum window size of 960×540 and opens maximized. Preview panels and result grids adapt to the available space.
 

@@ -13,7 +13,7 @@ It currently supports:
 
 The app edits files in your Master Duel installation. Game updates can replace those files, and two mods that change the same bundle can overwrite one another. Read [Backups and safe modding](using-the-editors.md#backups-and-safe-modding) before making your first replacement.
 
-> **Screenshot placeholder — application overview:** Capture the maximized main window at 1920×1080 with the full top navigation visible and the Cards page selected. Use an unmodified card and avoid showing personal paths.
+![application overview](./assets/ui/card.png)
 
 ## Start here
 

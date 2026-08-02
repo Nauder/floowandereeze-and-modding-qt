@@ -2,7 +2,7 @@
 
 The Card Sleeve Editor replaces sleeve textures and can add an optional colored border.
 
-> **Screenshot placeholder — Sleeve Editor:** Capture the redesigned Sleeves page with a selected sleeve, Current and Preview panels, border color, Use Border, Fade-in Effect, Favorite, Favorites, and the Results grid visible.
+![Sleeve Editor](../assets/ui/sleeve.png)
 
 ## Replace a sleeve
 

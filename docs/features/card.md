@@ -2,7 +2,7 @@
 
 The Card Editor replaces card artwork and edits card names and descriptions. It also provides search, favorites, extraction, bundle copying, and regular-expression text replacement.
 
-> **Screenshot placeholder — Card Editor:** Capture the redesigned Cards page with Current and Preview panels, image controls, the primary Replace button, search options, a populated results grid, and the vertical splitter visible. Redact bundle identifiers if desired.
+![Card Editor](../assets/ui/card.png)
 
 ## Find and select a card
 
@@ -37,7 +37,7 @@ The same dialog can apply a Python regular-expression replacement to the selecte
 
 **Mass Edit** applies one regular-expression replacement across all cards. Choose whether it targets names, descriptions, or both. The app validates the pattern and asks for confirmation before changing files.
 
-> **Screenshot placeholder — mass text edit:** Capture the Mass Edit Card Text dialog with a harmless example pattern, both field checkboxes, and the warning visible.
+![mass text edit](../assets/ui/mass_edit.png)
 
 Mass editing changes every match, not only the current search results. Test the expression on one card first and keep the default confirmation enabled.
 

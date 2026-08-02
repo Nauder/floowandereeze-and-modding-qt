@@ -2,7 +2,7 @@
 
 The Card Icon Editor changes small card-related graphics stored inside Master Duel's shared card sprite atlas.
 
-> **Screenshot placeholder — Card Icon Editor:** Capture the Card Icons page with one icon selected, both 128×128 display panels visible, image-source controls, and the responsive Results grid below the splitter.
+![Card Icon Editor](../assets/ui/card_icon.png)
 
 ## Replace an icon
 

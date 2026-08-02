@@ -2,7 +2,7 @@
 
 The Wallpaper Editor changes home-screen wallpaper assets, which use separate foreground and background bundles.
 
-> **Screenshot placeholder — Wallpaper Editor:** Capture the current Wallpapers page with one wallpaper selected, the foreground preview, image dimensions and both bundle identifiers visible, plus all action buttons.
+![Wallpaper Editor](../assets/ui/wallpaper.png)
 
 ## Replace a wallpaper
 

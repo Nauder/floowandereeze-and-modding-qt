@@ -2,7 +2,7 @@
 
 Configuration controls the game path, app data, automatic backups, card-text maintenance, appearance, and settings used when writing Unity bundles.
 
-> **Screenshot placeholder — Configuration page:** Capture the full current page at 1920×1080. Show the Game Data, Appearance, Card Text, Backups, and Asset Build Settings section labels; redact the player ID and Windows username.
+![Configuration page](../assets/ui/config.png)
 
 ## Game Data
 

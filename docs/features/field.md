@@ -2,7 +2,7 @@
 
 The Duel Field Editor replaces the supported playable surface region of a duel field.
 
-> **Screenshot placeholder — Duel Field Editor:** Capture the redesigned Fields page with Current and Preview panels, a selected field, editor actions, Results grid, and draggable splitter.
+![Duel Field Editor](../assets/ui/field.png)
 
 ## Replace a field
 

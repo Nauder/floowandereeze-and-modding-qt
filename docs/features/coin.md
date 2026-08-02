@@ -2,7 +2,7 @@
 
 The Coin Editor replaces duel coin textures and keeps the game's small, medium, and large versions together.
 
-> **Screenshot placeholder — Coin Editor:** Capture the Coins page with a selected coin, Current and Preview images, Favorite enabled, the Favorites filter, and several items in the Results grid.
+![Coin Editor](../assets/ui/coin.png)
 
 ## Replace a coin
 

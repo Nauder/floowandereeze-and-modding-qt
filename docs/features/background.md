@@ -1,8 +1,8 @@
 # Background Editor
 
-The Background Editor changes the shared 1920×1080 texture used on the home screen and in many duel screens. This is different from the custom application background configured on the Configuration page.
+The Background Editor changes the shared 1920×1080 texture used on the home screen and in many menu screens. This is different from the custom application background configured on the Configuration page.
 
-> **Screenshot placeholder — Background Editor:** Capture the current Background page with its large 16:9 Current preview and the Select, Restore, Extract, and Replace controls visible.
+![Background Editor](../assets/ui/background.png)
 
 ## Replace the background
 
