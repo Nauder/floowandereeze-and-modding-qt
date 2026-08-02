@@ -1,11 +1,11 @@
 .\build_qt.ps1
 
-& .\.venv\Scripts\python.exe -m PyInstaller `
+& python -m PyInstaller `
     --clean `
     --onefile `
     --noconsole `
     --icon "./qtdesigner/images/icon.ico" `
-    --add-data ".venv\Lib\site-packages\UnityPy;UnityPy/" `
+    --collect-all "UnityPy" `
     --collect-binaries "fmod_toolkit" `
     --collect-data "archspec" `
     --hidden-import "fastparquet" `
