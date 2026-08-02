@@ -44,12 +44,13 @@ jobs:
       run: |
         .\build.ps1
         
-    - name: Create Release
+    - name: Create Release Draft
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
         files: "dist/Floowandereeze & Modding.exe"
         generate_release_notes: true
+        draft: true
         prerelease: ${{ contains(github.ref, 'beta') }}
         tag_name: ${{ github.ref_name }}
       env:
