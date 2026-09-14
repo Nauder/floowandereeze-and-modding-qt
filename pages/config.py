@@ -465,9 +465,7 @@ class Config(QWidget, Ui_Config):
         """Applies all text edits saved in the database to the game files."""
 
         # Get all cards with text edits
-        card_model = (
-            CardOcgModel if APP_CONFIG.asset_region == "ocg" else CardModel
-        )
+        card_model = CardOcgModel if APP_CONFIG.asset_region == "ocg" else CardModel
         modified_cards = (
             session.query(card_model)
             .filter(
@@ -534,9 +532,7 @@ class Config(QWidget, Ui_Config):
         """Reverts all text edits saved in the database to their original values."""
 
         # Get all cards with text edits
-        card_model = (
-            CardOcgModel if APP_CONFIG.asset_region == "ocg" else CardModel
-        )
+        card_model = CardOcgModel if APP_CONFIG.asset_region == "ocg" else CardModel
         modified_cards = (
             session.query(card_model)
             .filter(
