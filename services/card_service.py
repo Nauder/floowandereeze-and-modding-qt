@@ -6,7 +6,7 @@ from UnityPy.enums import TextureFormat
 from sqlalchemy import or_
 from typing_extensions import override
 
-from database.models import CardModel, CardMetadataModel
+from database.models import CardModel, CardOcgModel, CardMetadataModel
 from database.objects import session
 from services.unity_service import UnityService
 from unity.unity_utils import prepare_environment
@@ -55,7 +55,12 @@ class CardService(UnityService):
             f.write(env.file.save(packer=APP_CONFIG.packer))
 
     def get_names(self) -> list[str]:
-        return [card.name for card in session.query(CardModel).all()]
+        return [card.name for card in session.query(self._card_model()).all()]
+
+    @staticmethod
+    def _card_model():
+        """Return the card table for the region selected on the main window."""
+        return CardOcgModel if APP_CONFIG.asset_region == "ocg" else CardModel
 
     @staticmethod
     def _script_to_bytes(script: str | bytes | bytearray) -> bytes:
@@ -131,7 +136,8 @@ class CardService(UnityService):
             f.write(env.file.save(packer=APP_CONFIG.packer))
 
     def replace_name(self, name) -> None:
-        card = session.query(CardModel).where(CardModel.bundle == self.bundle).first()
+        card_model = self._card_model()
+        card = session.query(card_model).where(card_model.bundle == self.bundle).first()
 
         if card:
 
@@ -173,7 +179,8 @@ class CardService(UnityService):
             session.commit()
 
     def replace_description(self, description) -> None:
-        card = session.query(CardModel).where(CardModel.bundle == self.bundle).first()
+        card_model = self._card_model()
+        card = session.query(card_model).where(card_model.bundle == self.bundle).first()
 
         if card:
             if not APP_SESSION.fresh_card_metadata:
@@ -227,7 +234,7 @@ class CardService(UnityService):
         replaced. The card metadata files are rebuilt once for the whole batch.
         """
         regex = re.compile(pattern)
-        cards = [card] if card else session.query(CardModel).all()
+        cards = [card] if card else session.query(self._card_model()).all()
         changes = []
         replacement_count = 0
 

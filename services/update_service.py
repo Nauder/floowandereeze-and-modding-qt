@@ -10,7 +10,9 @@ from pandas.errors import EmptyDataError
 
 from database.models import (
     SleeveModel,
+    SleeveOcgModel,
     CardModel,
+    CardOcgModel,
     CardIconModel,
     FaceModel,
     WallpaperModel,
@@ -126,13 +128,19 @@ def update_sleeves() -> None:
     with the latest data from the remote source.
 
     This function:
-    1. Fetches the latest sleeves data from the remote parquet file
-    2. Deletes all existing sleeves from the database
-    3. Adds all sleeves from the remote data
+    1. Fetches the latest TCG and OCG sleeves data
+    2. Deletes the corresponding existing sleeves from the database
+    3. Adds both datasets to their region-specific tables
     """
-    remote_sleeves = get_github_parquet_file("data/sleeves.parquet")
-    session.query(SleeveModel).delete()
-    session.add_all([SleeveModel(bundle=sleeve) for sleeve in remote_sleeves["bundle"]])
+    datasets = (
+        (SleeveModel, get_github_parquet_file("data/sleeves.parquet")),
+        (SleeveOcgModel, get_github_parquet_file("data/sleeves_ocg.parquet")),
+    )
+    for sleeve_model, remote_sleeves in datasets:
+        session.query(sleeve_model).delete()
+        session.add_all(
+            [sleeve_model(bundle=sleeve) for sleeve in remote_sleeves["bundle"]]
+        )
 
 
 def update_cards() -> None:
@@ -141,23 +149,27 @@ def update_cards() -> None:
     with the latest data from the remote source.
 
     This function:
-    1. Fetches the latest cards data from the remote parquet file
-    2. Deletes all existing cards from the database
-    3. Adds all cards from the remote data with their bundle, name, description, and data_index
+    1. Fetches the latest TCG and OCG cards data
+    2. Deletes the corresponding existing cards from the database
+    3. Adds both datasets with their bundle, name, description, and data_index
     """
-    remote_cards = get_github_parquet_file("data/cards.parquet")
-    session.query(CardModel).delete()
-    session.add_all(
-        [
-            CardModel(
-                bundle=card["bundle"],
-                name=card["name"],
-                description=card["description"],
-                data_index=card["data_index"],
-            )
-            for _, card in remote_cards.iterrows()
-        ]
+    datasets = (
+        (CardModel, get_github_parquet_file("data/cards.parquet")),
+        (CardOcgModel, get_github_parquet_file("data/cards_ocg.parquet")),
     )
+    for card_model, remote_cards in datasets:
+        session.query(card_model).delete()
+        session.add_all(
+            [
+                card_model(
+                    bundle=card["bundle"],
+                    name=card["name"],
+                    description=card["description"],
+                    data_index=card["data_index"],
+                )
+                for _, card in remote_cards.iterrows()
+            ]
+        )
 
 
 def update_faces() -> None:

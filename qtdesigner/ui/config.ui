@@ -295,6 +295,9 @@
            <property name="checked">
             <bool>true</bool>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">backgroundModeButtonGroup</string>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -308,6 +311,9 @@
            <property name="text">
             <string>Cropped</string>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">backgroundModeButtonGroup</string>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -452,6 +458,9 @@
            <property name="checked">
             <bool>true</bool>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">packerButtonGroup</string>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -462,6 +471,9 @@
            <property name="text">
             <string>LZMA</string>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">packerButtonGroup</string>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -472,6 +484,9 @@
            <property name="text">
             <string>LZ4</string>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">packerButtonGroup</string>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -482,6 +497,9 @@
            <property name="text">
             <string>LZ4HC</string>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">packerButtonGroup</string>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -492,6 +510,9 @@
            <property name="text">
             <string>LZHAM</string>
            </property>
+           <attribute name="buttonGroup">
+            <string notr="true">packerButtonGroup</string>
+           </attribute>
           </widget>
          </item>
         </layout>
@@ -573,4 +594,8 @@
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="backgroundModeButtonGroup"/>
+  <buttongroup name="packerButtonGroup"/>
+ </buttongroups>
 </ui>

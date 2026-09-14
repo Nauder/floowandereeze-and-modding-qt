@@ -4,12 +4,20 @@ import os
 from threading import Thread
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog, QFileDialog, QLabel, QWidget, QProgressDialog
+from PySide6.QtWidgets import (
+    QDialog,
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
+    QProgressDialog,
+    QRadioButton,
+    QWidget,
+)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from pyqttoast import ToastPreset
 
 from database.objects import session
-from database.models import CardModel
+from database.models import CardModel, CardOcgModel, SleeveOcgModel
 from dialogs.game_path_select_dialog import GamePathSelectDialog
 from dialogs.simple_dialogs import show_confirmation_dialog
 from pages.models.asset_list_model import AssetListModel
@@ -169,6 +177,9 @@ class Config(QWidget, Ui_Config):
         for radio in [self.stretchedButton, self.croppedButton]:
             radio.toggled.connect(lambda checked, r=radio: self._set_background_mode(r))
 
+        for radio in [self.tcg_region_button, self.ocg_region_button]:
+            radio.toggled.connect(lambda checked, r=radio: self._set_asset_region(r))
+
     def _configure_ux(self):
         """Add section labels and shared button hierarchy to the config page."""
         self.bgLine.setPlaceholderText("Select or drop an image")
@@ -184,6 +195,23 @@ class Config(QWidget, Ui_Config):
         ]
         for index, title in sections:
             self._insert_config_section(index, title)
+
+        region_label = QLabel("Game Version:", self)
+        region_label.setToolTip("Select the card and sleeve data for your game version")
+        self.verticalLayout_5.insertWidget(2, region_label)
+
+        region_widget = QWidget(self)
+        region_layout = QHBoxLayout(region_widget)
+        region_layout.setContentsMargins(0, 0, 0, 0)
+        region_layout.setSpacing(12)
+        self.tcg_region_button = QRadioButton("TCG", region_widget)
+        self.tcg_region_button.setObjectName("tcgRegionButton")
+        self.ocg_region_button = QRadioButton("OCG", region_widget)
+        self.ocg_region_button.setObjectName("ocgRegionButton")
+        region_layout.addWidget(self.tcg_region_button)
+        region_layout.addWidget(self.ocg_region_button)
+        region_layout.addStretch(1)
+        self.verticalLayout_3.insertWidget(2, region_widget)
 
         set_button_roles(self)
 
@@ -215,6 +243,24 @@ class Config(QWidget, Ui_Config):
                 # Reapply background with new mode if background is set
                 if APP_CONFIG.background_path:
                     self._apply_background_style(APP_CONFIG.background_path)
+
+    def _set_asset_region(self, radio):
+        """Persist the selected card/sleeve game version for the next launch."""
+        if not radio.isChecked():
+            return
+
+        region = "ocg" if radio is self.ocg_region_button else "tcg"
+        if region == APP_CONFIG.asset_region:
+            return
+
+        APP_CONFIG.asset_region = region
+        session.commit()
+        show_toast(
+            self,
+            "Game Version",
+            "Game version set, restart the app to see changes",
+            ToastPreset.SUCCESS_DARK,
+        )
 
     def _set_mip_count(self):
         APP_CONFIG.mip_count = self.mipBox.value()
@@ -319,6 +365,10 @@ class Config(QWidget, Ui_Config):
                 radio.setChecked(True)
                 break
 
+        selected_region = (APP_CONFIG.asset_region or "tcg").lower()
+        self.ocg_region_button.setChecked(selected_region == "ocg")
+        self.tcg_region_button.setChecked(selected_region != "ocg")
+
     def _check_update(self):
         if APP_CONFIG.game_path is not None:
             self._get_data()
@@ -333,9 +383,14 @@ class Config(QWidget, Ui_Config):
     def _get_data(self):
         remote = get_github_raw_file("data/version.txt")
         local = APP_CONFIG.version
+        ocg_data_missing = (
+            session.query(CardOcgModel.id).first() is None
+            or session.query(SleeveOcgModel.id).first() is None
+        )
 
         if (
             not local
+            or ocg_data_missing
             or datetime.strptime(local.strip(), "%Y-%m-%d").date()
             < datetime.strptime(remote.strip(), "%Y-%m-%d").date()
         ):
@@ -410,11 +465,14 @@ class Config(QWidget, Ui_Config):
         """Applies all text edits saved in the database to the game files."""
 
         # Get all cards with text edits
+        card_model = (
+            CardOcgModel if APP_CONFIG.asset_region == "ocg" else CardModel
+        )
         modified_cards = (
-            session.query(CardModel)
+            session.query(card_model)
             .filter(
-                (CardModel.modded_name.isnot(None))
-                | (CardModel.modded_description.isnot(None))
+                (card_model.modded_name.isnot(None))
+                | (card_model.modded_description.isnot(None))
             )
             .all()
         )
@@ -476,11 +534,14 @@ class Config(QWidget, Ui_Config):
         """Reverts all text edits saved in the database to their original values."""
 
         # Get all cards with text edits
+        card_model = (
+            CardOcgModel if APP_CONFIG.asset_region == "ocg" else CardModel
+        )
         modified_cards = (
-            session.query(CardModel)
+            session.query(card_model)
             .filter(
-                (CardModel.modded_name.isnot(None))
-                | (CardModel.modded_description.isnot(None))
+                (card_model.modded_name.isnot(None))
+                | (card_model.modded_description.isnot(None))
             )
             .all()
         )

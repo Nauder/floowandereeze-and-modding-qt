@@ -38,8 +38,18 @@ def run_migrations(db_path: str = "database.db") -> None:
             conn.commit()
             logger.info("Migration completed: background_mode column added")
 
+        # Migration 2: Persist the selected card/sleeve data region.
+        columns = get_columns(cursor, "app_config")
+        if "asset_region" not in columns:
+            logger.info("Migrating database: Adding asset_region column")
+            cursor.execute(
+                "ALTER TABLE app_config ADD COLUMN asset_region VARCHAR(3) DEFAULT 'tcg'"
+            )
+            conn.commit()
+            logger.info("Migration completed: asset_region column added")
+
         # Add future migrations here following the same pattern
-        # Migration 2: Example for future use
+        # Migration 3: Example for future use
         # if "some_future_column" not in get_columns(cursor, "some_table"):
         #     cursor.execute("ALTER TABLE some_table ADD COLUMN some_future_column ...")
         #     conn.commit()

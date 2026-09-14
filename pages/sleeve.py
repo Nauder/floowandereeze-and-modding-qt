@@ -422,7 +422,7 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
     def _replace_sleeve(self):
         if APP_CONFIG.create_backup and not self.selected.has_backup:
             self.service.create_backup(self.service.bundle)
-            self.model.set_backup_state(self.selected.id, True)
+            self.selected.has_backup = True
 
         self.service.replace_bundle()
         self.model.refresh()

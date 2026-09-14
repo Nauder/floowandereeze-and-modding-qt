@@ -55,6 +55,7 @@ class AppConfig(base):
     packer: Mapped[str] = mapped_column(String(5), default="LZ4")
     create_backup: Mapped[bool] = mapped_column(Boolean, default=False)
     background_mode: Mapped[str] = mapped_column(String(10), default="stretched")
+    asset_region: Mapped[str] = mapped_column(String(3), default="tcg")
 
 
 class SleeveModel(UnityAsset, base):
@@ -67,6 +68,15 @@ class SleeveModel(UnityAsset, base):
     """
 
     __tablename__ = "sleeve"
+
+    bundle: Mapped[str] = mapped_column(String(8), unique=True)
+    thumb: QIcon = QIcon()
+
+
+class SleeveOcgModel(UnityAsset, base):
+    """OCG counterpart to :class:`SleeveModel`."""
+
+    __tablename__ = "sleeve_ocg"
 
     bundle: Mapped[str] = mapped_column(String(8), unique=True)
     thumb: QIcon = QIcon()
@@ -91,6 +101,21 @@ class CardModel(UnityAsset, base):
     bundle: Mapped[str] = mapped_column(String(8), unique=True)
     modded_name: Mapped[bool] = mapped_column(String(255), nullable=True)
     modded_description: Mapped[bool] = mapped_column(String(255), nullable=True)
+    data_index: Mapped[int] = mapped_column(Integer)
+    unity_file: ClassVar[bool] = False
+    thumb: QIcon = QIcon()
+
+
+class CardOcgModel(UnityAsset, base):
+    """OCG counterpart to :class:`CardModel`."""
+
+    __tablename__ = "card_ocg"
+
+    name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(String(255))
+    bundle: Mapped[str] = mapped_column(String(8), unique=True)
+    modded_name: Mapped[str] = mapped_column(String(255), nullable=True)
+    modded_description: Mapped[str] = mapped_column(String(255), nullable=True)
     data_index: Mapped[int] = mapped_column(Integer)
     unity_file: ClassVar[bool] = False
     thumb: QIcon = QIcon()
