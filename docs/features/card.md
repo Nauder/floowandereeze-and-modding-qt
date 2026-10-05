@@ -9,6 +9,7 @@ The Card Editor replaces card artwork and edits card names and descriptions. It 
 Enter at least three characters and press Enter or use the search button. Search is case-insensitive and matches partial original card names. The autocomplete list can be used for quick selection.
 
 - **Search Description** includes original card descriptions in the search.
+- **Search Bundle** includes bundle names in the search. Partial bundle names work, and this option can be combined with **Search Description**.
 - **Favorites** shows only cards marked as favorites.
 - **Favorite** changes the selected card's saved favorite status.
 

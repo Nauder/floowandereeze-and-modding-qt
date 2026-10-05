@@ -19,6 +19,7 @@ class CardListModel(AssetListModel):
         self.filter = ""
         self.show_favorites = False
         self.search_description = False
+        self.search_bundle = False
 
     @override
     def refresh(self):
@@ -26,17 +27,12 @@ class CardListModel(AssetListModel):
         query = session.query(self.db_model)
 
         if self.filter != "" and not self.show_favorites:
+            search_fields = [self.db_model.name.contains(self.filter)]
             if self.search_description:
-                # Search both name and description
-                query = query.filter(
-                    or_(
-                        self.db_model.name.contains(self.filter),
-                        self.db_model.description.contains(self.filter),
-                    )
-                )
-            else:
-                # Search only name
-                query = query.filter(self.db_model.name.contains(self.filter))
+                search_fields.append(self.db_model.description.contains(self.filter))
+            if self.search_bundle:
+                search_fields.append(self.db_model.bundle.contains(self.filter))
+            query = query.filter(or_(*search_fields))
 
         if self.show_favorites:
             query = query.filter(self.db_model.favorite == True)

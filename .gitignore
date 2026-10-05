@@ -309,3 +309,4 @@ cython_debug/
 /bundles
 /backups
 /database.db
+dev.session.sql

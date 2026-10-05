@@ -348,6 +348,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.favorite.stateChanged.connect(self._toggle_favorite)
         self.favorites.stateChanged.connect(self._toggle_favorites_filter)
         self.searchDescription.stateChanged.connect(self._toggle_description_search)
+        self.searchBundle.stateChanged.connect(self._toggle_bundle_search)
 
         self.searchEdit.setCompleter(QCompleter(self.service.get_names()))
         self.searchEdit.completer().setCaseSensitivity(
@@ -379,6 +380,11 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
 
     def _toggle_description_search(self, state):
         self.model.search_description = state == Qt.CheckState.Checked.value
+        if len(self.searchEdit.text()) >= 3:
+            self._search()
+
+    def _toggle_bundle_search(self, state):
+        self.model.search_bundle = state == Qt.CheckState.Checked.value
         if len(self.searchEdit.text()) >= 3:
             self._search()
 

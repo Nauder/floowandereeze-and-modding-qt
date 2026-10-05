@@ -461,6 +461,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="searchBundle">
+       <property name="toolTip">
+        <string>Include bundle names in the card search</string>
+       </property>
+       <property name="text">
+        <string>Search Bundle</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_10">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>
