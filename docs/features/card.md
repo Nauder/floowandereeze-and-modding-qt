@@ -15,6 +15,8 @@ Enter at least three characters and press Enter or use the search button. Search
 
 Select a result to load its current artwork and enable its actions. A saved modded name appears in the editor context alongside the original name.
 
+Use Ctrl-click to select multiple cards or Shift-click to select a range for mass editing.
+
 ## Replace card artwork
 
 1. Select a card.
@@ -36,11 +38,13 @@ The same dialog can apply a Python regular-expression replacement to the selecte
 
 ## Mass edit card text
 
-**Mass Edit** applies one regular-expression replacement across all cards. Choose whether it targets names, descriptions, or both. The app validates the pattern and asks for confirmation before changing files.
+**Mass Edit** applies a Python regular-expression replacement to **All cards**, **Selected cards**, **Search results**, or **Favorites** in the current TCG/OCG region. Each scope shows its card count. Choose whether to replace names, descriptions, or both; existing text edits are used as the starting text.
 
-![mass text edit](../assets/ui/mass_edit.png)
+Click **Preview Changes** to see how many cards will change and the replacement count. Choose an affected card to compare its before/after text. In **Differences**, removed lines are red, added lines are green, headers are blue and bold, and newline notes are muted and italic. Colors adapt to light and dark themes; the `-` and `+` prefixes also identify removals and additions.
 
-Mass editing changes every match, not only the current search results. Test the expression on one card first and keep the default confirmation enabled.
+Choose **Apply Changes** after reviewing the preview. Changing the expression, replacement, fields, or scope requires another preview. Empty scopes and replacements that leave text unchanged cannot be applied.
+
+See [Regex mass editing](../card-mass-edit.md) for scope details, replacement syntax, and verification steps.
 
 ## Extract, copy, and restore
 

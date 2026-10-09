@@ -130,6 +130,7 @@ QPushButton:hover {
    <addaction name="actionfield_button"/>
    <addaction name="actionwallpaper_button"/>
    <addaction name="actioncoin_button"/>
+   <addaction name="actiondeck_box_button"/>
   </widget>
   <action name="actionconfig_button">
    <property name="icon">
@@ -294,6 +295,24 @@ QPushButton:hover {
    </property>
    <property name="toolTip">
     <string>Coins</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actiondeck_box_button">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/ui/images/deck_box.svg</normaloff>:/ui/images/deck_box.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Deck Boxes</string>
+   </property>
+   <property name="toolTip">
+    <string>Deck Boxes</string>
    </property>
    <property name="checkable">
     <bool>true</bool>

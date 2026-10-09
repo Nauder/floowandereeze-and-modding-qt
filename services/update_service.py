@@ -122,238 +122,161 @@ def get_github_parquet_file(
         raise EmptyDataError(f"Failed to read parquet file: {str(e)}") from e
 
 
-def update_sleeves() -> None:
-    """
-    Updates the sleeves in the database by completely replacing all existing sleeves
-    with the latest data from the remote source.
+def _merge_metadata(model, remote_data: DataFrame, key: str, columns: dict) -> None:
+    """Refresh remote-owned columns, preserving local state and missing records.
 
-    This function:
-    1. Fetches the latest TCG and OCG sleeves data
-    2. Deletes the corresponding existing sleeves from the database
-    3. Adds both datasets to their region-specific tables
+    Keys identify assets independently of their database IDs. Include pending
+    inserts because the shared session has autoflush disabled and the caller
+    controls when updates are committed.
     """
+    records = {getattr(record, key): record for record in session.query(model).all()}
+    records.update(
+        (getattr(record, key), record)
+        for record in session.new
+        if isinstance(record, model)
+    )
+    for _, row in remote_data.iterrows():
+        metadata = {attribute: row[column] for attribute, column in columns.items()}
+        identity = metadata[key]
+        record = records.get(identity)
+        if record is None:
+            record = model(**metadata)
+            session.add(record)
+            records[identity] = record
+        else:
+            for attribute, value in metadata.items():
+                setattr(record, attribute, value)
+
+
+def update_sleeves() -> None:
+    """Merge TCG and OCG sleeves while preserving local asset state."""
     datasets = (
         (SleeveModel, get_github_parquet_file("data/sleeves.parquet")),
         (SleeveOcgModel, get_github_parquet_file("data/sleeves_ocg.parquet")),
     )
-    for sleeve_model, remote_sleeves in datasets:
-        session.query(sleeve_model).delete()
-        session.add_all(
-            [sleeve_model(bundle=sleeve) for sleeve in remote_sleeves["bundle"]]
-        )
+    for model, remote_data in datasets:
+        _merge_metadata(model, remote_data, "bundle", {"bundle": "bundle"})
 
 
 def update_cards() -> None:
-    """
-    Updates the cards in the database by completely replacing all existing cards
-    with the latest data from the remote source.
-
-    This function:
-    1. Fetches the latest TCG and OCG cards data
-    2. Deletes the corresponding existing cards from the database
-    3. Adds both datasets with their bundle, name, description, and data_index
-    """
+    """Refresh original TCG/OCG card text and indices, keeping saved edits."""
     datasets = (
         (CardModel, get_github_parquet_file("data/cards.parquet")),
         (CardOcgModel, get_github_parquet_file("data/cards_ocg.parquet")),
     )
-    for card_model, remote_cards in datasets:
-        session.query(card_model).delete()
-        session.add_all(
-            [
-                card_model(
-                    bundle=card["bundle"],
-                    name=card["name"],
-                    description=card["description"],
-                    data_index=card["data_index"],
-                )
-                for _, card in remote_cards.iterrows()
-            ]
+    for model, remote_data in datasets:
+        _merge_metadata(
+            model,
+            remote_data,
+            "bundle",
+            {
+                "bundle": "bundle",
+                "name": "name",
+                "description": "description",
+                "data_index": "data_index",
+            },
         )
 
 
 def update_faces() -> None:
-    """
-    Updates the faces in the database by completely replacing all existing faces
-    with the latest data from the remote source.
-
-    This function:
-    1. Fetches the latest faces data from the remote parquet file
-    2. Deletes all existing faces from the database
-    3. Adds all faces from the remote data with their key and name
-    """
-    remote_faces = get_github_parquet_file("data/faces.parquet")
-    session.query(FaceModel).delete()
-    session.add_all(
-        [
-            FaceModel(key=face["key"], name=face["name"])
-            for _, face in remote_faces.iterrows()
-        ]
+    """Refresh face names by their asset key, keeping local state."""
+    _merge_metadata(
+        FaceModel,
+        get_github_parquet_file("data/faces.parquet"),
+        "key",
+        {"key": "key", "name": "name"},
     )
 
 
 def update_wallpapers() -> None:
-    """
-    Updates the wallpapers in the database by completely replacing all existing wallpapers
-    with the latest data from the remote source.
-
-    This function:
-    1. Fetches the latest wallpapers data from the remote parquet file
-    2. Deletes all existing wallpapers from the database
-    3. Adds all wallpapers from the remote data with their name, icon, background,
-    and foreground bundles
-    """
-    remote_wallpapers = get_github_parquet_file("data/wallpapers.parquet")
-    session.query(WallpaperModel).delete()
-    session.add_all(
-        [
-            WallpaperModel(
-                name=wallpaper["name"],
-                bundle_icon=wallpaper["icon"],
-                bundle_background=wallpaper["back"],
-                bundle_foreground=wallpaper["front"],
-            )
-            for _, wallpaper in remote_wallpapers.iterrows()
-        ]
+    """Refresh wallpaper bundles by name, keeping local state."""
+    _merge_metadata(
+        WallpaperModel,
+        get_github_parquet_file("data/wallpapers.parquet"),
+        "name",
+        {
+            "name": "name",
+            "bundle_icon": "icon",
+            "bundle_background": "back",
+            "bundle_foreground": "front",
+        },
     )
 
 
 def update_fields() -> None:
-    """
-    Updates the fields in the database by completely replacing all existing fields
-    with the latest data from the remote source.
-
-    This function:
-    1. Fetches the latest fields data from the remote parquet file
-    2. Deletes all existing fields from the database
-    3. Adds all fields from the remote data with their bundle, flipped, and bottom properties
-    """
-    remote_fields = get_github_parquet_file("data/fields.parquet")
-    session.query(FieldModel).delete()
-    session.add_all(
-        [
-            FieldModel(
-                bundle=field["bundle"], flipped=field["flipped"], bottom=field["bottom"]
-            )
-            for _, field in remote_fields.iterrows()
-        ]
+    """Refresh field orientation metadata by bundle, keeping local state."""
+    _merge_metadata(
+        FieldModel,
+        get_github_parquet_file("data/fields.parquet"),
+        "bundle",
+        {"bundle": "bundle", "flipped": "flipped", "bottom": "bottom"},
     )
 
 
 def update_icons() -> None:
-    """
-    Updates the icons in the database by completely replacing all existing icons
-    with the latest data from the remote source.
-
-    This function:
-    1. Fetches the latest icons data from the remote parquet file
-    2. Deletes all existing icons from the database
-    3. Adds all icons from the remote data with their name and bundle sizes (small, medium, large)
-    """
-    remote_icons = get_github_parquet_file("data/icons.parquet")
-    session.query(IconModel).delete()
-    session.add_all(
-        [
-            IconModel(
-                name=icon["name"],
-                bundle_small=icon["small"],
-                bundle_medium=icon["medium"],
-                bundle_big=icon["large"],
-            )
-            for _, icon in remote_icons.iterrows()
-        ]
+    """Refresh player icon bundles by name, keeping local state."""
+    _merge_metadata(
+        IconModel,
+        get_github_parquet_file("data/icons.parquet"),
+        "name",
+        {
+            "name": "name",
+            "bundle_small": "small",
+            "bundle_medium": "medium",
+            "bundle_big": "large",
+        },
     )
 
 
 def update_boxes() -> None:
-    """
-    Updates the deck boxes in the database by completely replacing all existing boxes
-    with the latest data from the remote source.
-
-    This function:
-    1. Fetches the latest deck boxes data from the remote parquet file
-    2. Deletes all existing deck boxes from the database
-    3. Adds all deck boxes from the remote data with their name and various size bundles
-    """
-    remote_boxes = get_github_parquet_file("data/deck_boxes.parquet")
-    session.query(DeckBoxModel).delete()
-    session.add_all(
-        [
-            DeckBoxModel(
-                name=box["name"],
-                small=box["small"],
-                medium=box["medium"],
-                o_medium=box["o_medium"],
-                r_medium=box["r_medium"],
-                large=box["large"],
-                o_large=box["o_large"],
-                r_large=box["r_large"],
-            )
-            for _, box in remote_boxes.iterrows()
-        ]
+    """Refresh deck box bundles by name, keeping local state."""
+    _merge_metadata(
+        DeckBoxModel,
+        get_github_parquet_file("data/deck_boxes.parquet"),
+        "name",
+        {
+            "name": "name",
+            "small": "small",
+            "medium": "medium",
+            "o_medium": "o_medium",
+            "r_medium": "r_medium",
+            "large": "large",
+            "o_large": "o_large",
+            "r_large": "r_large",
+        },
     )
 
 
 def update_card_metadata() -> None:
-    """
-    Updates the card metadata in the database by completely replacing all existing metadata
-    with the latest data from the remote source.
-
-    This function:
-    1. Fetches the latest card metadata from the remote parquet file
-    2. Deletes all existing card metadata from the database
-    3. Adds all card metadata from the remote data with their name and bundle
-    """
-    remote_data = get_github_parquet_file("data/metadata.parquet")
-    session.query(CardMetadataModel).delete()
-    session.add_all(
-        [
-            CardMetadataModel(name=data["name"], bundle=data["bundle"])
-            for _, data in remote_data.iterrows()
-        ]
+    """Refresh metadata file bundles by name, preserving cached file data."""
+    _merge_metadata(
+        CardMetadataModel,
+        get_github_parquet_file("data/metadata.parquet"),
+        "name",
+        {"name": "name", "bundle": "bundle"},
     )
 
 
 def update_coins() -> None:
-    """
-    Updates the coin metadata with its three size-specific bundles.
-    """
-    remote_data = get_github_parquet_file("data/coins.parquet")
-    session.query(CoinModel).delete()
-    session.add_all(
-        [
-            CoinModel(
-                name=data["name"],
-                bundle_small=data["small"],
-                bundle_medium=data["medium"],
-                bundle_big=data["large"],
-            )
-            for _, data in remote_data.iterrows()
-        ]
+    """Refresh coin bundles by name, keeping local state."""
+    _merge_metadata(
+        CoinModel,
+        get_github_parquet_file("data/coins.parquet"),
+        "name",
+        {
+            "name": "name",
+            "bundle_small": "small",
+            "bundle_medium": "medium",
+            "bundle_big": "large",
+        },
     )
 
 
 def update_card_icons() -> None:
-    """
-    Updates the deck boxes in the database by completely replacing all existing boxes
-    with the latest data from the remote source.
-
-    This function:
-    1. Fetches the latest deck boxes data from the remote parquet file
-    2. Deletes all existing deck boxes from the database
-    3. Adds all deck boxes from the remote data with their name and various size bundles
-    """
-    remote_icons = get_github_parquet_file("data/card_icons.parquet")
-    session.query(CardIconModel).delete()
-    session.add_all(
-        [
-            CardIconModel(
-                name=icon["name"],
-                x=icon["x"],
-                y=icon["y"],
-                width=icon["width"],
-                height=icon["height"],
-            )
-            for _, icon in remote_icons.iterrows()
-        ]
+    """Refresh card icon atlas coordinates by name, keeping local state."""
+    _merge_metadata(
+        CardIconModel,
+        get_github_parquet_file("data/card_icons.parquet"),
+        "name",
+        {"name": "name", "x": "x", "y": "y", "width": "width", "height": "height"},
     )

@@ -8,6 +8,7 @@ It currently supports:
 - Card icons from the game's shared sprite atlas
 - Card faces and sleeves
 - Player icons and coins
+- Deck box textures
 - Duel fields
 - Home backgrounds and wallpapers
 
@@ -30,6 +31,7 @@ The app edits files in your Master Duel installation. Game updates can replace t
 | [Card Faces](features/face.md) | Card frame/face textures | Replace, extract, and restore |
 | [Sleeves](features/sleeve.md) | Card sleeve textures | Optional solid or fade-in border, favorites |
 | [Player Icons](features/icon.md) | Player profile icons | Replaces all three resolutions, favorites |
+| [Deck Boxes](features/deck-box.md) | Deck box size and orientation textures | Normal, Left Facing, and Open artwork; automatic resolutions, favorites |
 | [Coins](features/coin.md) | Duel coin textures | Replaces all three resolutions, favorites |
 | [Duel Fields](features/field.md) | Supported duel field surface textures | Extract and copy bundle |
 | [Background](features/background.md) | The shared home/duel background texture | Fixed 1920×1080 replacement |

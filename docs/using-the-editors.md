@@ -35,6 +35,8 @@ Buttons remain disabled until the required asset or image has been selected. A n
 - Animated GIFs are not preserved as animations.
 - The app converts and resizes the source for the target texture. Player icons and coins are written to small, medium, and large bundles automatically.
 
+Deck boxes have a **Texture variant** selector for Normal, Left Facing, and Open artwork; resolutions are handled automatically. See the [Deck Box Editor](features/deck-box.md) guide.
+
 ## Backups and safe modding
 
 Enable backups on [Configuration](features/config.md) before replacing anything. For most editors, the app captures the current texture only once, immediately before the first replacement.

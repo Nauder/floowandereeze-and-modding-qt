@@ -34,11 +34,13 @@ nav:
   - Features:
       - Configuration: features/config.md
       - Card Editor: features/card.md
+      - Regex Mass Editing: card-mass-edit.md
       - Card Icon Editor: features/card-icon.md
       - Card Face Editor: features/face.md
       - Card Sleeve Editor: features/sleeve.md
       - Player Icon Editor: features/icon.md
       - Coin Editor: features/coin.md
+      - Deck Box Editor: features/deck-box.md
       - Duel Field Editor: features/field.md
       - Background Editor: features/background.md
       - Wallpaper Editor: features/wallpaper.md

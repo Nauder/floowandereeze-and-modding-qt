@@ -231,7 +231,10 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             Qt.ScrollBarPolicy.ScrollBarAsNeeded
         )
         self.cardsView.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.cardsView.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.cardsView.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.cardsView.setToolTip(
+            "Use Ctrl or Shift to select multiple cards for mass editing."
+        )
         self.cardsView.setUniformItemSizes(True)
         self.cardsView.setWordWrap(True)
         self.cardsView.setIconSize(self.RESULT_ICON_SIZE)
@@ -429,13 +432,41 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
                 )
 
     def _open_mass_edit_modal(self):
-        dialog = CardMassEditDialog(self)
+        card_model = self.service._card_model()
+        all_cards = session.query(card_model).order_by(card_model.name).all()
+        selected_cards = [
+            self.model.assets[index.row()]
+            for index in self.cardsView.selectionModel().selectedIndexes()
+        ]
+        scopes = {
+            "All cards": all_cards,
+            "Selected cards": selected_cards,
+            "Search results": (
+                list(self.model.assets)
+                if self.model.filter and not self.model.show_favorites
+                else []
+            ),
+            "Favorites": [card for card in all_cards if card.favorite],
+        }
+        dialog = CardMassEditDialog(self, scopes=scopes)
 
         if dialog.exec():
-            self._apply_regex_replacement(*dialog.get_inputs(), all_cards=True)
+            self._apply_regex_replacement(
+                *dialog.get_inputs(),
+                all_cards=False,
+                cards=dialog.get_cards(),
+                scope=dialog.scope_input.currentData(),
+            )
 
     def _apply_regex_replacement(
-        self, pattern, replacement, replace_names, replace_descriptions, all_cards
+        self,
+        pattern,
+        replacement,
+        replace_names,
+        replace_descriptions,
+        all_cards,
+        cards=None,
+        scope=None,
     ):
 
         if all_cards and not show_confirmation_dialog(
@@ -450,8 +481,9 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
                 replace_names,
                 replace_descriptions,
                 None if all_cards else self.selected,
+                cards=cards,
             )
-        except (OSError, RuntimeError, ValueError, re.error) as error:
+        except (OSError, RuntimeError, ValueError, IndexError, re.error) as error:
             logger.exception("Card regular-expression replacement failed")
             show_toast(
                 self,
@@ -471,7 +503,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             return
 
         self.model.refresh()
-        scope = "all cards" if all_cards else "the selected card"
+        scope = scope or ("all cards" if all_cards else "the selected card")
         show_toast(
             self,
             "Regex replacement",

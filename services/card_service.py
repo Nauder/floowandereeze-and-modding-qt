@@ -1,4 +1,3 @@
-import re
 from os.path import basename, splitext
 
 from UnityPy import load as unity_load
@@ -11,6 +10,7 @@ from database.objects import session
 from services.unity_service import UnityService
 from unity.unity_utils import prepare_environment
 
+from util.card_text import preview_regex_replacement
 from util.constants import APP_CONFIG, APP_SESSION
 from util.encoding.card_merge import merge_data
 from util.encoding.decrypt_card import decrypt_desc_indx_name
@@ -227,47 +227,19 @@ class CardService(UnityService):
         replace_names: bool,
         replace_descriptions: bool,
         card: CardModel | None = None,
+        cards: list | None = None,
     ) -> tuple[int, int]:
-        """Replace matching text on one card or throughout the card database.
+        """Replace matching text on one card, an explicit set, or all cards.
 
         Returns the number of cards changed and the total number of matches
         replaced. The card metadata files are rebuilt once for the whole batch.
         """
-        regex = re.compile(pattern)
-        cards = [card] if card else session.query(self._card_model()).all()
-        changes = []
-        replacement_count = 0
-
-        for target_card in cards:
-            name = None
-            description = None
-
-            if replace_names:
-                current_name = (
-                    target_card.modded_name
-                    if target_card.modded_name is not None
-                    else target_card.name
-                )
-                name, name_count = regex.subn(replacement, current_name)
-                if name_count == 0:
-                    name = None
-                replacement_count += name_count
-
-            if replace_descriptions:
-                current_description = (
-                    target_card.modded_description
-                    if target_card.modded_description is not None
-                    else target_card.description
-                )
-                description, description_count = regex.subn(
-                    replacement, current_description
-                )
-                if description_count == 0:
-                    description = None
-                replacement_count += description_count
-
-            if name is not None or description is not None:
-                changes.append((target_card, name, description))
+        if cards is None:
+            cards = [card] if card is not None else session.query(self._card_model()).all()
+        changes = preview_regex_replacement(
+            cards, pattern, replacement, replace_names, replace_descriptions
+        )
+        replacement_count = sum(change.replacements for change in changes)
 
         if not changes:
             return 0, 0
@@ -292,17 +264,13 @@ class CardService(UnityService):
             .first()
         )
 
-        for target_card, name, description in changes:
-            if name is not None:
-                name_file.data_json = replace_entry(
-                    target_card.data_index, name_file.data_json, name
+        for change in changes:
+            for field, (_, after) in change.fields.items():
+                data_file = name_file if field == "name" else description_file
+                data_file.data_json = replace_entry(
+                    change.card.data_index, data_file.data_json, after
                 )
-                target_card.modded_name = name
-            if description is not None:
-                description_file.data_json = replace_entry(
-                    target_card.data_index, description_file.data_json, description
-                )
-                target_card.modded_description = description
+                setattr(change.card, f"modded_{field}", after)
 
         try:
             session.flush()

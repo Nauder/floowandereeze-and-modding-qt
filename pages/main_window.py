@@ -16,6 +16,7 @@ from pages.background import Background
 from pages.card import Card
 from pages.card_icon import CardIcon
 from pages.coin import Coin
+from pages.deck_box import DeckBox
 from pages.config import Config
 from pages.face import Face
 from pages.field import Field
@@ -81,6 +82,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 Field,
                 Wallpaper,
                 Coin,
+                DeckBox,
             ]
 
             # Always load the Config page first
@@ -154,6 +156,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actionfield_button,
             self.actionwallpaper_button,
             self.actioncoin_button,
+            self.actiondeck_box_button,
         ]
         labels = [
             "Configuration",
@@ -166,6 +169,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "Fields",
             "Wallpapers",
             "Coins",
+            "Deck Boxes",
         ]
         action_group = QtGui.QActionGroup(self)
         action_group.setExclusive(True)
