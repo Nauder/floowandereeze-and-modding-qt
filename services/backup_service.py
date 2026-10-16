@@ -148,9 +148,10 @@ class BackupService:
         ]
         with TemporaryDirectory() as folder, ZipFile(archive) as source:
             for index, (name, _) in enumerate(targets):
-                with source.open(name) as incoming, open(
-                    Path(folder, str(index)), "wb"
-                ) as output:
+                with (
+                    source.open(name) as incoming,
+                    open(Path(folder, str(index)), "wb") as output,
+                ):
                     shutil.copyfileobj(incoming, output)
             for index, (_, path) in enumerate(targets):
                 path.parent.mkdir(parents=True, exist_ok=True)

@@ -205,7 +205,9 @@ class ConversionTests(unittest.TestCase):
         for index in range(33):
             (self.root / f"frame{index}.png").write_bytes(png())
         with patch("PIL.Image.Image.convert") as convert:
-            with self.assertRaisesRegex(ImportMemoryWarning, "Estimated working memory"):
+            with self.assertRaisesRegex(
+                ImportMemoryWarning, "Estimated working memory"
+            ):
                 decode_frames(self.root, FrameOptions(edge=1024), 1)
         convert.assert_not_called()
         # Approving the import passes the preflight gate, before frame conversion.
@@ -1569,8 +1571,9 @@ class FrameServiceTests(unittest.TestCase):
 
         self.service.loader = load
         before = {p: p.read_bytes() for p in self.fixture.originals}
-        with patch.object(AtlasSheet, "render", render), self.assertRaisesRegex(
-            ValueError, "encoder failed"
+        with (
+            patch.object(AtlasSheet, "render", render),
+            self.assertRaisesRegex(ValueError, "encoder failed"),
         ):
             self.service.apply_frame_animation(plan)
         self.assertEqual(len(rendered), 1)
@@ -1918,8 +1921,9 @@ class FrameServiceTests(unittest.TestCase):
                 raise OSError("injected replacement failure")
             return original_replace(source, destination)
 
-        with patch.object(module.os, "replace", side_effect=replace), self.assertRaises(
-            OSError
+        with (
+            patch.object(module.os, "replace", side_effect=replace),
+            self.assertRaises(OSError),
         ):
             self.service.apply_frame_animation(plan)
         self.assertEqual(

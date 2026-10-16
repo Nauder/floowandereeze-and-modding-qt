@@ -47,8 +47,10 @@ class FullArtService:
             return self.path
         local = Path(game_path) / "0000"
         streaming = (
-            Path(game_path).parent.parent / "masterduel_Data"
-            / "StreamingAssets" / "AssetBundle"
+            Path(game_path).parent.parent
+            / "masterduel_Data"
+            / "StreamingAssets"
+            / "AssetBundle"
         )
         for bundle in self.KNOWN_BUNDLES:
             for root in (local, streaming):
@@ -74,8 +76,7 @@ class FullArtService:
     def _backup_path(self):
         account = sha256(str(Path(self.game_path).resolve()).encode()).hexdigest()[:16]
         return (
-            Path("backups") / "cards" / "full_art" / account
-            / f"{self.path.name}.bytes"
+            Path("backups") / "cards" / "full_art" / account / f"{self.path.name}.bytes"
         )
 
     def status(self, game_path, art_id):
@@ -117,7 +118,9 @@ class FullArtService:
                 output.write(payload)
             _, _, verified = self._read(temporary)
             if verified != changed:
-                raise RuntimeError("Overframe bundle verification failed; no changes saved.")
+                raise RuntimeError(
+                    "Overframe bundle verification failed; no changes saved."
+                )
             os.replace(temporary, self.path)
         finally:
             if temporary is not None and temporary.exists():

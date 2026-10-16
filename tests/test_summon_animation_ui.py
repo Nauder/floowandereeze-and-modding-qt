@@ -17,8 +17,9 @@ from test_summon_animations import row
 _import_engine = create_engine("sqlite:///:memory:")
 objects.base.metadata.create_all(_import_engine)
 _import_session = sessionmaker(bind=_import_engine)()
-with patch.object(objects, "session", _import_session), patch.object(
-    migrations, "run_migrations"
+with (
+    patch.object(objects, "session", _import_session),
+    patch.object(migrations, "run_migrations"),
 ):
     from pages import summon_animation as page_module
 _import_session.close()
@@ -170,11 +171,14 @@ class SummonUiTests(unittest.TestCase):
     def test_choose_png_automatically_passes_card_source_and_quality(self):
         self.select_card()
         self.page.lowerQuality.setChecked(True)
-        with patch.object(
-            QtWidgets.QFileDialog,
-            "getExistingDirectory",
-            return_value="synthetic-frames",
-        ), patch.object(self.page.editor, "use_source") as start:
+        with (
+            patch.object(
+                QtWidgets.QFileDialog,
+                "getExistingDirectory",
+                return_value="synthetic-frames",
+            ),
+            patch.object(self.page.editor, "use_source") as start,
+        ):
             self.page.editor.choose_pngs()
         start.assert_called_once_with("synthetic-frames")
         with patch.object(self.page.editor, "use_source") as use:
@@ -397,11 +401,14 @@ class SummonUiTests(unittest.TestCase):
                 "manifest": {"components": [dict(component, card_id="999")]},
             },
         ]
-        with patch.object(
-            QtWidgets.QMessageBox,
-            "question",
-            return_value=QtWidgets.QMessageBox.StandardButton.Yes,
-        ), patch.object(self.page, "_start") as start:
+        with (
+            patch.object(
+                QtWidgets.QMessageBox,
+                "question",
+                return_value=QtWidgets.QMessageBox.StandardButton.Yes,
+            ),
+            patch.object(self.page, "_start") as start,
+        ):
             self.page._restore_card(service, self.page.selected_rows, entries)
             callback = start.call_args.args[0]
             with patch.object(service, "restore_component_set") as restore:

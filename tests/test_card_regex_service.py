@@ -32,8 +32,12 @@ class ScopedRegexServiceTests(unittest.TestCase):
             self.session.add_all(
                 [
                     model(
-                        id=index + 1, name="HERO", description="HERO effect",
-                        bundle=str(index), data_index=index, favorite=index == 0
+                        id=index + 1,
+                        name="HERO",
+                        description="HERO effect",
+                        bundle=str(index),
+                        data_index=index,
+                        favorite=index == 0,
                     )
                     for index in range(2)
                 ]
@@ -59,7 +63,9 @@ class ScopedRegexServiceTests(unittest.TestCase):
     def test_explicit_scope_matches_preview_and_writes_metadata_once(self):
         cards = self.session.query(CardModel).order_by(CardModel.id).all()
         with (
-            patch.object(card_service, "merge_data", return_value=(b"n", b"d", b"i")) as merge,
+            patch.object(
+                card_service, "merge_data", return_value=(b"n", b"d", b"i")
+            ) as merge,
             patch.object(self.service, "replace_card_data") as write,
         ):
             result = self.service.replace_text_with_regex(
@@ -71,7 +77,11 @@ class ScopedRegexServiceTests(unittest.TestCase):
         self.assertIsNone(cards[1].modded_description)
         merge.assert_called_once()
         self.assertEqual(write.call_count, 3)
-        names = self.session.query(CardMetadataModel).filter_by(name="card_name.bytes").one()
+        names = (
+            self.session.query(CardMetadataModel)
+            .filter_by(name="card_name.bytes")
+            .one()
+        )
         self.assertEqual(names.data_json, "['Hero', 'HERO']")
 
     def test_empty_scope_never_falls_back_to_selected_or_all_cards(self):
@@ -92,8 +102,12 @@ class ScopedRegexServiceTests(unittest.TestCase):
         ):
             result = self.service.replace_text_with_regex("HERO", "Hero", True, False)
         self.assertEqual(result, (2, 2))
-        self.assertTrue(all(c.modded_name == "Hero" for c in self.session.query(CardOcgModel)))
-        self.assertTrue(all(c.modded_name is None for c in self.session.query(CardModel)))
+        self.assertTrue(
+            all(c.modded_name == "Hero" for c in self.session.query(CardOcgModel))
+        )
+        self.assertTrue(
+            all(c.modded_name is None for c in self.session.query(CardModel))
+        )
 
 
 if __name__ == "__main__":

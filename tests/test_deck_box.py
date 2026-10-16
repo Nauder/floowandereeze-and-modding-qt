@@ -37,9 +37,13 @@ class DeckBoxTests(unittest.TestCase):
             service.image_path = str(source)
             bundle = Path(folder, "bundle")
             with (
-                patch.object(deck_box_service, "prepare_environment", return_value=str(bundle)),
+                patch.object(
+                    deck_box_service, "prepare_environment", return_value=str(bundle)
+                ),
                 patch.object(deck_box_service, "unity_load", return_value=env),
-                patch.object(service, "_expand_sprites", wraps=service._expand_sprites) as expand,
+                patch.object(
+                    service, "_expand_sprites", wraps=service._expand_sprites
+                ) as expand,
             ):
                 service.replace_bundle()
                 expand.assert_called_once_with(env, 42, (128, 192))
@@ -63,8 +67,10 @@ class DeckBoxTests(unittest.TestCase):
                             "texture": {"m_FileID": 0, "m_PathID": 42},
                             "settingsRaw": 64,
                             "m_VertexData": {
-                                "m_Channels": [dict(stream=0, offset=0, format=0, dimension=0)
-                                               for _ in range(14)],
+                                "m_Channels": [
+                                    dict(stream=0, offset=0, format=0, dimension=0)
+                                    for _ in range(14)
+                                ],
                             },
                             "m_SubMeshes": [{}],
                         },
@@ -80,19 +86,32 @@ class DeckBoxTests(unittest.TestCase):
                     vertices = render["m_VertexData"]
                     self.assertEqual(vertices["m_VertexCount"], 4)
                     positions = unpack("<12f", vertices["m_DataSize"][:48])
-                    for actual, expected in zip(positions, (
-                        -size * 0.25 / 100, -size * 0.75 / 100, 0,
-                        -size * 0.25 / 100, size * 0.25 / 100, 0,
-                        size * 0.75 / 100, size * 0.25 / 100, 0,
-                        size * 0.75 / 100, -size * 0.75 / 100, 0,
-                    )):
+                    for actual, expected in zip(
+                        positions,
+                        (
+                            -size * 0.25 / 100,
+                            -size * 0.75 / 100,
+                            0,
+                            -size * 0.25 / 100,
+                            size * 0.25 / 100,
+                            0,
+                            size * 0.75 / 100,
+                            size * 0.25 / 100,
+                            0,
+                            size * 0.75 / 100,
+                            -size * 0.75 / 100,
+                            0,
+                        ),
+                    ):
                         self.assertAlmostEqual(actual, expected, places=6)
                     self.assertEqual(
                         unpack("<8f", vertices["m_DataSize"][48:]),
                         (0, 0, 0, 1, 1, 1, 1, 0),
                     )
-                    self.assertEqual(unpack("<6H", bytes(render["m_IndexBuffer"])),
-                                     (0, 1, 2, 0, 2, 3))
+                    self.assertEqual(
+                        unpack("<6H", bytes(render["m_IndexBuffer"])),
+                        (0, 1, 2, 0, 2, 3),
+                    )
                     self.assertEqual(render["textureRect"], sprite["m_Rect"])
                     self.assertEqual(render["textureRectOffset"], {"x": 0, "y": 0})
                     self.assertEqual(render["settingsRaw"], 0)
@@ -117,7 +136,9 @@ class DeckBoxTests(unittest.TestCase):
     def test_backups_independent_and_not_overwritten(self):
         service = deck_box_service.DeckBoxService()
         with (
-            patch.object(deck_box_service.Path, "is_file", side_effect=[False, True, False]),
+            patch.object(
+                deck_box_service.Path, "is_file", side_effect=[False, True, False]
+            ),
             patch.object(service, "create_backup") as backup,
         ):
             service.bundle = "large"
@@ -133,8 +154,12 @@ class DeckBoxTests(unittest.TestCase):
         service = deck_box_service.DeckBoxService()
         service.bundle, service.image_path = "bundle", "source"
         with (
-            patch.object(deck_box_service, "prepare_environment", return_value="unused"),
-            patch.object(deck_box_service, "unity_load", return_value=SimpleNamespace(objects=[])),
+            patch.object(
+                deck_box_service, "prepare_environment", return_value="unused"
+            ),
+            patch.object(
+                deck_box_service, "unity_load", return_value=SimpleNamespace(objects=[])
+            ),
             patch("builtins.open") as opened,
         ):
             with self.assertRaises(ValueError):
@@ -154,9 +179,13 @@ class DeckBoxTests(unittest.TestCase):
 
     def test_orientation_replaces_all_matching_resolutions(self):
         asset = SimpleNamespace(
-            small="small", medium="medium", large="large",
-            r_medium="left_medium", r_large="left_large",
-            o_medium="open_medium", o_large="open_large",
+            small="small",
+            medium="medium",
+            large="large",
+            r_medium="left_medium",
+            r_large="left_large",
+            o_medium="open_medium",
+            o_large="open_large",
         )
         service = deck_box_service.DeckBoxService()
         service.image_path = "source"
@@ -182,8 +211,10 @@ class DeckBoxTests(unittest.TestCase):
             self.assertTrue(service.restore_variant())
         self.assertEqual(
             [call.args for call in replace.call_args_list],
-            [(bundle, str(Path("backups", "deck_boxes", bundle + ".png")))
-             for bundle in service.bundles],
+            [
+                (bundle, str(Path("backups", "deck_boxes", bundle + ".png")))
+                for bundle in service.bundles
+            ],
         )
         self.assertEqual(service.image_path, "source")
         with (
@@ -215,10 +246,16 @@ class DeckBoxTests(unittest.TestCase):
             patch.object(service, "create_backup") as backup,
         ):
             service.ensure_backup()
-        self.assertEqual([call.args for call in backup.call_args_list], [("medium",), ("large",)])
+        self.assertEqual(
+            [call.args for call in backup.call_args_list], [("medium",), ("large",)]
+        )
         self.assertEqual(service.bundle, "large")
         copied = []
-        with patch.object(service, "create_bundle_copy", side_effect=lambda: copied.append(service.bundle)):
+        with patch.object(
+            service,
+            "create_bundle_copy",
+            side_effect=lambda: copied.append(service.bundle),
+        ):
             service.copy_bundle()
         self.assertEqual(copied, ["medium", "large"])
         self.assertEqual(service.bundle, "large")
@@ -232,7 +269,10 @@ class DeckBoxTests(unittest.TestCase):
         app = QApplication.instance() or QApplication([])
         with (
             patch("pages.models.deck_box_list_model.DeckBoxListModel.refresh"),
-            patch("pages.models.deck_box_list_model.DeckBoxListModel.get_names", return_value=[]),
+            patch(
+                "pages.models.deck_box_list_model.DeckBoxListModel.get_names",
+                return_value=[],
+            ),
             patch("pages.deck_box.QSettings") as settings,
         ):
             settings.return_value.value.return_value = None
@@ -264,7 +304,9 @@ class DeckBoxTests(unittest.TestCase):
                 self.assertTrue(page.replaceButton.isEnabled())
                 page.variantBox.setCurrentIndex(2)
                 self.assertEqual(page.service.bundle, "o_large_bundle")
-                self.assertEqual(page.service.bundles, ("o_medium_bundle", "o_large_bundle"))
+                self.assertEqual(
+                    page.service.bundles, ("o_medium_bundle", "o_large_bundle")
+                )
                 page.variantBox.setCurrentIndex(1)
                 self.assertEqual(page.service.bundle, "r_large_bundle")
                 self.assertEqual(page._texture_size, (128, 192))

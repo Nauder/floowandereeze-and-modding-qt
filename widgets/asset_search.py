@@ -50,7 +50,9 @@ def add_asset_search(page, header, results_layout, asset_type):
         if text and len(text) < 3:
             page.searchHelperLabel.setText("Enter at least 3 characters to search.")
             show_toast(
-                page, "Search", "Please use 3 or more characters to search",
+                page,
+                "Search",
+                "Please use 3 or more characters to search",
                 ToastPreset.INFORMATION_DARK,
             )
             return

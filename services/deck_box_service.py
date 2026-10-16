@@ -12,7 +12,6 @@ from unity.unity_utils import prepare_environment
 from util.constants import APP_CONFIG
 from util.image_utils import convert_image
 
-
 DECK_BOX_VARIANTS = (
     ("Normal", ("small", "medium", "large")),
     ("Left Facing", ("r_medium", "r_large")),
@@ -124,10 +123,9 @@ class DeckBoxService(UnityService):
             vertex_data["m_Channels"][0].update(dimension=3)
             vertex_data["m_Channels"][4].update(stream=1, dimension=2)
             vertex_data["m_VertexCount"] = 4
-            vertex_data["m_DataSize"] = (
-                b"".join(pack("<3f", *point) for point in positions)
-                + b"".join(pack("<2f", *uv) for uv in uvs)
-            )
+            vertex_data["m_DataSize"] = b"".join(
+                pack("<3f", *point) for point in positions
+            ) + b"".join(pack("<2f", *uv) for uv in uvs)
             render["m_IndexBuffer"] = list(pack("<6H", 0, 1, 2, 0, 2, 3))
             submesh = render["m_SubMeshes"][0]
             submesh.update(

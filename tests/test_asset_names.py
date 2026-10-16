@@ -22,8 +22,9 @@ with patch.object(objects, "engine", create_engine("sqlite:///:memory:")):
 _import_engine = create_engine("sqlite:///:memory:")
 objects.base.metadata.create_all(_import_engine)
 _import_session = sessionmaker(bind=_import_engine)()
-with patch("database.migrations.run_migrations"), patch.object(
-    objects, "session", _import_session
+with (
+    patch("database.migrations.run_migrations"),
+    patch.object(objects, "session", _import_session),
 ):
     from pages.models import named_asset_list_model as named
     from pages.models import sleeve_list_model as sleeves
@@ -165,12 +166,11 @@ class AssetNameTests(unittest.TestCase):
             ]
         )
         self.session.commit()
-        with patch.object(
-            sleeves, "APP_CONFIG", SimpleNamespace(asset_region="ocg")
-        ), patch.object(sleeves.SleeveListModel, "refresh_sleeve"), patch.object(
-            sleeves.Path, "is_file", return_value=True
-        ), patch.object(
-            sleeves, "prepare_environment", return_value="unused"
+        with (
+            patch.object(sleeves, "APP_CONFIG", SimpleNamespace(asset_region="ocg")),
+            patch.object(sleeves.SleeveListModel, "refresh_sleeve"),
+            patch.object(sleeves.Path, "is_file", return_value=True),
+            patch.object(sleeves, "prepare_environment", return_value="unused"),
         ):
             model = sleeves.SleeveListModel()
             model.filter = "TCG"

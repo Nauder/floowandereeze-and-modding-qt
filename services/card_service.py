@@ -252,7 +252,9 @@ class CardService(UnityService):
         replaced. The card metadata files are rebuilt once for the whole batch.
         """
         if cards is None:
-            cards = [card] if card is not None else session.query(self._card_model()).all()
+            cards = (
+                [card] if card is not None else session.query(self._card_model()).all()
+            )
         changes = preview_regex_replacement(
             cards, pattern, replacement, replace_names, replace_descriptions
         )

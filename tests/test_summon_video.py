@@ -55,9 +55,7 @@ class VideoTests(unittest.TestCase):
         self.assertEqual(frames[0].getpixel((16, 16))[3], 255)
         self.assertGreater(frames[0].getpixel((16, 16))[0], 240)
         self.assertGreater(frames[2].getpixel((16, 16))[2], 240)
-        cropped, _ = decode_frames(
-            self.path, FrameOptions(edge=32, framing="crop"), 1
-        )
+        cropped, _ = decode_frames(self.path, FrameOptions(edge=32, framing="crop"), 1)
         self.assertEqual(cropped[0].getpixel((0, 0))[3], 255)
         _, indices, _ = sample_frames(
             frames, delays, 0.6, FrameOptions(fps=10, timing="source")

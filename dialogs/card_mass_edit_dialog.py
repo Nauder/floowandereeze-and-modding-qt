@@ -224,14 +224,12 @@ class CardMassEditDialog(QDialog):
         fields = self.changes[index].fields
         self.before_text.setPlainText(
             "\n\n".join(
-                f"{field.title()}:\n{before}"
-                for field, (before, _) in fields.items()
+                f"{field.title()}:\n{before}" for field, (before, _) in fields.items()
             )
         )
         self.after_text.setPlainText(
             "\n\n".join(
-                f"{field.title()}:\n{after}"
-                for field, (_, after) in fields.items()
+                f"{field.title()}:\n{after}" for field, (_, after) in fields.items()
             )
         )
         differences = []

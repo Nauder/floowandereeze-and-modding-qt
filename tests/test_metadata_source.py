@@ -22,8 +22,9 @@ with patch.object(objects, "engine", create_engine("sqlite:///:memory:")):
 _import_engine = create_engine("sqlite:///:memory:")
 objects.base.metadata.create_all(_import_engine)
 _import_session = sessionmaker(bind=_import_engine)()
-with patch.object(objects, "session", _import_session), patch.object(
-    migrations, "run_migrations"
+with (
+    patch.object(objects, "session", _import_session),
+    patch.object(migrations, "run_migrations"),
 ):
     from pages import config as config_page
 _import_session.close()
@@ -89,11 +90,10 @@ class SourceTests(unittest.TestCase):
             )
             self.assertNotIn("params", get.call_args_list[1].kwargs)
         frame = DataFrame({"test": [1]})
-        with patch.object(
-            update_service.requests, "get", return_value=response
-        ) as get, patch.object(
-            update_service, "read_parquet", return_value=frame
-        ) as parquet:
+        with (
+            patch.object(update_service.requests, "get", return_value=response) as get,
+            patch.object(update_service, "read_parquet", return_value=frame) as parquet,
+        ):
             self.assertIs(
                 update_service.get_github_parquet_file(
                     "data/summon_animations.parquet"

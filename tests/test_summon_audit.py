@@ -36,12 +36,17 @@ class SummonAuditTests(unittest.TestCase):
         self.options = FrameOptions(edge=32, fps=10, png_fps=10)
 
     def test_full_audit_checks_both_formats_qualities_without_writes_or_backups(self):
-        with patch.object(
-            SummonAnimationService, "_commit", side_effect=AssertionError("disk commit")
-        ), patch.object(
-            SummonAnimationService,
-            "backup_component_set",
-            side_effect=AssertionError("disk backup"),
+        with (
+            patch.object(
+                SummonAnimationService,
+                "_commit",
+                side_effect=AssertionError("disk commit"),
+            ),
+            patch.object(
+                SummonAnimationService,
+                "backup_component_set",
+                side_effect=AssertionError("disk backup"),
+            ),
         ):
             result = audit_card(self.service, self.card, self.sources, self.options)
         self.assertEqual(result["status"], "passed")

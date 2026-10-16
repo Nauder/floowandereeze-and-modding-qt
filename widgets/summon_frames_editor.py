@@ -263,7 +263,9 @@ class SummonFramesEditor(QtWidgets.QWidget):
             )
             approved = answer == QtWidgets.QMessageBox.StandardButton.Yes
             if not approved:
-                self.status.setText("Import cancelled. Choose a smaller source or retry.")
+                self.status.setText(
+                    "Import cancelled. Choose a smaller source or retry."
+                )
         self.worker = None
         if worker:
             worker.deleteLater()

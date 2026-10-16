@@ -59,8 +59,14 @@ class FullArtServiceTests(unittest.TestCase):
                 save=lambda: None,
             )
             return SimpleNamespace(
-                objects=[SimpleNamespace(type=SimpleNamespace(name="TextAsset"), read=lambda: asset)],
-                file=SimpleNamespace(save=lambda **_: asset.m_Script.encode("utf-8", "surrogateescape")),
+                objects=[
+                    SimpleNamespace(
+                        type=SimpleNamespace(name="TextAsset"), read=lambda: asset
+                    )
+                ],
+                file=SimpleNamespace(
+                    save=lambda **_: asset.m_Script.encode("utf-8", "surrogateescape")
+                ),
             )
 
         patcher = patch("services.full_art_service.unity_load", side_effect=load)
@@ -75,7 +81,9 @@ class FullArtServiceTests(unittest.TestCase):
         self.path.write_bytes(pairs((3105, 0), (99, 42)))
         restarted = FullArtService()
         restarted.set_enabled(self.game_path, 22811, True, "LZ4")
-        self.assertEqual(self.path.read_bytes(), pairs((3105, 0), (99, 42), (22811, 17069)))
+        self.assertEqual(
+            self.path.read_bytes(), pairs((3105, 0), (99, 42), (22811, 17069))
+        )
 
     def test_normal_card_can_be_enabled_disabled_and_reenabled_after_restart(self):
         self.assertEqual(self.service.status(self.game_path, 50), (False, True))
@@ -92,13 +100,17 @@ class FullArtServiceTests(unittest.TestCase):
 
     def test_invalid_texture_ids_cannot_be_enabled(self):
         for art_id in (0, -1, 65536):
-            self.assertEqual(self.service.status(self.game_path, art_id), (False, False))
+            self.assertEqual(
+                self.service.status(self.game_path, art_id), (False, False)
+            )
             with self.assertRaises(ValueError):
                 self.service.set_enabled(self.game_path, art_id, True, "LZ4")
         self.assertEqual(self.path.read_bytes(), self.original)
 
     def test_atomic_replace_failure_leaves_live_bundle_unchanged(self):
-        with patch("services.full_art_service.os.replace", side_effect=OSError("locked")):
+        with patch(
+            "services.full_art_service.os.replace", side_effect=OSError("locked")
+        ):
             with self.assertRaises(OSError):
                 self.service.set_enabled(self.game_path, 22811, False, "LZ4")
         self.assertEqual(self.path.read_bytes(), self.original)
