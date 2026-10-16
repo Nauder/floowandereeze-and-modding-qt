@@ -1,6 +1,7 @@
 """Deck box orientations with automatic resolution handling."""
 
 from pathlib import Path
+from struct import pack
 
 from PIL import Image
 from UnityPy import load as unity_load
@@ -82,8 +83,71 @@ class DeckBoxService(UnityService):
             break
         else:
             raise ValueError("No texture found in the selected deck box bundle")
+        self._expand_sprites(env, obj.path_id, image.size)
         with open(bundle_path, "wb") as bundle_file:
             bundle_file.write(env.file.save(packer=APP_CONFIG.packer))
+
+    @staticmethod
+    def _expand_sprites(env, texture_id, texture_size):
+        """Remove the original artwork's tight mesh from matching sprites."""
+        texture_width, texture_height = texture_size
+        for obj in env.objects:
+            if obj.type.name != "Sprite":
+                continue
+            sprite = obj.read_typetree()
+            render = sprite["m_RD"]
+            texture = render["texture"]
+            if texture["m_FileID"] != 0 or texture["m_PathID"] != texture_id:
+                continue
+
+            rect = sprite["m_Rect"]
+            width, height = rect["width"], rect["height"]
+            pivot = sprite["m_Pivot"]
+            units = sprite["m_PixelsToUnits"]
+            left, bottom = -pivot["x"] * width / units, -pivot["y"] * height / units
+            right, top = left + width / units, bottom + height / units
+            positions = (
+                (left, bottom, 0),
+                (left, top, 0),
+                (right, top, 0),
+                (right, bottom, 0),
+            )
+            u0, v0 = rect["x"] / texture_width, rect["y"] / texture_height
+            u1 = (rect["x"] + width) / texture_width
+            v1 = (rect["y"] + height) / texture_height
+            uvs = ((u0, v0), (u0, v1), (u1, v1), (u1, v0))
+
+            # Unity stores positions and UVs in separate, 16-byte-aligned streams.
+            vertex_data = render["m_VertexData"]
+            for channel in vertex_data["m_Channels"]:
+                channel.update(stream=0, offset=0, format=0, dimension=0)
+            vertex_data["m_Channels"][0].update(dimension=3)
+            vertex_data["m_Channels"][4].update(stream=1, dimension=2)
+            vertex_data["m_VertexCount"] = 4
+            vertex_data["m_DataSize"] = (
+                b"".join(pack("<3f", *point) for point in positions)
+                + b"".join(pack("<2f", *uv) for uv in uvs)
+            )
+            render["m_IndexBuffer"] = list(pack("<6H", 0, 1, 2, 0, 2, 3))
+            submesh = render["m_SubMeshes"][0]
+            submesh.update(
+                firstByte=0,
+                indexCount=6,
+                topology=0,
+                baseVertex=0,
+                firstVertex=0,
+                vertexCount=4,
+            )
+            submesh["localAABB"] = {
+                "m_Center": {"x": (left + right) / 2, "y": (bottom + top) / 2, "z": 0},
+                "m_Extent": {"x": width / units / 2, "y": height / units / 2, "z": 0},
+            }
+            render["m_SubMeshes"] = [submesh]
+            render["textureRect"] = dict(rect)
+            render["textureRectOffset"] = {"x": 0.0, "y": 0.0}
+            render["atlasRectOffset"] = {"x": 0.0, "y": 0.0}
+            render["settingsRaw"] &= ~(1 << 6)  # SpriteMeshType.FullRect
+            obj.save_typetree(sprite)
 
     def restore_asset(self, backup_name=None):
         """Restore a single backup, including during bulk maintenance."""

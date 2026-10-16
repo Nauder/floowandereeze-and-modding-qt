@@ -12,7 +12,7 @@ The Deck Box Editor replaces deck box artwork and handles its different resoluti
 4. Choose **Stretch** or **Crop** and check **Preview**.
 5. Choose **Replace**, then check the result in Master Duel.
 
-Current and Preview use the large version of the selected orientation. Replace applies the same artwork to all matching resolutions automatically, preserving each texture's dimensions. Normal includes small, medium, and large; Left Facing and Open each include medium and large. Other orientations remain unchanged. PNG supports transparency.
+Current and Preview use the large version of the selected orientation. Replace applies the same artwork to all matching resolutions automatically, preserving each texture's dimensions. Normal includes small, medium, and large; Left Facing and Open each include medium and large. Other orientations remain unchanged. Replacement artwork can fill the whole image without being clipped to the original box silhouette. PNG transparency still controls the visible shape. Reapply **Replace** to fix a deck box edited with an older version of the app.
 
 ## Other actions
 
@@ -23,4 +23,4 @@ Current and Preview use the large version of the selected orientation. Replace a
 
 Enable backups in [Configuration](config.md) before replacing textures. Each resolution gets its own backup before its first replacement; existing backups are preserved. Restore requires backups for all resolutions of the selected orientation, and restores each original texture separately. Older backups made for only one resolution can still be restored individually through Configuration's bulk restore. Configuration's bulk restore and clear actions also include deck box backups.
 
-The editor changes the first Texture2D in each bundle. It does not change meshes, materials, or additional textures. Missing game bundles must be downloaded by the game before editing; use Configuration's **Check** to refresh an outdated asset index.
+Restore puts back the original artwork and transparency, but keeps the full rectangular image area used by replacements. If game files are missing, complete the in-game download before editing. Use **Check** in Configuration to refresh outdated asset data.

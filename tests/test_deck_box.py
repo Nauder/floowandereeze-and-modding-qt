@@ -4,6 +4,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from struct import unpack
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -24,6 +25,7 @@ class DeckBoxTests(unittest.TestCase):
         texture = MagicMock(m_Width=128, m_Height=192)
         obj = MagicMock()
         obj.type.name = "Texture2D"
+        obj.path_id = 42
         obj.read.return_value = texture
         other = MagicMock()
         other.type.name = "Material"
@@ -37,14 +39,80 @@ class DeckBoxTests(unittest.TestCase):
             with (
                 patch.object(deck_box_service, "prepare_environment", return_value=str(bundle)),
                 patch.object(deck_box_service, "unity_load", return_value=env),
+                patch.object(service, "_expand_sprites", wraps=service._expand_sprites) as expand,
             ):
                 service.replace_bundle()
+                expand.assert_called_once_with(env, 42, (128, 192))
             self.assertEqual(bundle.read_bytes(), b"bundle")
         image = texture.set_image.call_args.kwargs["img"]
         self.assertEqual(image.size, (128, 192))
         self.assertEqual(image.mode, "RGBA")
         other.read.assert_not_called()
         texture.save.assert_called_once()
+
+    def test_sprite_mesh_covers_full_rect_at_every_resolution(self):
+        for _, fields in deck_box_service.DECK_BOX_VARIANTS:
+            for field in fields:
+                with self.subTest(field=field):
+                    size = 512 if "large" in field else 256
+                    sprite = {
+                        "m_Rect": {"x": 0.0, "y": 0.0, "width": size, "height": size},
+                        "m_Pivot": {"x": 0.25, "y": 0.75},
+                        "m_PixelsToUnits": 100.0,
+                        "m_RD": {
+                            "texture": {"m_FileID": 0, "m_PathID": 42},
+                            "settingsRaw": 64,
+                            "m_VertexData": {
+                                "m_Channels": [dict(stream=0, offset=0, format=0, dimension=0)
+                                               for _ in range(14)],
+                            },
+                            "m_SubMeshes": [{}],
+                        },
+                    }
+                    obj = MagicMock()
+                    obj.type.name = "Sprite"
+                    obj.read_typetree.return_value = sprite
+                    deck_box_service.DeckBoxService._expand_sprites(
+                        SimpleNamespace(objects=[obj]), 42, (size, size)
+                    )
+                    obj.save_typetree.assert_called_once_with(sprite)
+                    render = sprite["m_RD"]
+                    vertices = render["m_VertexData"]
+                    self.assertEqual(vertices["m_VertexCount"], 4)
+                    positions = unpack("<12f", vertices["m_DataSize"][:48])
+                    for actual, expected in zip(positions, (
+                        -size * 0.25 / 100, -size * 0.75 / 100, 0,
+                        -size * 0.25 / 100, size * 0.25 / 100, 0,
+                        size * 0.75 / 100, size * 0.25 / 100, 0,
+                        size * 0.75 / 100, -size * 0.75 / 100, 0,
+                    )):
+                        self.assertAlmostEqual(actual, expected, places=6)
+                    self.assertEqual(
+                        unpack("<8f", vertices["m_DataSize"][48:]),
+                        (0, 0, 0, 1, 1, 1, 1, 0),
+                    )
+                    self.assertEqual(unpack("<6H", bytes(render["m_IndexBuffer"])),
+                                     (0, 1, 2, 0, 2, 3))
+                    self.assertEqual(render["textureRect"], sprite["m_Rect"])
+                    self.assertEqual(render["textureRectOffset"], {"x": 0, "y": 0})
+                    self.assertEqual(render["settingsRaw"], 0)
+                    self.assertEqual(render["m_SubMeshes"][0]["indexCount"], 6)
+                    self.assertEqual(render["m_SubMeshes"][0]["vertexCount"], 4)
+                    self.assertEqual(sprite["m_Pivot"], {"x": 0.25, "y": 0.75})
+
+    def test_sprite_geometry_only_updates_the_replaced_texture(self):
+        for reference in (
+            {"m_FileID": 0, "m_PathID": 99},
+            {"m_FileID": 1, "m_PathID": 42},
+        ):
+            with self.subTest(reference=reference):
+                obj = MagicMock()
+                obj.type.name = "Sprite"
+                obj.read_typetree.return_value = {"m_RD": {"texture": reference}}
+                deck_box_service.DeckBoxService._expand_sprites(
+                    SimpleNamespace(objects=[obj]), 42, (512, 512)
+                )
+                obj.save_typetree.assert_not_called()
 
     def test_backups_independent_and_not_overwritten(self):
         service = deck_box_service.DeckBoxService()
@@ -164,6 +232,7 @@ class DeckBoxTests(unittest.TestCase):
         app = QApplication.instance() or QApplication([])
         with (
             patch("pages.models.deck_box_list_model.DeckBoxListModel.refresh"),
+            patch("pages.models.deck_box_list_model.DeckBoxListModel.get_names", return_value=[]),
             patch("pages.deck_box.QSettings") as settings,
         ):
             settings.return_value.value.return_value = None
