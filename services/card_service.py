@@ -8,6 +8,7 @@ from typing_extensions import override
 from database.models import CardModel, CardOcgModel, CardMetadataModel
 from database.objects import session
 from services.unity_service import UnityService
+from services.full_art_service import FullArtService
 from unity.unity_utils import prepare_environment
 
 from util.card_text import preview_regex_replacement
@@ -23,6 +24,22 @@ class CardService(UnityService):
     def __init__(self):
         super().__init__("cards")
         self.unity_file: bool = False
+        self.full_art = FullArtService()
+
+    def get_art_details(self):
+        """Read the art ID and dimensions from the selected texture, not DB IDs."""
+        env = unity_load(prepare_environment(self.unity_file, self.bundle))
+        for obj in env.objects:
+            if obj.type.name == "Texture2D":
+                texture = obj.read()
+                try:
+                    art_id = int(texture.m_Name)
+                except ValueError:
+                    art_id = None
+                if art_id is not None and not 0 < art_id <= 65535:
+                    art_id = None
+                return art_id, (texture.m_Width, texture.m_Height)
+        raise RuntimeError("No card artwork texture found in the selected bundle.")
 
     @override
     def replace_bundle(self) -> None:

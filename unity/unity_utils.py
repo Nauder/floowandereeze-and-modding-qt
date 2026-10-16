@@ -222,7 +222,10 @@ def swap_bundles(bundles: list) -> None:
 
 
 def fetch_bundle_thumb(
-    bundle: str | Mapped[str], ratio: tuple[int, int] | None, unity_file=False
+    bundle: str | Mapped[str],
+    ratio: tuple[int, int] | None,
+    unity_file=False,
+    preserve_aspect=False,
 ) -> QtGui.QIcon | None:
     """
     Fetches a thumbnail image from a Unity3D bundle.
@@ -236,6 +239,7 @@ def fetch_bundle_thumb(
     :type ratio: tuple[int, int] | None
     :param unity_file: Whether to use the Unity3D file.
     :type unity_file: bool, optional
+    :param preserve_aspect: Fit the thumbnail inside ratio without stretching it.
     :returns: A QIcon object representing the thumbnail image.
     :rtype: QtGui.QIcon | None
     """
@@ -246,7 +250,12 @@ def fetch_bundle_thumb(
         if obj.type.name == "Texture2D":
             data = obj.read()
 
-            img = data.image.resize(ratio) if ratio else data.image
+            img = data.image
+            if ratio:
+                if preserve_aspect:
+                    img.thumbnail(ratio, Image.Resampling.LANCZOS)
+                else:
+                    img = img.resize(ratio)
 
             img.name = FILE["IMAGE_NAME"]
 

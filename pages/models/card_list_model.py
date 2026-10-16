@@ -50,9 +50,11 @@ class CardListModel(AssetListModel):
             thread.join()
 
     def _refresh_card(self, card):
-        card.thumb = fetch_bundle_thumb(card.bundle, (128, 128))
+        card.thumb = fetch_bundle_thumb(card.bundle, (128, 128), preserve_aspect=True)
         if not card.thumb:
-            card.thumb = fetch_bundle_thumb(card.bundle, (128, 128), True)
+            card.thumb = fetch_bundle_thumb(
+                card.bundle, (128, 128), True, preserve_aspect=True
+            )
             card.unity_file = True
 
     def data(self, index, role):

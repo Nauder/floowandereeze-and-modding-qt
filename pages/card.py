@@ -7,10 +7,12 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
     QCompleter,
+    QCheckBox,
     QHBoxLayout,
     QLabel,
     QListView,
     QLayout,
+    QPushButton,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
@@ -56,6 +58,9 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         )
 
         self.service = CardService()
+        self._art_id = None
+        self._target_art_size = (512, 512)
+        self._current_art_size = (512, 512)
         self.model = CardListModel()
         self.cardsView.setModel(self.model)
         self.selected: Optional[CardModel] = None
@@ -76,7 +81,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.image_fit = InlineImageFitController(
             self,
             self.preview,
-            (512, 512),
+            lambda: self._target_art_size,
             lambda image_path: setattr(self.service, "image_path", image_path),
             alignment_widget=self.current,
         )
@@ -120,6 +125,21 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.verticalLayout.removeWidget(self.cardsView)
 
         self._configure_editor_controls()
+        for spacer in (
+            self.horizontalSpacer_5,
+            self.horizontalSpacer_6,
+            self.horizontalSpacer_7,
+            self.horizontalSpacer_8,
+        ):
+            self.main_content.removeItem(spacer)
+        self.main_content.setSpacing(16)
+        self.main_content.setStretch(0, 1)
+        self.main_content.setStretch(1, 0)
+        self.main_content.setStretch(2, 1)
+        current_layout = self.main_content.itemAt(0).layout()
+        current_layout.setAlignment(
+            self.current, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
+        )
 
         self.editorPanel = QWidget(self)
         self.editorPanel.setObjectName("cardEditorPanel")
@@ -186,6 +206,20 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.verticalLayout_5.addWidget(self.label_4)
         self.verticalLayout_5.addWidget(self.cardEdit)
         self.verticalLayout_5.addWidget(self.selectButton)
+        self.full_art_check = QCheckBox("Overframe", self)
+        self.full_art_check.setObjectName("fullArtCheck")
+        self.full_art_check.setEnabled(False)
+        self.full_art_check.setToolTip(
+            "Check to use overframe framing. Uncheck to use normal framing."
+        )
+        self.verticalLayout_5.addWidget(self.full_art_check)
+        self.art_size_label = QLabel("", self)
+        self.art_size_label.setWordWrap(True)
+        self.verticalLayout_5.addWidget(self.art_size_label)
+        self.locate_full_art_button = QPushButton("Locate overframe data", self)
+        self.locate_full_art_button.setObjectName("locateFullArtButton")
+        self.locate_full_art_button.hide()
+        self.verticalLayout_5.addWidget(self.locate_full_art_button)
         self.verticalLayout_5.addSpacing(6)
         self.verticalLayout_5.addWidget(
             self.replaceButton, alignment=Qt.AlignmentFlag.AlignHCenter
@@ -283,9 +317,17 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             min(self._max_image_size, available_height, available_width),
         )
 
-        for label in (self.current, self.preview):
-            label.setFixedSize(QSize(target_size, target_size))
+        for label, size in (
+            (self.current, self._current_art_size),
+            (self.preview, self._target_art_size),
+        ):
+            ratio = size[0] / size[1]
+            height = min(target_size, int(target_size / ratio))
+            label.setFixedSize(QSize(max(1, int(height * ratio)), height))
             label.updateGeometry()
+            if label.parentWidget() is not self:
+                label.parentWidget().setMinimumWidth(label.width())
+                label.parentWidget().updateGeometry()
 
     def _queue_initial_layout_update(self):
         for delay in (0, 50, 150):
@@ -349,6 +391,8 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.searchEdit.returnPressed.connect(self._search)
         self.searchEdit.textChanged.connect(self.searchHelperLabel.clear)
         self.favorite.stateChanged.connect(self._toggle_favorite)
+        self.full_art_check.toggled.connect(self._toggle_full_art)
+        self.locate_full_art_button.clicked.connect(self._locate_full_art)
         self.favorites.stateChanged.connect(self._toggle_favorites_filter)
         self.searchDescription.stateChanged.connect(self._toggle_description_search)
         self.searchBundle.stateChanged.connect(self._toggle_bundle_search)
@@ -514,6 +558,8 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
     def _restore(self):
         if self.service.restore_asset():
             self.model.refresh()
+            self._refresh_art_context()
+            self._refresh_current_art()
             show_toast(
                 self, "Backup", "Card restored successfully", ToastPreset.SUCCESS_DARK
             )
@@ -524,14 +570,10 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
 
     def _on_card_clicked(self, index):
         self.selected = self.model.assets[index.row()]
-
-        self.current.setPixmap(
-            fetch_bundle_thumb(
-                self.selected.bundle, (374, 374), self.selected.unity_file
-            ).pixmap(374, 374)
-        )
         self.service.bundle = self.selected.bundle
         self.service.unity_file = self.selected.unity_file
+        self._refresh_art_context()
+        self._refresh_current_art()
 
         modded_name = (
             f"- <i style='color:#ccffcc'>{self.selected.modded_name}</i> "
@@ -549,6 +591,86 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         self.editButton.setEnabled(True)
         self.favorite.setChecked(self.selected.favorite)
         hide_selection_helper(self)
+
+    def _refresh_current_art(self):
+        icon = fetch_bundle_thumb(
+            self.service.bundle, None, self.service.unity_file
+        )
+        if icon:
+            self.current.setPixmap(icon.pixmap(*self._current_art_size))
+
+    def _refresh_art_context(self):
+        self._art_id, self._current_art_size = self.service.get_art_details()
+        full_art, can_toggle = False, False
+        self.locate_full_art_button.hide()
+        message = ""
+        if self._art_id is not None:
+            try:
+                full_art, can_toggle = self.service.full_art.status(
+                    APP_CONFIG.game_path, self._art_id
+                )
+            except (OSError, RuntimeError, ValueError) as error:
+                logger.warning("Could not read overframe status: %s", error)
+                self.locate_full_art_button.show()
+                message = "Overframe status unavailable; using current texture dimensions."
+        else:
+            message = "Overframe switch unavailable for this texture."
+        self.full_art_check.blockSignals(True)
+        self.full_art_check.setChecked(full_art)
+        self.full_art_check.setEnabled(can_toggle)
+        self.full_art_check.blockSignals(False)
+        if full_art:
+            self._target_art_size = (704, 1024)
+        elif can_toggle and self._current_art_size == (704, 1024):
+            self._target_art_size = (512, 512)
+        else:
+            self._target_art_size = self._current_art_size
+        width, height = self._target_art_size
+        self.art_size_label.setText(
+            message or f"{'Overframe' if full_art else 'Normal art'} · {width} × {height}"
+        )
+        self.image_fit.refresh_target_size()
+        self._adjust_image_sizes()
+
+    def _toggle_full_art(self, enabled):
+        if not self.selected or self._art_id is None:
+            return
+        try:
+            self.service.full_art.set_enabled(
+                APP_CONFIG.game_path, self._art_id, enabled, APP_CONFIG.packer
+            )
+        except (OSError, RuntimeError, ValueError) as error:
+            logger.exception("Overframe setting could not be saved")
+            show_toast(
+                self,
+                "Overframe",
+                f"Could not change overframe setting: {error}",
+                ToastPreset.ERROR_DARK,
+            )
+        else:
+            show_toast(
+                self,
+                "Overframe",
+                "Card framing updated. Replace artwork to apply the preview.",
+                ToastPreset.SUCCESS_DARK,
+            )
+        self._refresh_art_context()
+
+    def _locate_full_art(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select the of_card_asset bundle",
+            APP_CONFIG.game_path,
+            "Asset bundles (*)",
+        )
+        if not path:
+            return
+        try:
+            self.service.full_art.select_path(path, APP_CONFIG.game_path)
+        except (OSError, RuntimeError, ValueError) as error:
+            show_toast(self, "Overframe", str(error), ToastPreset.ERROR_DARK)
+            return
+        self._refresh_art_context()
 
     def _select_image(self):
         file, _ = QFileDialog.getOpenFileUrl(self, "Select Image", "", IMAGE_FILTER)
@@ -585,17 +707,22 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         )
 
     def _replace(self):
+        if not self.selected or not self.service.image_path:
+            show_toast(
+                self,
+                "Card",
+                "Select a card and a replacement image first.",
+                ToastPreset.WARNING_DARK,
+            )
+            return
         if APP_CONFIG.create_backup and not self.selected.has_backup:
             self.service.create_backup(self.service.bundle)
             self.model.set_backup_state(self.selected.id, True)
 
         self.service.replace_bundle()
         self.model.refresh()
-        self.current.setPixmap(
-            fetch_bundle_thumb(
-                self.service.bundle, (374, 374), self.service.unity_file
-            ).pixmap(374, 374)
-        )
+        self._refresh_art_context()
+        self._refresh_current_art()
 
         show_toast(
             self, "Card", "Card replacement successful", ToastPreset.SUCCESS_DARK
