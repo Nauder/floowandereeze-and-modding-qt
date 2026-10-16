@@ -35,15 +35,15 @@ Close Master Duel before trying again. The game or another process may be holdin
 
 ## Restore says that no backup was found
 
-The asset was changed before backups were enabled, the backup was cleared, or a backup was never created for that asset. The app cannot reconstruct the original from its database. Steam's file verification can restore game files, but it may remove all installed mods.
+The asset was changed before backups were enabled, the backup was cleared, or a backup was never created for that asset. The app cannot restore an original that was never backed up. Steam's file verification can restore game files, but it may remove all installed mods.
 
 ## A game update removed my mods
 
-This is expected when the update replaces modified bundles. Refresh app data with **Check**, then replace the image assets again. Use **Reapply All** to write card-name and description edits saved in the app database back to the current game files.
+This is expected when the update replaces modified bundles. Refresh app data with **Check**, then replace the image assets again. Use **Reapply All** to write your saved card-name and description edits back to the current game files.
 
 ## Card text editing fails or takes a long time
 
-Card text is stored in shared metadata. The app refreshes and rewrites those files cautiously, so individual, regex, restore, and reapply operations can take noticeably longer than image replacement. Do not close the app during the operation.
+Card text edits, regex replacements, restoration and reapplying saved edits can take noticeably longer than image replacement. Wait for the completion message and do not close the app during the operation.
 
 If the app reports that a specific TextAsset cannot be found, run **Check** first. Do not keep retrying against out-of-date game data.
 

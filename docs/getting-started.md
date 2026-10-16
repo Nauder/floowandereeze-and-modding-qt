@@ -23,7 +23,7 @@ Windows may show a SmartScreen warning for an unsigned build. Confirm that you d
 
 On a new installation, only **Configuration** is available until a valid game path is saved.
 
-The easiest option is **Auto-detect**. It searches the Steam installation and every library listed in `libraryfolders.vdf`, then lets you choose among the detected player profiles.
+The easiest option is **Auto-detect**. It searches your Steam libraries and lets you choose among the detected player profiles.
 
 For manual selection, choose the player-ID folder under:
 
@@ -65,16 +65,3 @@ Folders are created beside the application (or in the current working directory 
 | `backups\<asset type>` | Automatic texture backups used by **Restore** |
 
 The Background editor exports its texture directly under `images`, while most other editors use a type-specific subfolder.
-
-## Run from source
-
-Developers can use the repository's PowerShell workflow:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-.\dev.ps1
-```
-
-`dev.ps1` activates `.venv`, regenerates the Qt UI/resources, and launches `main.py`. The project currently targets Python 3.11 for development.

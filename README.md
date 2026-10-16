@@ -127,6 +127,8 @@ floo-qt/
 
 ## Development
 
+To recreate the guide images from the running app and your development database, see [Documentation screenshots](docs/development/screenshots.md).
+
 - The project uses PySide6 for the GUI, with Pyside Designer ui files
 - SQLAlchemy for database operations
 - UnityPy for Unity asset handling

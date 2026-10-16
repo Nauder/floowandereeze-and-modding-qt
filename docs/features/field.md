@@ -11,8 +11,6 @@ The Duel Field Editor replaces the supported playable surface region of a duel f
 3. Check **Preview** and choose **Replace**.
 4. Test the result in a duel from both player perspectives.
 
-The app uses metadata to choose a top, bottom, or flipped placement and modifies the texture named like the supported near-field base color.
-
 ## Extract and copy
 
 - **Extract** saves the supported field texture under `images\fields`.
@@ -22,4 +20,4 @@ This editor does not currently provide per-field backup or Restore controls. Mak
 
 ## Limitations
 
-Master Duel fields are not standardized. Fields whose texture layout is not recognized are omitted from the list. For supported entries, the app uses known coordinates and orientation flags, but some fields may still replace the wrong region or appear flipped.
+Master Duel fields are not standardized. Fields whose texture layout is not recognized are omitted from the list. Some listed fields may still replace the wrong region or appear flipped. Check the result in-game before keeping a replacement.

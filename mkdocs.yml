@@ -48,6 +48,10 @@ nav:
       - Background Editor: features/background.md
       - Wallpaper Editor: features/wallpaper.md
   - Troubleshooting: troubleshooting.md
+  - Development:
+      - Run from Source: development/setup.md
+      - Summon Compatibility Audit: features/summon-audit.md
+      - Documentation Screenshots: development/screenshots.md
 
 markdown_extensions:
   - attr_list

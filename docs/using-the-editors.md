@@ -10,7 +10,7 @@ Most asset pages follow the same workflow: select an asset, choose a source imag
 - **Results** contains the available assets. Select one to enable its actions.
 - The horizontal grip between the editor and results can be dragged on the responsive grid pages. Its position is remembered separately for each editor.
 
-![shared editor anatomy](./assets/ui/editor_anatomy.png)
+![Deck Box Editor showing Current, Preview, image source and results](./assets/ui/deck_box.png)
 
 The application has a minimum window size of 960×540 and opens maximized. Preview panels and result grids adapt to the available space.
 
@@ -62,3 +62,8 @@ Shared-file editors deserve extra care:
 - Card text updates shared metadata bundles that affect every card.
 
 After a game update, open **Configuration**, use **Check** to refresh the app's asset data, and then reapply your mods. Saved card text can be reapplied with **Reapply All**.
+
+
+## Summon animations
+
+See the [Summon Animation Editor](features/summon-animation.md) to select a card and replace its summon animation from GIFs, MP4 videos or PNG frames, using the region and game path from Configuration. High quality is selected by default; the checkbox targets lower quality instead.
