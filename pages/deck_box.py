@@ -142,7 +142,9 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
         self.deck_boxSplitter.setStretchFactor(0, 3)
         self.deck_boxSplitter.setStretchFactor(1, 2)
         self.deck_boxSplitter.splitterMoved.connect(self._persist_splitter_state)
-        self.deck_boxSplitter.splitterMoved.connect(lambda *_: self._queue_layout_update())
+        self.deck_boxSplitter.splitterMoved.connect(
+            lambda *_: self._queue_layout_update()
+        )
 
         stored_state = self._settings.value("deck_boxes/splitter_state")
         if stored_state:
@@ -223,8 +225,12 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
         self.deck_boxesView.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAsNeeded
         )
-        self.deck_boxesView.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.deck_boxesView.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.deck_boxesView.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.deck_boxesView.setSelectionMode(
+            QAbstractItemView.SelectionMode.SingleSelection
+        )
         self.deck_boxesView.setUniformItemSizes(True)
         self.deck_boxesView.setWordWrap(True)
         self.deck_boxesView.setIconSize(self.RESULT_ICON_SIZE)
@@ -290,7 +296,9 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
         self._update_results_grid()
 
     def _persist_splitter_state(self):
-        self._settings.setValue("deck_boxes/splitter_state", self.deck_boxSplitter.saveState())
+        self._settings.setValue(
+            "deck_boxes/splitter_state", self.deck_boxSplitter.saveState()
+        )
 
     def _set_editor_context(self, text):
         self.bundle.setText(text)
@@ -316,7 +324,9 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
             )
         else:
             show_toast(
-                self, "Backup", "Deck box variant backup not found",
+                self,
+                "Backup",
+                "Deck box variant backup not found",
                 ToastPreset.WARNING_DARK,
             )
 
@@ -335,7 +345,10 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
             return
         self.service.select_variant(self.selected, self.variantBox.currentData())
         for button in (
-            self.replaceButton, self.extractButton, self.restoreButton, self.copyButton
+            self.replaceButton,
+            self.extractButton,
+            self.restoreButton,
+            self.copyButton,
         ):
             button.setEnabled(False)
         self.current.clear()
@@ -351,7 +364,9 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
                 raise ValueError("No texture found in this variant")
             self.current.setPixmap(thumbnail.pixmap(*self._texture_size))
         except (OSError, ValueError) as error:
-            QMessageBox.warning(self, "Deck Box", f"Could not load this variant:\n{error}")
+            QMessageBox.warning(
+                self, "Deck Box", f"Could not load this variant:\n{error}"
+            )
             return
         self.image_fit.refresh_target_size()
         self._adjust_image_sizes()
@@ -386,7 +401,9 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
     def _extract_texture(self):
         self.service.extract_texture(self.service.bundle)
         show_toast(
-            self, "Deck Box Extraction", 'Variant extracted to "images/deck_boxes"',
+            self,
+            "Deck Box Extraction",
+            'Variant extracted to "images/deck_boxes"',
             ToastPreset.SUCCESS_DARK,
         )
 
@@ -401,7 +418,9 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
         self.model.refresh()
         self._update_variant()
         show_toast(
-            self, "Deck Box", "Deck box variant replacement successful",
+            self,
+            "Deck Box",
+            "Deck box variant replacement successful",
             ToastPreset.SUCCESS_DARK,
         )
 

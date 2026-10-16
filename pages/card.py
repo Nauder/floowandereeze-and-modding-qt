@@ -265,7 +265,9 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             Qt.ScrollBarPolicy.ScrollBarAsNeeded
         )
         self.cardsView.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.cardsView.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.cardsView.setSelectionMode(
+            QAbstractItemView.SelectionMode.ExtendedSelection
+        )
         self.cardsView.setToolTip(
             "Use Ctrl or Shift to select multiple cards for mass editing."
         )
@@ -593,9 +595,7 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
         hide_selection_helper(self)
 
     def _refresh_current_art(self):
-        icon = fetch_bundle_thumb(
-            self.service.bundle, None, self.service.unity_file
-        )
+        icon = fetch_bundle_thumb(self.service.bundle, None, self.service.unity_file)
         if icon:
             self.current.setPixmap(icon.pixmap(*self._current_art_size))
 
@@ -612,7 +612,9 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             except (OSError, RuntimeError, ValueError) as error:
                 logger.warning("Could not read overframe status: %s", error)
                 self.locate_full_art_button.show()
-                message = "Overframe status unavailable; using current texture dimensions."
+                message = (
+                    "Overframe status unavailable; using current texture dimensions."
+                )
         else:
             message = "Overframe switch unavailable for this texture."
         self.full_art_check.blockSignals(True)
@@ -627,7 +629,8 @@ class Card(ResponsivePageMixin, QWidget, Ui_Card):
             self._target_art_size = self._current_art_size
         width, height = self._target_art_size
         self.art_size_label.setText(
-            message or f"{'Overframe' if full_art else 'Normal art'} · {width} × {height}"
+            message
+            or f"{'Overframe' if full_art else 'Normal art'} · {width} × {height}"
         )
         self.image_fit.refresh_target_size()
         self._adjust_image_sizes()

@@ -47,7 +47,9 @@ class NamedAssetListModel(AssetListModel):
         """Supply completion names without loading thumbnails."""
         return [
             name
-            for (name,) in session.query(self.name_column(self.db_model)).distinct().all()
+            for (name,) in session.query(self.name_column(self.db_model))
+            .distinct()
+            .all()
         ]
 
     def data(self, index, role):

@@ -309,9 +309,7 @@ class Icon(ResponsivePageMixin, QtWidgets.QWidget, Ui_Icon):
             fetch_bundle_thumb(self.selected.bundle_medium, (256, 256)).pixmap(256, 256)
         )
         self.service.bundle = self.selected
-        self._set_editor_context(
-            f"Editing {asset_name(self.selected)}"
-        )
+        self._set_editor_context(f"Editing {asset_name(self.selected)}")
         self.replaceButton.setEnabled(True)
         self.extractButton.setEnabled(True)
         self.restoreButton.setEnabled(True)
