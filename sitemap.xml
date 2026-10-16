@@ -2,58 +2,90 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
+    </url>
+    <url>
+         <loc>https://nauder.github.io/floowandereeze-and-modding-qt/card-mass-edit/</loc>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/getting-started/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/troubleshooting/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/using-the-editors/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
+    </url>
+    <url>
+         <loc>https://nauder.github.io/floowandereeze-and-modding-qt/development/screenshots/</loc>
+         <lastmod>2026-10-16</lastmod>
+    </url>
+    <url>
+         <loc>https://nauder.github.io/floowandereeze-and-modding-qt/development/setup/</loc>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/background/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
+    </url>
+    <url>
+         <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/backups/</loc>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/card-icon/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/card/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/coin/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/config/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
+    </url>
+    <url>
+         <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/deck-box/</loc>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/face/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/field/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/icon/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/sleeve/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
+    </url>
+    <url>
+         <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/summon-animation/</loc>
+         <lastmod>2026-10-16</lastmod>
+    </url>
+    <url>
+         <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/summon-audit/</loc>
+         <lastmod>2026-10-16</lastmod>
+    </url>
+    <url>
+         <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/summon-frames/</loc>
+         <lastmod>2026-10-16</lastmod>
     </url>
     <url>
          <loc>https://nauder.github.io/floowandereeze-and-modding-qt/features/wallpaper/</loc>
-         <lastmod>2026-08-02</lastmod>
+         <lastmod>2026-10-16</lastmod>
     </url>
 </urlset>
