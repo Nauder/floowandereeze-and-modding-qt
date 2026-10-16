@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QSplashScreen
 from pyqttoast import ToastPreset
 
 from pages.background import Background
+from pages.backups import Backups
 from pages.card import Card
 from pages.card_icon import CardIcon
 from pages.coin import Coin
@@ -56,6 +57,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super().__init__()
         self.splash = splash
         self.setupUi(self)
+        self.actionbackups_button = QtGui.QAction(
+            QtGui.QIcon(":/ui/images/backups.png"),
+            "Backups",
+            self,
+        )
+        self.toolBar.addAction(self.actionbackups_button)
 
         # Set minimum size for responsive behavior (16:9 aspect ratio)
         self.setMinimumSize(960, 540)
@@ -126,7 +133,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     ToastPreset.WARNING_DARK,
                 )
             self.mainStack.addWidget(Config())
-            self.toolBar.setEnabled(False)
+            for action in self.toolBar.actions():
+                action.setEnabled(
+                    action in (self.actionconfig_button, self.actionbackups_button)
+                )
+
+        self._backup_index = self.mainStack.addWidget(Backups())
 
     def closeEvent(self, event):
         """Keep worker-owned pages alive while bundle writes finish."""
@@ -142,6 +154,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def _connect_menu_callbacks(self) -> None:
         """Connects the menu buttons to their respective pages in the stack."""
         for index, button in enumerate(self._navigation_buttons):
+            if button is self.actionbackups_button:
+                index = self._backup_index
             button.triggered.connect(
                 lambda _, idx=index: self.mainStack.setCurrentIndex(idx)
             )
@@ -171,6 +185,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actioncoin_button,
             self.actiondeck_box_button,
             self.actionsummon_animation_button,
+            self.actionbackups_button,
         ]
         labels = [
             "Configuration",
@@ -185,6 +200,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "Coins",
             "Deck Boxes",
             "Summons",
+            "Backups",
         ]
         action_group = QtGui.QActionGroup(self)
         action_group.setExclusive(True)
@@ -206,6 +222,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def _sync_navigation_state(self, index: int) -> None:
         """Keep the toolbar active state aligned with the stacked page."""
+        if index == self._backup_index:
+            self.actionbackups_button.setChecked(True)
+            return
         if 0 <= index < len(self._navigation_buttons):
             self._navigation_buttons[index].setChecked(True)
 

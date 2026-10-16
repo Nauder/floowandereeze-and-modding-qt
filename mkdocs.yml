@@ -33,6 +33,7 @@ nav:
   - Using the Editors: using-the-editors.md
   - Features:
       - Configuration: features/config.md
+      - Backups: features/backups.md
       - Card Editor: features/card.md
       - Summon Animation Editor: features/summon-animation.md
       - GIF, MP4 and PNG Summon Import: features/summon-frames.md

@@ -144,17 +144,17 @@ class Config(QWidget, Ui_Config):
         )
 
     def delete_backups(self) -> None:
-        count = 0
+        # Use the same inventory as the Backups tab, including nested full-art files.
+        from services.backup_service import BackupService, sync_backup_flags
 
-        for service, model in self._get_services_and_models():
-            backups_path = os.path.join("backups", service.subfolder)
-
-            if os.path.exists(backups_path):
-                for filename in os.listdir(backups_path):
-                    os.remove(os.path.join(backups_path, filename))
-                    count += 1
-
-            model.reset_backups()
+        service = BackupService()
+        try:
+            count = service.delete(entry.name for entry in service.inventory())
+        except (OSError, ValueError) as error:
+            show_toast(self, "Backups", str(error), ToastPreset.ERROR_DARK)
+            return
+        finally:
+            sync_backup_flags(service)
 
         show_toast(
             self,
