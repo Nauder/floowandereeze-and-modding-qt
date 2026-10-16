@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
 )
 from pyqttoast import ToastPreset
 
+from widgets.asset_search import add_asset_search
+from pages.models.named_asset_list_model import asset_name
 from database.objects import session
 from widgets.grip_splitter import GripSplitter
 from pages.base_responsive_page import ResponsivePageMixin
@@ -27,7 +29,7 @@ from widgets.image_fit import InlineImageFitController
 
 
 class Icon(ResponsivePageMixin, QtWidgets.QWidget, Ui_Icon):
-    RESULT_ITEM_SIZE = QSize(116, 132)
+    RESULT_ITEM_SIZE = QSize(136, 152)
     RESULT_ICON_SIZE = QSize(96, 96)
     RESULTS_MIN_HEIGHT = 315
 
@@ -116,7 +118,9 @@ class Icon(ResponsivePageMixin, QtWidgets.QWidget, Ui_Icon):
         results_layout = QVBoxLayout(self.resultsPanel)
         results_layout.setContentsMargins(0, 0, 0, 0)
         results_layout.setSpacing(6)
-        results_layout.addLayout(self._build_results_header())
+        results_header = self._build_results_header()
+        results_layout.addLayout(results_header)
+        add_asset_search(self, results_header, results_layout, "player icons")
         results_layout.addWidget(self.iconsView, 1)
 
         self.iconSplitter = GripSplitter(Qt.Orientation.Vertical, self)
@@ -306,7 +310,7 @@ class Icon(ResponsivePageMixin, QtWidgets.QWidget, Ui_Icon):
         )
         self.service.bundle = self.selected
         self._set_editor_context(
-            f"Editing {self.model.assets[index.row()].name} (S: {self.selected.bundle_small} M: {self.selected.bundle_medium} B: {self.selected.bundle_big})"
+            f"Editing {asset_name(self.selected)}"
         )
         self.replaceButton.setEnabled(True)
         self.extractButton.setEnabled(True)

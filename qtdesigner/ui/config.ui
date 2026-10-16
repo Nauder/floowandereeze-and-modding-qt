@@ -66,7 +66,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="configPanelWrapper">
+    <layout class="QHBoxLayout" name="configPanelWrapper" stretch="2,6,2">
      <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
@@ -88,7 +88,7 @@
     border-radius: 4px;
 }</string>
        </property>
-       <layout class="QHBoxLayout" name="maincontent">
+       <layout class="QVBoxLayout" name="configCardLayout">
         <property name="leftMargin">
          <number>18</number>
        </property>
@@ -101,9 +101,9 @@
         <property name="bottomMargin">
          <number>16</number>
        </property>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
-       <item>
+        <item>
+         <layout class="QGridLayout" name="maincontent">
+<item row="1" column="0">
         <widget class="QLabel" name="label">
          <property name="toolTip">
           <string>Game Data Path up to the 0x000000 folder</string>
@@ -113,7 +113,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="5" column="0">
         <widget class="QLabel" name="label_5">
          <property name="toolTip">
           <string>App Background Image</string>
@@ -123,7 +123,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="6" column="0">
         <widget class="QLabel" name="label_9">
          <property name="toolTip">
           <string>Background image display mode</string>
@@ -133,7 +133,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="7" column="0">
         <widget class="QLabel" name="label_3">
          <property name="toolTip">
           <string>Current App Data Version</string>
@@ -143,14 +143,14 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="10" column="0">
         <widget class="QLabel" name="label_8">
          <property name="text">
           <string>Text Edits:</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="13" column="0">
         <widget class="QLabel" name="label_2">
          <property name="toolTip">
           <string>Create and manage backups of replaced assets</string>
@@ -160,7 +160,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="16" column="0">
         <widget class="QLabel" name="label_7">
          <property name="toolTip">
           <string>What packer to use when creating bundles</string>
@@ -170,7 +170,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="17" column="0">
         <widget class="QLabel" name="label_6">
          <property name="toolTip">
           <string>Amount of Mipmaps to generate for asset images</string>
@@ -180,11 +180,7 @@
          </property>
         </widget>
        </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
+      <item row="1" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QLineEdit" name="gameLine">
@@ -192,7 +188,7 @@
             <bool>true</bool>
            </property>
            <property name="toolTip">
-            <string/>
+            <string />
            </property>
            <property name="readOnly">
             <bool>true</bool>
@@ -208,7 +204,7 @@
             <string>Select</string>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
+            <iconset theme="QIcon::ThemeIcon::FolderOpen" />
            </property>
           </widget>
          </item>
@@ -227,7 +223,7 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="5" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
           <number>6</number>
@@ -238,7 +234,7 @@
             <bool>true</bool>
            </property>
            <property name="toolTip">
-            <string/>
+            <string />
            </property>
            <property name="toolTipDuration">
             <number>-1</number>
@@ -254,13 +250,13 @@
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string/>
+            <string />
            </property>
            <property name="text">
             <string>Select</string>
            </property>
            <property name="icon">
-            <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
+            <iconset theme="QIcon::ThemeIcon::DocumentOpen" />
            </property>
           </widget>
          </item>
@@ -279,7 +275,7 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="6" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_8">
          <item>
           <widget class="QRadioButton" name="stretchedButton">
@@ -331,7 +327,7 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="7" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
           <widget class="QLineEdit" name="updateLine">
@@ -352,7 +348,7 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="10" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
           <widget class="QPushButton" name="restoreTextButton">
@@ -389,7 +385,7 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="13" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
           <widget class="QCheckBox" name="backupBox">
@@ -397,10 +393,10 @@
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="toolTip">
-            <string/>
+            <string />
            </property>
            <property name="text">
-            <string/>
+            <string />
            </property>
           </widget>
          </item>
@@ -445,7 +441,7 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="16" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <widget class="QRadioButton" name="noneButton">
@@ -517,7 +513,7 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="17" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
           <widget class="QSpinBox" name="mipBox">
@@ -528,7 +524,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string/>
+            <string />
            </property>
           </widget>
          </item>
@@ -557,8 +553,16 @@
          </item>
         </layout>
        </item>
-      </layout>
-     </item>
+      <item row="20" column="0"><widget class="QLabel" name="metadataRepositoryLabel"><property name="text"><string>Repository:</string></property></widget></item>
+      <item row="20" column="1"><widget class="QLineEdit" name="metadataRepositoryLine"><property name="placeholderText"><string>owner/repository</string></property><property name="maxLength"><number>150</number></property><property name="toolTip"><string>GitHub repository containing data/version.txt and metadata Parquet files.</string></property></widget></item>
+      <item row="21" column="0"><widget class="QLabel" name="metadataBranchLabel"><property name="text"><string>Branch:</string></property></widget></item>
+      <item row="21" column="1"><layout class="QHBoxLayout" name="metadataBranchLayout">
+       <item><widget class="QLineEdit" name="metadataBranchLine"><property name="placeholderText"><string>Repository default (leave blank)</string></property><property name="maxLength"><number>255</number></property><property name="toolTip"><string>Use a branch such as feature/summon-animations, or leave blank to follow the repository default.</string></property></widget></item>
+       <item><widget class="QPushButton" name="saveMetadataSourceButton"><property name="text"><string>Save source</string></property></widget></item>
+       <item><widget class="QPushButton" name="resetMetadataSourceButton"><property name="text"><string>Use defaults</string></property></widget></item>
+      </layout></item>
+              </layout>
+        </item>
       </layout>
      </widget>
     </item>

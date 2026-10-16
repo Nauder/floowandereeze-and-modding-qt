@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0"><class>SummonAnimation</class><widget class="QWidget" name="SummonAnimation">
+<layout class="QVBoxLayout" name="verticalLayout">
+<item><widget class="QLabel" name="title"><property name="text"><string>Summon Animations</string></property></widget></item>
+<item><widget class="QLabel" name="notice"><property name="text"><string>Select a card, then choose or drop a GIF, MP4 or PNG frames folder. Preview and replace the animation here.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+<item><layout class="QHBoxLayout" name="configurationLayout">
+<item><widget class="QLabel" name="configurationSummary"><property name="wordWrap"><bool>true</bool></property><property name="text"><string>Uses the game version and path from Configuration.</string></property></widget></item>
+<item><widget class="QPushButton" name="refreshButton"><property name="text"><string>Refresh card list</string></property></widget></item>
+</layout></item>
+<item><widget class="QSplitter" name="splitter"><property name="orientation"><enum>Qt::Horizontal</enum></property>
+<widget class="QWidget" name="cardsPanel"><layout class="QVBoxLayout" name="cardsLayout">
+<property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property>
+<item><widget class="QLineEdit" name="search"><property name="placeholderText"><string>Search card name or ID</string></property></widget></item>
+<item><widget class="QListView" name="cardsView"/></item>
+</layout></widget>
+<widget class="QScrollArea" name="replacementScroll"><property name="styleSheet"><string notr="true">QScrollArea#replacementScroll { background-color: transparent; }
+QWidget#replacementPanel { background-color: rgba(12, 12, 12, 0.7); }</string></property><property name="frameShape"><enum>QFrame::NoFrame</enum></property><property name="widgetResizable"><bool>true</bool></property><widget class="QWidget" name="replacementPanel"><layout class="QVBoxLayout" name="replacementLayout">
+<property name="topMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>8</number></property>
+<item><widget class="QLabel" name="cardTitle"><property name="text"><string>Select a card</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+<item><widget class="QCheckBox" name="lowerQuality"><property name="text"><string>Replace the lower-quality animation instead</string></property><property name="toolTip"><string>Unchecked: replace high quality. Checked: replace lower quality. Shared-quality cards display a warning.</string></property></widget></item>
+<item><widget class="QLabel" name="qualityHint"><property name="wordWrap"><bool>true</bool></property><property name="text"><string>High quality is selected by default.</string></property></widget></item>
+<item><widget class="QWidget" name="editorHost"><layout class="QVBoxLayout" name="editorHostLayout">
+<property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property>
+</layout></widget></item>
+<item><widget class="QPushButton" name="restoreButton"><property name="text"><string>Restore original animation</string></property></widget></item>
+</layout></widget></widget></widget></item>
+<item><widget class="QLabel" name="status"><property name="text"><string>Select a card to begin.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+</layout></widget><resources/><connections/></ui>

@@ -7,7 +7,8 @@
   <qresource prefix="ui">
     <file>images/card_icon.png</file>
     <file>images/coin.png</file>
-    <file>images/deck_box.svg</file>
+    <file>images/animation.png</file>
+    <file>images/deck_box.png</file>
     <file>images/wallpaper_preview.png</file>
     <file>images/wallpaper.png</file>
     <file>images/gear.png</file>

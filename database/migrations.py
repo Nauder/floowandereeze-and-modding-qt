@@ -48,6 +48,44 @@ def run_migrations(db_path: str = "database.db") -> None:
             conn.commit()
             logger.info("Migration completed: asset_region column added")
 
+        # Migration 3: Human-readable names, separate from stable asset codes.
+        for table in ("sleeve", "sleeve_ocg", "icon", "card_icon", "coin", "deck_box"):
+            columns = get_columns(cursor, table)
+            if columns and "display_name" not in columns:
+                cursor.execute(
+                    f"ALTER TABLE {table} ADD COLUMN display_name VARCHAR(255)"
+                )
+        conn.commit()
+
+        # Metadata sources are configurable without resetting existing databases.
+        columns = get_columns(cursor, "app_config")
+        for name, definition in (
+            (
+                "metadata_repository",
+                "VARCHAR(150) DEFAULT 'Nauder/floowandereeze-and-modding-etl'",
+            ),
+            ("metadata_branch", "VARCHAR(255) DEFAULT ''"),
+            ("metadata_last_source", "TEXT"),
+        ):
+            if name not in columns:
+                cursor.execute(f"ALTER TABLE app_config ADD COLUMN {name} {definition}")
+        conn.commit()
+
+        # New tables are additive and preserve existing assets and local edits.
+        from database.models import SummonAnimationAssetModel, SummonAnimationEditModel
+        from sqlalchemy.schema import CreateTable
+        from sqlalchemy.dialects.sqlite import dialect
+
+        for model in (SummonAnimationAssetModel, SummonAnimationEditModel):
+            cursor.execute(
+                str(
+                    CreateTable(model.__table__, if_not_exists=True).compile(
+                        dialect=dialect()
+                    )
+                )
+            )
+        conn.commit()
+
         # Add future migrations here following the same pattern
         # Migration 3: Example for future use
         # if "some_future_column" not in get_columns(cursor, "some_table"):

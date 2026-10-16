@@ -2,7 +2,15 @@
 
 The Card Icon Editor changes small card-related graphics stored inside Master Duel's shared card sprite atlas.
 
-![Card Icon Editor](../assets/ui/card_icon.png)
+![Editor with asset search](../assets/ui/card_icon.png)
+
+## Find an asset
+
+Results show asset names. Hover over a shortened label to see its full name. The selected asset's name also appears above the editor. Assets without a translated name retain their code.
+
+Type at least three characters in the search bar, then press **Enter**, click **Search**, or choose a completion suggestion. Search matches part of the name without case sensitivity. Clear the search bar to show all results again.
+
+After updating the app, use **Check** in [Configuration](config.md) to download the new names, then restart the app. Favorites and backups are preserved.
 
 ## Replace an icon
 

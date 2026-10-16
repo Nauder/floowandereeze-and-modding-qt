@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
 )
 from pyqttoast import ToastPreset
 
+from widgets.asset_search import add_asset_search
+from pages.models.named_asset_list_model import asset_name
 from database.objects import session
 from widgets.grip_splitter import GripSplitter
 from dialogs.simple_dialogs import show_color_dialog
@@ -28,7 +30,7 @@ from widgets.image_fit import InlineImageFitController
 
 
 class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
-    RESULT_ITEM_SIZE = QSize(104, 148)
+    RESULT_ITEM_SIZE = QSize(136, 184)
     RESULT_ICON_SIZE = QSize(90, 132)
     RESULTS_MIN_HEIGHT = 315
     SLEEVE_ASPECT_RATIO = 256 / 374
@@ -117,7 +119,9 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
         results_layout = QVBoxLayout(self.resultsPanel)
         results_layout.setContentsMargins(0, 0, 0, 0)
         results_layout.setSpacing(6)
-        results_layout.addLayout(self._build_results_header())
+        results_header = self._build_results_header()
+        results_layout.addLayout(results_header)
+        add_asset_search(self, results_header, results_layout, "sleeves")
         results_layout.addWidget(self.sleevesView, 1)
 
         self.sleeveSplitter = GripSplitter(QtCore.Qt.Orientation.Vertical, self)
@@ -379,7 +383,7 @@ class Sleeve(ResponsivePageMixin, QtWidgets.QWidget, Ui_Sleeve):
             fetch_bundle_thumb(self.selected.bundle, (256, 375)).pixmap(256, 375)
         )
         self.service.bundle = self.selected.bundle
-        self._set_editor_context(f"Editing {self.selected.bundle}")
+        self._set_editor_context(f"Editing {asset_name(self.selected)}")
 
         self.replaceButton.setEnabled(True)
         self.extractButton.setEnabled(True)

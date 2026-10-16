@@ -10,20 +10,19 @@ from os.path import join
 from threading import Thread
 
 from PIL import Image
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
 from UnityPy import load as unity_load
 from typing_extensions import override
 
 from database.models import CardIconModel
 from database.objects import session
-from pages.models.asset_list_model import AssetListModel
+from pages.models.named_asset_list_model import NamedAssetListModel
 from util.constants import APP_CONFIG, FILE, HIDDEN_ICON_NAME_PARTS
 
 logger = logging.getLogger(__name__)
 
 
-class CardIconListModel(AssetListModel):
+class CardIconListModel(NamedAssetListModel):
     """
     List model for card icon assets.
 
@@ -35,22 +34,6 @@ class CardIconListModel(AssetListModel):
         super().__init__(icons or [], CardIconModel)
         self.atlas_image = None
         self.refresh()
-
-    @staticmethod
-    def _display_name(name: str, max_length: int = 18) -> str:
-        """Return a compact name that keeps the icon grid aligned."""
-        for prefix in (
-            "GUI_ICON_",
-            "GUI_CARDPICTURE_",
-            "GUI_T_ICON1_",
-        ):
-            if name.upper().startswith(prefix):
-                name = name[len(prefix) :]
-                break
-
-        if len(name) <= max_length:
-            return name
-        return f"{name[: max_length - 3]}..."
 
     def _load_atlas_image(self, force_reload=False):
         """Load the card sprite atlas image only once and store in self._atlas_image."""
@@ -76,7 +59,7 @@ class CardIconListModel(AssetListModel):
     @override
     def refresh(self, force_reload=False):
         """Refresh the list of card icon assets from the database."""
-        icons = session.query(CardIconModel).order_by(CardIconModel.name).all()
+        icons = self.named_query(CardIconModel).all()
         self.assets = [
             icon
             for icon in icons
@@ -135,22 +118,6 @@ class CardIconListModel(AssetListModel):
             logger.exception("Error creating thumbnail for card icon %s", icon.name)
 
         return QIcon(":/ui/images/icon.png")  # Fallback icon
-
-    def data(self, index, role):
-        """Provide data for the list view."""
-        if role == Qt.DisplayRole:
-            asset = self.assets[index.row()]
-            return self._display_name(asset.name)
-
-        if role == Qt.ToolTipRole:
-            return self.assets[index.row()].name
-
-        if role == Qt.DecorationRole:
-            return (
-                self.assets[index.row()].thumb
-                if hasattr(self.assets[index.row()], "thumb")
-                else QIcon()
-            )
 
     def set_backup_state(self, asset_id: int, has_backup: bool):
         """Set backup state for an asset."""

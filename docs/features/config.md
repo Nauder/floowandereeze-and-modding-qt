@@ -1,8 +1,8 @@
 # Configuration
 
-Configuration controls the game path, app data, automatic backups, card-text maintenance, appearance, and settings used when writing Unity bundles.
+Configuration controls the game path, app data, automatic backups, card-text maintenance, appearance, and settings used when writing Unity bundles. Open it using the gear icon in the navigation toolbar.
 
-![Configuration page](../assets/ui/config.png)
+![Configuration page with an example game path](../assets/ui/config.png)
 
 ## Game Data
 
@@ -12,9 +12,15 @@ The path must be the active player-ID folder under Master Duel's `LocalData` dir
 
 After changing the path, restart the application so every editor loads data for that profile. See [Getting started](../getting-started.md#select-your-game-data) for an example path.
 
+### Metadata Source
+
+Use **Metadata Source** only if you need an alternative source for the app’s card and asset data. Enter the GitHub repository as `owner/repository` and, optionally, a **Branch**. Leave Branch blank to use the repository’s default. Choose **Save source** to save your selection, or **Use defaults** to return to `Nauder/floowandereeze-and-modding-etl`.
+
+Choose **Check** to download data from the selected source. Changing the source refreshes the data even if its version date is older, while preserving your saved edits and backups. After updating, choose **Refresh card list** in Summons or restart the app to refresh the other editors. An alternative source must provide data compatible with the app.
+
 ### App Data Version
 
-Choose **Check** to compare the installed data index with the current version and download updates when necessary. The update covers sleeves, cards, card icons, faces, wallpapers, fields, player icons, deck boxes, card metadata, and coins.
+Choose **Check** to compare the installed data index with the current version and download updates when necessary. The update covers sleeves, cards, card icons, faces, wallpapers, fields, player icons, deck boxes, card metadata, coins, and available summon animations.
 
 The update progress cannot be cancelled. Let all tasks finish, then restart the application if editor contents do not refresh immediately.
 
@@ -57,7 +63,16 @@ These settings affect replacements made after the setting changes. Some special 
 
 ## Safety notes
 
+Use the [Backups tab](backups.md) to view, selectively remove, export, or import saved backups by category, all files, or manual selection. **Clear Backups** removes the same inventory, including nested overframe backups.
+
 - Backups are not retroactive.
 - Game updates and other mods can overwrite changed bundles.
 - **Clear Backups** cannot be undone from within the app.
 - Selecting another player profile changes which game files the app modifies, but the app's saved preferences and edits remain in its local database.
+
+Choose **Check** to update accessory names, then restart the app to refresh labels and search suggestions. See [Sleeves](sleeve.md), [Player Icons](icon.md), [Card Icons](card-icon.md), [Coins](coin.md), and [Deck Boxes](deck-box.md) for search instructions.
+
+
+### Summon animation data
+
+Choose **Check** to download available summon animation data. Some data sources may not include summon animations; other editors will still work. The [Summon Animation Editor](summon-animation.md) uses your configured game version and game path automatically.

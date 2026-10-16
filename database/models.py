@@ -7,7 +7,7 @@ including configuration, card data, and various UI assets.
 from typing import ClassVar
 
 from PySide6.QtGui import QIcon
-from sqlalchemy import String, Integer, Boolean, LargeBinary, Text
+from sqlalchemy import String, Integer, Boolean, LargeBinary, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database.objects import base, engine
@@ -56,6 +56,11 @@ class AppConfig(base):
     create_backup: Mapped[bool] = mapped_column(Boolean, default=False)
     background_mode: Mapped[str] = mapped_column(String(10), default="stretched")
     asset_region: Mapped[str] = mapped_column(String(3), default="tcg")
+    metadata_repository: Mapped[str] = mapped_column(
+        String(150), default="Nauder/floowandereeze-and-modding-etl"
+    )
+    metadata_branch: Mapped[str] = mapped_column(String(255), default="")
+    metadata_last_source: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 class SleeveModel(UnityAsset, base):
@@ -69,6 +74,8 @@ class SleeveModel(UnityAsset, base):
 
     __tablename__ = "sleeve"
 
+    display_name: Mapped[str] = mapped_column(String(255), nullable=True)
+
     bundle: Mapped[str] = mapped_column(String(8), unique=True)
     thumb: QIcon = QIcon()
 
@@ -77,6 +84,8 @@ class SleeveOcgModel(UnityAsset, base):
     """OCG counterpart to :class:`SleeveModel`."""
 
     __tablename__ = "sleeve_ocg"
+
+    display_name: Mapped[str] = mapped_column(String(255), nullable=True)
 
     bundle: Mapped[str] = mapped_column(String(8), unique=True)
     thumb: QIcon = QIcon()
@@ -153,6 +162,8 @@ class CardIconModel(UnityAsset, base):
 
     __tablename__ = "card_icon"
 
+    display_name: Mapped[str] = mapped_column(String(255), nullable=True)
+
     name: Mapped[str] = mapped_column(String(255))
     width: Mapped[int] = mapped_column(Integer)
     height: Mapped[int] = mapped_column(Integer)
@@ -172,6 +183,8 @@ class IconModel(UnityAsset, base):
     """
 
     __tablename__ = "icon"
+
+    display_name: Mapped[str] = mapped_column(String(255), nullable=True)
 
     name: Mapped[str] = mapped_column(String(255), unique=True)
     bundle_small: Mapped[str] = mapped_column(String(8), unique=True)
@@ -245,6 +258,8 @@ class DeckBoxModel(UnityAsset, base):
 
     __tablename__ = "deck_box"
 
+    display_name: Mapped[str] = mapped_column(String(255), nullable=True)
+
     name: Mapped[str] = mapped_column(String(255), unique=True)
     small: Mapped[str] = mapped_column(String(255), unique=True)
     medium: Mapped[str] = mapped_column(String(255), unique=True)
@@ -265,11 +280,59 @@ class CoinModel(UnityAsset, base):
 
     __tablename__ = "coin"
 
+    display_name: Mapped[str] = mapped_column(String(255), nullable=True)
+
     name: Mapped[str] = mapped_column(String(255), unique=True)
     bundle_small: Mapped[str] = mapped_column(String(8), unique=True)
     bundle_medium: Mapped[str] = mapped_column(String(8), unique=True)
     bundle_big: Mapped[str] = mapped_column(String(8), unique=True)
     thumb: QIcon = QIcon()
+
+
+class SummonAnimationAssetModel(base):
+    """One remote container component; object IDs remain decimal text."""
+
+    __tablename__ = "summon_animation_asset"
+    __table_args__ = (
+        UniqueConstraint(
+            "game_region", "source", "bundle", "asset_path", name="uq_summon_component"
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    game_region: Mapped[str] = mapped_column(Text, nullable=False)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    bundle: Mapped[str] = mapped_column(Text, nullable=False)
+    asset_path: Mapped[str] = mapped_column(Text, nullable=False)
+    card_id: Mapped[str] = mapped_column(Text, nullable=True)
+    display_name: Mapped[str] = mapped_column(Text, nullable=True)
+    asset_region: Mapped[str] = mapped_column(Text, nullable=False)
+    quality: Mapped[str] = mapped_column(Text, nullable=True)
+    scale: Mapped[str] = mapped_column(Text, nullable=True)
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+    object_type: Mapped[str] = mapped_column(Text, nullable=True)
+    path_id: Mapped[str] = mapped_column(Text, nullable=True)
+    serialized_file: Mapped[str] = mapped_column(Text, nullable=True)
+    asset_name: Mapped[str] = mapped_column(Text, nullable=True)
+    spine_version: Mapped[str] = mapped_column(Text, nullable=True)
+    animation_names: Mapped[str] = mapped_column(Text, nullable=True)
+    atlas_pages: Mapped[str] = mapped_column(Text, nullable=True)
+    external_references: Mapped[str] = mapped_column(Text, nullable=True)
+    width: Mapped[int] = mapped_column(Integer, nullable=True)
+    height: Mapped[int] = mapped_column(Integer, nullable=True)
+
+
+class SummonAnimationEditModel(base):
+    """Local state for a physical bundle, independent of metadata refresh."""
+
+    __tablename__ = "summon_animation_edit"
+    __table_args__ = (
+        UniqueConstraint("installation", "relative_path", name="uq_summon_edit"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    installation: Mapped[str] = mapped_column(Text)
+    relative_path: Mapped[str] = mapped_column(Text)
+    manifest: Mapped[str] = mapped_column(Text)
+    modified: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 base.metadata.create_all(engine)

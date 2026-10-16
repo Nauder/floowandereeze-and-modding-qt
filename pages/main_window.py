@@ -22,6 +22,7 @@ from pages.face import Face
 from pages.field import Field
 from pages.icon import Icon
 from pages.sleeve import Sleeve
+from pages.summon_animation import SummonAnimation
 from pages.ui.main_window import Ui_MainWindow
 from pages.wallpaper import Wallpaper
 from util.python_utils import is_valid_game_path
@@ -83,6 +84,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 Wallpaper,
                 Coin,
                 DeckBox,
+                SummonAnimation,
             ]
 
             # Always load the Config page first
@@ -126,6 +128,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.mainStack.addWidget(Config())
             self.toolBar.setEnabled(False)
 
+    def closeEvent(self, event):
+        """Keep worker-owned pages alive while bundle writes finish."""
+        for page in self.findChildren(SummonAnimation):
+            if page.is_busy():
+                event.ignore()
+                page.status.setText(
+                    "Wait for the animation operation to finish before closing."
+                )
+                return
+        super().closeEvent(event)
+
     def _connect_menu_callbacks(self) -> None:
         """Connects the menu buttons to their respective pages in the stack."""
         for index, button in enumerate(self._navigation_buttons):
@@ -157,6 +170,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actionwallpaper_button,
             self.actioncoin_button,
             self.actiondeck_box_button,
+            self.actionsummon_animation_button,
         ]
         labels = [
             "Configuration",
@@ -170,6 +184,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "Wallpapers",
             "Coins",
             "Deck Boxes",
+            "Summons",
         ]
         action_group = QtGui.QActionGroup(self)
         action_group.setExclusive(True)

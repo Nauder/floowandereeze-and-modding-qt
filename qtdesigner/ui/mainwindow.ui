@@ -131,6 +131,7 @@ QPushButton:hover {
    <addaction name="actionwallpaper_button"/>
    <addaction name="actioncoin_button"/>
    <addaction name="actiondeck_box_button"/>
+   <addaction name="actionsummon_animation_button"/>
   </widget>
   <action name="actionconfig_button">
    <property name="icon">
@@ -306,7 +307,7 @@ QPushButton:hover {
   <action name="actiondeck_box_button">
    <property name="icon">
     <iconset resource="../resources.qrc">
-     <normaloff>:/ui/images/deck_box.svg</normaloff>:/ui/images/deck_box.svg</iconset>
+     <normaloff>:/ui/images/deck_box.png</normaloff>:/ui/images/deck_box.png</iconset>
    </property>
    <property name="text">
     <string>Deck Boxes</string>
@@ -320,6 +321,11 @@ QPushButton:hover {
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
+  </action>
+  <action name="actionsummon_animation_button">
+   <property name="icon"><iconset resource="../resources.qrc"><normaloff>:/ui/images/animation.png</normaloff>:/ui/images/animation.png</iconset></property>
+   <property name="text"><string>Summon Animations</string></property>
+   <property name="checkable"><bool>true</bool></property>
   </action>
  </widget>
  <customwidgets>

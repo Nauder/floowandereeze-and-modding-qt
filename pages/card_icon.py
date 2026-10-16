@@ -24,6 +24,8 @@ from PySide6.QtWidgets import (
 )
 from pyqttoast import ToastPreset
 
+from widgets.asset_search import add_asset_search
+from pages.models.named_asset_list_model import asset_name
 from database.models import CardIconModel
 from widgets.grip_splitter import GripSplitter
 from pages.base_responsive_page import ResponsivePageMixin
@@ -46,7 +48,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
     It provides functionality to select, preview, replace, extract, and restore card icons.
     """
 
-    RESULT_ITEM_SIZE = QSize(116, 132)
+    RESULT_ITEM_SIZE = QSize(136, 152)
     RESULT_ICON_SIZE = QSize(96, 96)
     RESULTS_MIN_HEIGHT = 315
 
@@ -144,7 +146,9 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
         results_layout = QVBoxLayout(self.resultsPanel)
         results_layout.setContentsMargins(0, 0, 0, 0)
         results_layout.setSpacing(6)
-        results_layout.addLayout(self._build_results_header())
+        results_header = self._build_results_header()
+        results_layout.addLayout(results_header)
+        add_asset_search(self, results_header, results_layout, "card icons")
         results_layout.addWidget(self.iconsList, 1)
 
         self.cardIconSplitter = GripSplitter(QtCore.Qt.Orientation.Vertical, self)
@@ -375,7 +379,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
         self.image_fit.refresh_target_size()
 
         # Update UI
-        self._set_editor_context(f"Editing {self.selected.name}")
+        self._set_editor_context(f"Editing {asset_name(self.selected)}")
 
         # Load current icon display
         self._load_current_icon_display()
@@ -454,7 +458,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
             show_toast(
                 self,
                 "Icon Extraction",
-                f'Icon "{self.selected.name}" extracted to the "icons" folder',
+                f'Icon "{asset_name(self.selected)}" extracted to the "icons" folder',
                 ToastPreset.SUCCESS_DARK,
             )
         except Exception as e:
@@ -484,14 +488,14 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
             show_toast(
                 self,
                 "Backup",
-                f'Icon "{self.selected.name}" restored successfully',
+                f'Icon "{asset_name(self.selected)}" restored successfully',
                 ToastPreset.SUCCESS_DARK,
             )
         else:
             show_toast(
                 self,
                 "Backup",
-                f'Icon "{self.selected.name}" backup not found',
+                f'Icon "{asset_name(self.selected)}" backup not found',
                 ToastPreset.WARNING_DARK,
             )
 
@@ -531,7 +535,7 @@ class CardIcon(ResponsivePageMixin, QtWidgets.QWidget, Ui_CardIcon):
             show_toast(
                 self,
                 "Card Icon",
-                f'Icon "{self.selected.name}" replacement successful',
+                f'Icon "{asset_name(self.selected)}" replacement successful',
                 ToastPreset.SUCCESS_DARK,
             )
 

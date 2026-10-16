@@ -6,6 +6,7 @@
     --noconsole `
     --icon "./qtdesigner/images/icon.ico" `
     --collect-all "UnityPy" `
+    --collect-all "av" `
     --collect-binaries "fmod_toolkit" `
     --collect-data "archspec" `
     --hidden-import "fastparquet" `

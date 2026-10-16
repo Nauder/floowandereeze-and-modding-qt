@@ -20,6 +20,8 @@ from pyqttoast import ToastPreset
 from database.objects import session
 from widgets.grip_splitter import GripSplitter
 from pages.base_responsive_page import ResponsivePageMixin
+from widgets.asset_search import add_asset_search
+from pages.models.named_asset_list_model import asset_name
 from pages.models.deck_box_list_model import DeckBoxListModel
 from pages.ui.deck_box import Ui_DeckBox
 from services.deck_box_service import DeckBoxService, DECK_BOX_VARIANTS
@@ -33,7 +35,7 @@ from widgets.image_fit import InlineImageFitController
 class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
     """Edit deck box orientations with the shared editor layout."""
 
-    RESULT_ITEM_SIZE = QSize(116, 132)
+    RESULT_ITEM_SIZE = QSize(136, 152)
     RESULT_ICON_SIZE = QSize(96, 96)
     RESULTS_MIN_HEIGHT = 315
 
@@ -41,7 +43,7 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
         QtWidgets.QWidget.__init__(self)
         ResponsivePageMixin.__init__(self)
         self.setupUi(self)
-        placeholder = QIcon(":/ui/images/deck_box.svg").pixmap(512, 512)
+        placeholder = QIcon(":/ui/images/deck_box.png").pixmap(512, 512)
         self.current.setPixmap(placeholder)
         self.preview.setPixmap(placeholder)
 
@@ -126,7 +128,9 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
         results_layout = QVBoxLayout(self.resultsPanel)
         results_layout.setContentsMargins(0, 0, 0, 0)
         results_layout.setSpacing(6)
-        results_layout.addLayout(self._build_results_header())
+        results_header = self._build_results_header()
+        results_layout.addLayout(results_header)
+        add_asset_search(self, results_header, results_layout, "deck boxes")
         results_layout.addWidget(self.deck_boxesView, 1)
 
         self.deck_boxSplitter = GripSplitter(Qt.Orientation.Vertical, self)
@@ -336,7 +340,7 @@ class DeckBox(ResponsivePageMixin, QtWidgets.QWidget, Ui_DeckBox):
             button.setEnabled(False)
         self.current.clear()
         self._set_editor_context(
-            f"Editing {self.selected.name} · {self.variantBox.currentText()}"
+            f"Editing {asset_name(self.selected)} · {self.variantBox.currentText()}"
         )
         if not self.service.bundle:
             return

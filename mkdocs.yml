@@ -34,6 +34,8 @@ nav:
   - Features:
       - Configuration: features/config.md
       - Card Editor: features/card.md
+      - Summon Animation Editor: features/summon-animation.md
+      - GIF, MP4 and PNG Summon Import: features/summon-frames.md
       - Regex Mass Editing: card-mass-edit.md
       - Card Icon Editor: features/card-icon.md
       - Card Face Editor: features/face.md

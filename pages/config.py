@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog,
     QFileDialog,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QProgressDialog,
@@ -17,7 +18,17 @@ from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from pyqttoast import ToastPreset
 
 from database.objects import session
-from database.models import CardModel, CardOcgModel, SleeveOcgModel
+from database.models import (
+    CardModel,
+    CardOcgModel,
+    SleeveModel,
+    SleeveOcgModel,
+    IconModel,
+    CardIconModel,
+    CoinModel,
+    DeckBoxModel,
+    SummonAnimationAssetModel,
+)
 from dialogs.game_path_select_dialog import GamePathSelectDialog
 from dialogs.simple_dialogs import show_confirmation_dialog
 from pages.models.asset_list_model import AssetListModel
@@ -36,8 +47,15 @@ from services.update_service import (
     get_github_raw_file,
     update_card_metadata,
     update_coins,
+    update_summon_animations,
 )
 from util.constants import APP_CONFIG, IMAGE_FILTER
+from util.metadata_source import (
+    DEFAULT_METADATA_REPOSITORY,
+    DEFAULT_METADATA_BRANCH,
+    normalize_metadata_source,
+    metadata_source_key,
+)
 from util.python_utils import (
     find_steam_master_duel_paths,
     get_instances_of_subclasses,
@@ -156,6 +174,10 @@ class Config(QWidget, Ui_Config):
         self.gameButton.clicked.connect(self._get_game_path)
         self.autoDetectGameButton.clicked.connect(self._auto_detect_game_path)
         self.updateButton.clicked.connect(self._check_update)
+        self.saveMetadataSourceButton.clicked.connect(
+            lambda: self._save_metadata_source()
+        )
+        self.resetMetadataSourceButton.clicked.connect(self._reset_metadata_source)
         self.bgButton.clicked.connect(self._get_background)
         self.bgResetButton.clicked.connect(self._reset_background)
         self.backupBox.clicked.connect(self._set_use_backups)
@@ -187,18 +209,19 @@ class Config(QWidget, Ui_Config):
         self.updateLine.setPlaceholderText("No data version installed")
 
         sections = [
-            (6, "Asset Build Settings"),
-            (5, "Backups"),
-            (4, "Card Text"),
-            (1, "Appearance"),
             (0, "Game Data"),
+            (4, "Appearance"),
+            (9, "Card Text"),
+            (12, "Backups"),
+            (15, "Asset Build Settings"),
+            (19, "Metadata Source"),
         ]
         for index, title in sections:
             self._insert_config_section(index, title)
 
         region_label = QLabel("Game Version:", self)
         region_label.setToolTip("Select the card and sleeve data for your game version")
-        self.verticalLayout_5.insertWidget(2, region_label)
+        self.maincontent.addWidget(region_label, 2, 0)
 
         region_widget = QWidget(self)
         region_layout = QHBoxLayout(region_widget)
@@ -211,20 +234,24 @@ class Config(QWidget, Ui_Config):
         region_layout.addWidget(self.tcg_region_button)
         region_layout.addWidget(self.ocg_region_button)
         region_layout.addStretch(1)
-        self.verticalLayout_3.insertWidget(2, region_widget)
+        self.maincontent.addWidget(region_widget, 2, 1)
+        self.maincontent.setColumnStretch(1, 1)
 
         set_button_roles(self)
 
     def _insert_config_section(self, index: int, title: str) -> None:
-        label = QLabel(title, self)
-        label.setObjectName(f"{title.replace(' ', '').lower()}SectionLabel")
-        label.setStyleSheet("font-weight: 600; color: #ffffff; margin-top: 10px;")
-        self.verticalLayout_5.insertWidget(index, label)
+        if index:
+            separator = QFrame(self.configPanel)
+            separator.setObjectName(f"{title.replace(' ', '').lower()}Separator")
+            separator.setFixedHeight(1)
+            separator.setStyleSheet("background-color: rgba(255, 255, 255, 0.18);")
+            self.maincontent.addWidget(separator, index - 1, 0, 1, 2)
+            self.maincontent.setRowMinimumHeight(index - 1, 9)
 
-        spacer = QLabel("", self)
-        spacer.setObjectName(f"{title.replace(' ', '').lower()}SectionSpacer")
-        spacer.setStyleSheet("margin-top: 10px;")
-        self.verticalLayout_3.insertWidget(index, spacer)
+        label = QLabel(title, self.configPanel)
+        label.setObjectName(f"{title.replace(' ', '').lower()}SectionLabel")
+        label.setStyleSheet("font-weight: 600; color: #ffffff; margin-top: 4px;")
+        self.maincontent.addWidget(label, index, 0, 1, 2)
 
     def _set_packer(self, radio):
         # Ignore the event if it was turned off
@@ -342,6 +369,12 @@ class Config(QWidget, Ui_Config):
             )
 
     def _set_variables(self):
+        self.metadataRepositoryLine.setText(
+            APP_CONFIG.metadata_repository or DEFAULT_METADATA_REPOSITORY
+        )
+        self.metadataBranchLine.setText(
+            APP_CONFIG.metadata_branch or DEFAULT_METADATA_BRANCH
+        )
         self.gameLine.setText(APP_CONFIG.game_path)
         self.bgLine.setText(APP_CONFIG.background_path)
         self.updateLine.setText(APP_CONFIG.version)
@@ -369,9 +402,43 @@ class Config(QWidget, Ui_Config):
         self.ocg_region_button.setChecked(selected_region == "ocg")
         self.tcg_region_button.setChecked(selected_region != "ocg")
 
+    def _save_metadata_source(self, notify=True):
+        """Persist a validated source; do not invalidate edits or downloaded data."""
+        try:
+            repository, branch = normalize_metadata_source(
+                self.metadataRepositoryLine.text(), self.metadataBranchLine.text()
+            )
+        except ValueError as error:
+            show_toast(self, "Metadata Source", str(error), ToastPreset.WARNING_DARK)
+            return False
+        APP_CONFIG.metadata_repository = repository
+        APP_CONFIG.metadata_branch = branch
+        session.commit()
+        self.metadataRepositoryLine.setText(repository)
+        self.metadataBranchLine.setText(branch)
+        if notify:
+            show_toast(
+                self,
+                "Metadata Source",
+                "Source saved. Choose Check to refresh metadata.",
+                ToastPreset.SUCCESS_DARK,
+            )
+        return True
+
+    def _reset_metadata_source(self):
+        """Restore the original repository and its default-branch behavior."""
+        self.metadataRepositoryLine.setText(DEFAULT_METADATA_REPOSITORY)
+        self.metadataBranchLine.setText(DEFAULT_METADATA_BRANCH)
+        self._save_metadata_source()
+
     def _check_update(self):
+        if not self._save_metadata_source(notify=False):
+            return
         if APP_CONFIG.game_path is not None:
-            self._get_data()
+            try:
+                self._get_data()
+            except (OSError, ValueError, RuntimeError) as error:
+                show_toast(self, "Update", str(error), ToastPreset.ERROR_DARK)
         else:
             show_toast(
                 self,
@@ -381,6 +448,9 @@ class Config(QWidget, Ui_Config):
             )
 
     def _get_data(self):
+        source = metadata_source_key(
+            APP_CONFIG.metadata_repository, APP_CONFIG.metadata_branch
+        )
         remote = get_github_raw_file("data/version.txt")
         local = APP_CONFIG.version
         ocg_data_missing = (
@@ -388,8 +458,23 @@ class Config(QWidget, Ui_Config):
             or session.query(SleeveOcgModel.id).first() is None
         )
 
+        names_missing = any(
+            session.query(model.id).filter(model.display_name.is_not(None)).first()
+            is None
+            for model in (
+                SleeveModel,
+                IconModel,
+                CardIconModel,
+                CoinModel,
+                DeckBoxModel,
+            )
+        )
+
         if (
             not local
+            or APP_CONFIG.metadata_last_source != source
+            or session.query(SummonAnimationAssetModel.id).first() is None
+            or names_missing
             or ocg_data_missing
             or datetime.strptime(local.strip(), "%Y-%m-%d").date()
             < datetime.strptime(remote.strip(), "%Y-%m-%d").date()
@@ -405,6 +490,7 @@ class Config(QWidget, Ui_Config):
                 ("deck boxes", update_boxes),
                 ("card metadata", update_card_metadata),
                 ("coins", update_coins),
+                ("summon animations", update_summon_animations),
             ]
 
             # Create progress dialog
@@ -418,20 +504,40 @@ class Config(QWidget, Ui_Config):
             )  # Remove cancel button since we can't cancel the update
             progress.show()
 
+            errors = []
+
+            def run_update(task):
+                try:
+                    task()
+                except Exception as error:
+                    logger.exception("Metadata update failed")
+                    errors.append(str(error))
+
             for task_index, (task_name, update_task) in enumerate(
                 update_tasks, start=1
             ):
                 progress.setLabelText(
                     f"Updating {task_name} ({task_index}/{len(update_tasks)})"
                 )
-                thread = Thread(target=update_task)
+                thread = Thread(target=run_update, args=(update_task,))
                 thread.start()
                 thread.join()
                 progress.setValue(task_index)
 
             progress.close()
 
+            if errors:
+                session.rollback()
+                show_toast(
+                    self,
+                    "Update",
+                    f"Data update failed: {errors[0]}",
+                    ToastPreset.ERROR_DARK,
+                )
+                return
+
             APP_CONFIG.version = remote
+            APP_CONFIG.metadata_last_source = source
             session.commit()
 
             self.updateLine.setText(APP_CONFIG.version)

@@ -2,7 +2,17 @@
 
 The Card Sleeve Editor replaces sleeve textures and can add an optional colored border.
 
-![Sleeve Editor](../assets/ui/sleeve.png)
+![Editor with asset search](../assets/ui/sleeve.png)
+
+## Find an asset
+
+Results show asset names. Hover over a shortened label to see its full name. The selected asset's name also appears above the editor. Assets without a translated name retain their code.
+
+Type at least three characters in the search bar, then press **Enter**, click **Search**, or choose a completion suggestion. Search matches part of the name without case sensitivity. Clear the search bar to show all results again.
+
+**Favorites** shows all favorites independently of the search; turning it off restores the last executed search.
+
+After updating the app, use **Check** in [Configuration](config.md) to download the new names, then restart the app. Favorites and backups are preserved.
 
 ## Replace a sleeve
 

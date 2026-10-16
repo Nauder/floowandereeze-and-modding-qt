@@ -5,10 +5,11 @@ source.
 
 import requests
 from requests.exceptions import RequestException, Timeout, HTTPError
-from pandas import read_parquet, DataFrame
+from pandas import read_parquet, DataFrame, isna
 from pandas.errors import EmptyDataError
 
 from database.models import (
+    AppConfig,
     SleeveModel,
     SleeveOcgModel,
     CardModel,
@@ -23,17 +24,38 @@ from database.models import (
     CoinModel,
 )
 from database.objects import session
+from util.metadata_source import (
+    DEFAULT_METADATA_REPOSITORY,
+    DEFAULT_METADATA_BRANCH,
+    normalize_metadata_source,
+)
 
 
-def get_github_raw_file(
-    path: str, owner="Nauder", repo="floowandereeze-and-modding-etl"
-) -> str:
+def _github_source(owner=None, repo=None, branch=None):
+    """Read persisted settings for version text and every metadata dataset."""
+    config = session.query(AppConfig).first()
+    repository, selected_branch = normalize_metadata_source(
+        getattr(config, "metadata_repository", None) or DEFAULT_METADATA_REPOSITORY,
+        getattr(config, "metadata_branch", None) or DEFAULT_METADATA_BRANCH,
+    )
+    selected_owner, selected_repo = repository.split("/")
+    owner = selected_owner if owner is None else owner
+    repo = selected_repo if repo is None else repo
+    _, branch = normalize_metadata_source(
+        f"{owner}/{repo}", selected_branch if branch is None else branch
+    )
+    return owner, repo, {"ref": branch} if branch else {}
+
+
+def get_github_raw_file(path: str, owner=None, repo=None, branch=None) -> str:
     """
     Fetch a raw file from a private GitHub repository using GitHub REST API.
 
     :param owner: GitHub username or organization name that owns the repository.
     :param repo: Repository name.
     :param path: Path to the file in the repository.
+    :param branch: Branch/ref override; blank follows the repository default.
+        Omitted source arguments use saved Configuration settings.
 
     :return: The raw content of the file.
     :raises HTTPError: If the GitHub API request fails
@@ -41,6 +63,7 @@ def get_github_raw_file(
     :raises RequestException: For other request-related errors
     :raises ValueError: If the response doesn't contain a download URL
     """
+    owner, repo, params = _github_source(owner, repo, branch)
     # GitHub API URL for repository contents
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
 
@@ -49,7 +72,7 @@ def get_github_raw_file(
 
     try:
         # Send a GET request to fetch file metadata
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, params=params, timeout=10)
         response.raise_for_status()  # Raises HTTPError for bad responses
 
         file_data = response.json()
@@ -69,20 +92,22 @@ def get_github_raw_file(
     except Timeout as e:
         raise Timeout(f"Request timed out: {str(e)}") from e
     except HTTPError as e:
-        raise HTTPError(f"GitHub API request failed: {str(e)}") from e
+        raise HTTPError(
+            f"GitHub API request failed: {str(e)}", response=e.response
+        ) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {str(e)}") from e
 
 
-def get_github_parquet_file(
-    path: str, owner="Nauder", repo="floowandereeze-and-modding-etl"
-) -> DataFrame:
+def get_github_parquet_file(path: str, owner=None, repo=None, branch=None) -> DataFrame:
     """
     Fetch a raw file from a private GitHub repository using GitHub REST API.
 
     :param owner: GitHub username or organization name that owns the repository.
     :param repo: Repository name.
     :param path: Path to the file in the repository.
+    :param branch: Branch/ref override; blank follows the repository default.
+        Omitted source arguments use saved Configuration settings.
 
     :return: The raw content of the file as a pandas DataFrame.
     :raises HTTPError: If the GitHub API request fails
@@ -91,6 +116,7 @@ def get_github_parquet_file(
     :raises ValueError: If the response doesn't contain a download URL
     :raises EmptyDataError: If the parquet file is empty or invalid
     """
+    owner, repo, params = _github_source(owner, repo, branch)
     # GitHub API URL for repository contents
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
 
@@ -99,7 +125,7 @@ def get_github_parquet_file(
 
     try:
         # Send a GET request to fetch file metadata
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, params=params, timeout=10)
         response.raise_for_status()
 
         file_data = response.json()
@@ -115,7 +141,9 @@ def get_github_parquet_file(
     except Timeout as e:
         raise Timeout(f"Request timed out: {str(e)}") from e
     except HTTPError as e:
-        raise HTTPError(f"GitHub API request failed: {str(e)}") from e
+        raise HTTPError(
+            f"GitHub API request failed: {str(e)}", response=e.response
+        ) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {str(e)}") from e
     except EmptyDataError as e:
@@ -137,6 +165,13 @@ def _merge_metadata(model, remote_data: DataFrame, key: str, columns: dict) -> N
     )
     for _, row in remote_data.iterrows():
         metadata = {attribute: row[column] for attribute, column in columns.items()}
+        if hasattr(model, "display_name"):
+            column = (
+                "name" if model in (SleeveModel, SleeveOcgModel) else "display_name"
+            )
+            if column in remote_data.columns:
+                value = row[column]
+                metadata["display_name"] = None if isna(value) else value
         identity = metadata[key]
         record = records.get(identity)
         if record is None:
@@ -280,3 +315,52 @@ def update_card_icons() -> None:
         "name",
         {"name": "name", "x": "x", "y": "y", "width": "width", "height": "height"},
     )
+
+
+def update_summon_animations(remote_data=None, db_session=None) -> bool:
+    """Atomically merge composite identities without touching local edit records.
+
+    A missing optional ETL file is supported; malformed existing data is an error.
+    The caller owns the outer transaction, like other metadata refresh functions.
+    """
+    from database.models import SummonAnimationAssetModel
+    from unity.summon_metadata import COLUMNS, identity, validate_row
+
+    target = db_session if db_session is not None else session
+    if remote_data is None:
+        try:
+            remote_data = get_github_parquet_file("data/summon_animations.parquet")
+        except HTTPError as error:
+            if error.response is not None and error.response.status_code == 404:
+                return False
+            raise
+    if set(COLUMNS) - set(remote_data.columns):
+        raise ValueError("Summon animation dataset has missing columns.")
+    rows, seen = [], set()
+    for values in remote_data.to_dict("records"):
+        row = validate_row({k: None if isna(values[k]) else values[k] for k in COLUMNS})
+        key = identity(row)
+        if key in seen:
+            raise ValueError("Duplicate summon component identity in dataset.")
+        seen.add(key)
+        rows.append(row)
+    connection = target.connection()
+    if (
+        connection.dialect.name == "sqlite"
+        and not connection.connection.driver_connection.in_transaction
+    ):
+        # SQLite otherwise commits an outermost SAVEPOINT on release.
+        connection.exec_driver_sql("BEGIN")
+    with target.begin_nested():
+        records = {
+            identity({k: getattr(record, k) for k in COLUMNS}): record
+            for record in target.query(SummonAnimationAssetModel).all()
+        }
+        for row in rows:
+            record = records.get(identity(row))
+            if record is None:
+                target.add(SummonAnimationAssetModel(**row))
+            else:
+                for key, value in row.items():
+                    setattr(record, key, value)
+    return True
