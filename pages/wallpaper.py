@@ -30,6 +30,7 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
             QPixmap.fromImage(QImage(":ui/images/wallpaper_preview.png"))
         )
         self.main_content.addWidget(self.preview)
+        self._configure_asset_layout()
         configure_editor_chrome(
             self,
             current_widget=self.preview,
@@ -54,6 +55,20 @@ class Wallpaper(QtWidgets.QWidget, Ui_Wallpaper):
         self.setAcceptDrops(True)
 
         self._connect_callbacks()
+
+    def _configure_asset_layout(self):
+        """Keep the selector readable when large artwork changes the preview hint."""
+        self.wallpaperView.setFixedWidth(240)
+        self.wallpaperView.setIconSize(QSize(208, 150))
+        self.wallpaperView.setGridSize(QSize(224, 166))
+        self.wallpaperView.setFlow(QtWidgets.QListView.Flow.TopToBottom)
+        self.wallpaperView.setWrapping(False)
+        self.preview.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Ignored,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
+        self.main_content.setStretch(0, 0)
+        self.main_content.setStretch(1, 1)
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         """Accepts drag and drop of image files."""

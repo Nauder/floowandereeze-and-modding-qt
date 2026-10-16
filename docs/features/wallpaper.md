@@ -4,6 +4,8 @@ The Wallpaper Editor changes home-screen wallpaper assets, which use separate fo
 
 ![Wallpaper Editor](../assets/ui/wallpaper.png)
 
+The scrollable wallpaper selector stays 240 logical pixels wide on the left, with complete thumbnails. The selected artwork uses the remaining width without squeezing the list, including when the window is maximized.
+
 ## Replace a wallpaper
 
 1. Select a wallpaper from the list.
