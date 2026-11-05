@@ -213,7 +213,9 @@ class AssetNameTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             path = os.path.join(folder, "assets.db")
             with closing(sqlite3.connect(path)) as connection:
-                connection.execute("CREATE TABLE app_config (id INTEGER PRIMARY KEY)")
+                connection.execute(
+                    "CREATE TABLE app_config (id INTEGER PRIMARY KEY, version VARCHAR(100))"
+                )
                 for table in (
                     "sleeve",
                     "sleeve_ocg",

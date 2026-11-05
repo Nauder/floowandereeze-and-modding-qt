@@ -12,6 +12,8 @@ Type at least three characters in the search bar, then press **Enter**, click **
 
 After updating the app, use **Check** in [Configuration](config.md) to download the new names, then restart the app. Favorites and backups are preserved.
 
+When upgrading from an older version, run **Check** before using Card Icons, even if you previously downloaded the latest app data. This downloads the icon dimensions and atlas positions needed for previews and editing. Your favorites and backup records are retained.
+
 ## Replace an icon
 
 1. Select an icon from **Results**.

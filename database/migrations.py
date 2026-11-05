@@ -71,6 +71,23 @@ def run_migrations(db_path: str = "database.db") -> None:
                 cursor.execute(f"ALTER TABLE app_config ADD COLUMN {name} {definition}")
         conn.commit()
 
+        # Older card icon tables predate persisted atlas coordinates. Keep their
+        # IDs and local state, then force Check to fetch real atlas dimensions
+        # even when the saved metadata version already matches the remote one.
+        columns = get_columns(cursor, "card_icon")
+        missing_coordinates = [
+            name for name in ("width", "height", "x", "y") if name not in columns
+        ]
+        if columns and missing_coordinates:
+            logger.info("Migrating database: Adding card icon atlas coordinates")
+            cursor.execute("BEGIN")
+            for name in missing_coordinates:
+                cursor.execute(
+                    f"ALTER TABLE card_icon ADD COLUMN {name} INTEGER NOT NULL DEFAULT 0"
+                )
+            cursor.execute("UPDATE app_config SET version = NULL")
+            conn.commit()
+
         # New tables are additive and preserve existing assets and local edits.
         from database.models import SummonAnimationAssetModel, SummonAnimationEditModel
         from sqlalchemy.schema import CreateTable
