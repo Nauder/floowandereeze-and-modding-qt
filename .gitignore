@@ -310,3 +310,5 @@ cython_debug/
 /backups
 /database.db
 dev.session.sql
+
+AGENTS.md
