@@ -4,6 +4,7 @@ from pathlib import Path
 from hashlib import sha256
 from tempfile import NamedTemporaryFile
 import os
+import json
 
 from UnityPy import load as unity_load
 
@@ -79,6 +80,70 @@ class FullArtService:
             Path("backups") / "cards" / "full_art" / account / f"{self.path.name}.bytes"
         )
 
+    def _choices_path(self, game_path):
+        account = sha256(str(Path(game_path).resolve()).encode()).hexdigest()[:16]
+        return Path("backups") / "cards" / "full_art" / account / "choices.json"
+
+    def saved_choices(self, game_path):
+        """Return explicit framing choices for the selected profile."""
+        if not game_path:
+            raise ValueError("Select a game path first.")
+        path = self._choices_path(game_path)
+        if not path.exists():
+            return {}
+        try:
+            choices = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(choices, dict):
+                raise ValueError
+            result = {}
+            for key, entry in choices.items():
+                art_id = int(key)
+                if str(art_id) != key or not 0 < art_id <= 65535:
+                    raise ValueError
+                if entry is not None and (
+                    not isinstance(entry, list)
+                    or len(entry) != 2
+                    or any(
+                        type(value) is not int or not 0 <= value <= 65535
+                        for value in entry
+                    )
+                    or entry[0] != art_id
+                ):
+                    raise ValueError
+                result[art_id] = tuple(entry) if entry is not None else None
+            return result
+        except (ValueError, TypeError) as error:
+            raise ValueError("Saved overframe choices are invalid.") from error
+
+    def _save_choices(self, game_path, choices):
+        path = self._choices_path(game_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = None
+        try:
+            with NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=path.parent, delete=False
+            ) as output:
+                temporary = Path(output.name)
+                json.dump(choices, output, sort_keys=True)
+            os.replace(temporary, path)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
+
+    def reapply(self, game_path, packer):
+        """Apply saved choices in one verified write, preserving unrelated entries."""
+        choices = self.saved_choices(game_path)
+        if not choices:
+            return 0
+        self.locate(game_path)
+        env, asset, data = self._read(self.path)
+        changed = data
+        for art_id, entry in choices.items():
+            changed = set_full_art_entry(changed, art_id, entry)
+        if changed != data:
+            self._write(env, asset, changed, packer)
+        return len(choices)
+
     def status(self, game_path, art_id):
         """Return live membership and whether this texture ID can be edited."""
         self.locate(game_path)
@@ -106,8 +171,13 @@ class FullArtService:
             if original and not any(e[0] == art_id for e in saved_entries):
                 backup.parent.mkdir(parents=True, exist_ok=True)
                 backup.write_bytes(set_full_art_entry(saved, art_id, original))
-        if changed == data:
-            return
+        choices = self.saved_choices(game_path)
+        if changed != data:
+            self._write(env, asset, changed, packer)
+        choices[art_id] = entry if enabled else None
+        self._save_choices(game_path, choices)
+
+    def _write(self, env, asset, changed, packer):
         asset.m_Script = changed.decode("utf-8", "surrogateescape")
         asset.save()
         payload = env.file.save(packer=packer.casefold())

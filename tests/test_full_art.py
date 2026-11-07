@@ -116,6 +116,31 @@ class FullArtServiceTests(unittest.TestCase):
         self.assertEqual(self.path.read_bytes(), self.original)
         self.assertEqual(list(self.path.parent.iterdir()), [self.path])
 
+    def test_reapply_after_update_preserves_other_entries_and_profile_isolation(self):
+        self.service.set_enabled(self.game_path, 22811, False, "LZ4")
+        self.service.set_enabled(self.game_path, 50, True, "LZ4")
+        # The game update replaces the modified gate and adds a new entry.
+        self.path.write_bytes(self.original + pairs((99, 42)))
+        restarted = FullArtService()
+        self.assertEqual(restarted.reapply(self.game_path, "LZ4"), 2)
+        self.assertEqual(self.path.read_bytes(), pairs((3105, 0), (99, 42), (50, 50)))
+        self.assertEqual(restarted.reapply(self.game_path, "LZ4"), 2)
+        self.assertEqual(restarted.saved_choices(str(Path("other").resolve())), {})
+
+    def test_reapply_preserves_updated_live_mapping(self):
+        self.service.set_enabled(self.game_path, 50, True, "LZ4")
+        self.path.write_bytes(self.original + pairs((50, 77)))
+        self.service.reapply(self.game_path, "LZ4")
+        self.assertEqual(self.path.read_bytes(), self.original + pairs((50, 77)))
+
+    def test_reapply_rejects_corrupt_choices_without_touching_bundle(self):
+        path = self.service._choices_path(self.game_path)
+        path.parent.mkdir(parents=True)
+        path.write_text('{"50": [51, 50]}')
+        with self.assertRaises(ValueError):
+            self.service.reapply(self.game_path, "LZ4")
+        self.assertEqual(self.path.read_bytes(), self.original)
+
     def test_malformed_gate_is_never_written(self):
         self.path.write_bytes(b"invalid")
         with self.assertRaises(RuntimeError):

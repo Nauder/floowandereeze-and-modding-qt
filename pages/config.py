@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QProgressDialog,
+    QPushButton,
     QRadioButton,
     QWidget,
 )
@@ -34,6 +35,7 @@ from dialogs.simple_dialogs import show_confirmation_dialog
 from pages.models.asset_list_model import AssetListModel
 from pages.ui.config import Ui_Config
 from services.card_service import CardService
+from services.full_art_service import FullArtService
 from services.unity_service import UnityService
 from services.update_service import (
     update_sleeves,
@@ -185,6 +187,7 @@ class Config(QWidget, Ui_Config):
         self.clearButton.clicked.connect(self._delete_backups)
         self.applyTextButton.clicked.connect(self._apply_all_text_edits)
         self.restoreTextButton.clicked.connect(self._restore_all_text_edits)
+        self.applyOverframeButton.clicked.connect(self._apply_overframes)
         self.mipBox.textChanged.connect(self._set_mip_count)
         for radio in [
             self.noneButton,
@@ -236,6 +239,11 @@ class Config(QWidget, Ui_Config):
         region_layout.addStretch(1)
         self.maincontent.addWidget(region_widget, 2, 1)
         self.maincontent.setColumnStretch(1, 1)
+
+        self.maincontent.addWidget(QLabel("Overframe:", self), 11, 0)
+        self.applyOverframeButton = QPushButton("Reapply All", self)
+        self.applyOverframeButton.setObjectName("applyOverframeButton")
+        self.maincontent.addWidget(self.applyOverframeButton, 11, 1)
 
         set_button_roles(self)
 
@@ -566,6 +574,51 @@ class Config(QWidget, Ui_Config):
         self.bgLine.setText("")
 
         self.window().set_background(None, "stretched")
+
+    def _apply_overframes(self):
+        service = FullArtService()
+        try:
+            choices = service.saved_choices(APP_CONFIG.game_path)
+            if not choices:
+                show_toast(
+                    self,
+                    "Overframe",
+                    "No saved framing changes to apply",
+                    ToastPreset.SUCCESS_DARK,
+                )
+                return
+            if not show_confirmation_dialog(
+                f"Reapply framing changes to {len(choices)} cards?", True
+            ):
+                return
+            try:
+                service.locate(APP_CONFIG.game_path)
+            except RuntimeError:
+                path, _ = QFileDialog.getOpenFileName(
+                    self,
+                    "Select the of_card_asset bundle",
+                    APP_CONFIG.game_path,
+                    "Asset bundles (*)",
+                )
+                if not path:
+                    return
+                service.select_path(path, APP_CONFIG.game_path)
+            count = service.reapply(APP_CONFIG.game_path, APP_CONFIG.packer)
+        except (OSError, RuntimeError, ValueError) as error:
+            logger.exception("Overframe changes could not be reapplied")
+            show_toast(
+                self,
+                "Overframe",
+                f"Could not reapply framing: {error}",
+                ToastPreset.ERROR_DARK,
+            )
+            return
+        show_toast(
+            self,
+            "Overframe",
+            f"Reapplied framing for {count} cards",
+            ToastPreset.SUCCESS_DARK,
+        )
 
     def _apply_all_text_edits(self) -> None:
         """Applies all text edits saved in the database to the game files."""

@@ -34,7 +34,7 @@ Uncheck **Overframe** to switch the selected card to normal framing. This saves 
 
 You can also enable **Overframe** for supported normal cards. Check it, prepare a transparent image in the portrait preview, and choose **Replace**. The switch changes framing immediately; it does not create new artwork. Normal Pendulum textures keep their existing dimensions until overframe is enabled.
 
-Check **Overframe** again after disabling it to restore that card’s saved framing, then replace its artwork if needed. Other cards are unaffected. Image **Restore** restores only the artwork; use **Overframe** separately to change framing.
+Check **Overframe** again after disabling it to restore that card’s saved framing, then replace its artwork if needed. Other cards are unaffected. Image **Restore** restores only the artwork; use **Overframe** separately to change framing. Configuration’s overframe **Reapply All** restores saved switch changes after a game update.
 
 Original framing is backed up automatically under `backups/cards/full_art` for each player profile, even if image backups are disabled. Clearing these backups prevents the control from restoring the original framing exactly. Game updates and other mods can change framing; reselect the card to refresh its status.
 

@@ -14,7 +14,7 @@ After changing the path, restart the application so every editor loads data for 
 
 ### Metadata Source
 
-Use **Metadata Source** only if you need an alternative source for the app’s card and asset data. Enter the GitHub repository as `owner/repository` and, optionally, a **Branch**. Leave Branch blank to use the repository’s default. Choose **Save source** to save your selection, or **Use defaults** to return to `Nauder/floowandereeze-and-modding-etl`.
+Use **Metadata Source** only if you need an alternative source for the appâ€™s card and asset data. Enter the GitHub repository as `owner/repository` and, optionally, a **Branch**. Leave Branch blank to use the repositoryâ€™s default. Choose **Save source** to save your selection, or **Use defaults** to return to `Nauder/floowandereeze-and-modding-etl`.
 
 Choose **Check** to download data from the selected source. Changing the source refreshes the data even if its version date is older, while preserving your saved edits and backups. After updating, choose **Refresh card list** in Summons or restart the app to refresh the other editors. An alternative source must provide data compatible with the app.
 
@@ -40,6 +40,12 @@ Changes are applied immediately. A darker image usually keeps labels and control
 - **Restore All** writes the original names and descriptions back for every card with saved edits.
 
 Both actions can take a long time. Confirm the prompt and leave the application open until it reports completion. Restoring text in the game does not erase the saved modded values, so they can be reapplied later.
+
+## Overframe
+
+After a game update, choose **Reapply All** under Overframe to restore saved framing changes for the selected player profile. This reapplies both enabled and disabled choices without replacing artwork. If prompted, select the bundle containing `of_card_asset`. Close the game before editing and restart it afterward.
+
+Framing choices are saved when you change the Overframe switch in the Cards editor with this version of the app. Earlier changes cannot be recovered automatically: toggle each affected card to record its desired framing before a future update. Choices are stored with the profile's overframe backups and are removed by **Clear Backups**.
 
 ## Backups
 
